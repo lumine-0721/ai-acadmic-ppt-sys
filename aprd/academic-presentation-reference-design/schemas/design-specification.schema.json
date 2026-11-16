@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/schemas/aprd/design-specification.schema.json",
+  "title": "APRD DesignSpecification v1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_provenance",
+    "canvas",
+    "design_tokens",
+    "slide_roles",
+    "layout_patterns",
+    "reusable_assets",
+    "source_traceability",
+    "extraction_confidence",
+    "unsupported_features",
+    "validation_metadata"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "aprd.design-specification.v1"
+    },
+    "source_provenance": {
+      "type": "object",
+      "required": ["reference_id", "file_name", "file_hash", "extraction_metadata"],
+      "additionalProperties": true,
+      "properties": {
+        "reference_id": { "type": "string", "pattern": "^REF[0-9]{3,}$" },
+        "file_name": { "type": "string", "minLength": 1 },
+        "file_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "extraction_metadata": {
+          "type": "object",
+          "required": ["extracted_at", "engine_version", "content_scrubbed", "slide_count"],
+          "properties": {
+            "extracted_at": { "type": "string" },
+            "engine_version": { "type": "string" },
+            "content_scrubbed": { "type": "boolean" },
+            "slide_count": { "type": "integer", "minimum": 1 },
+            "renderer_used": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "required": ["width_emu", "height_emu", "width_pt", "height_pt", "aspect_ratio", "safe_area_percent"],
+      "additionalProperties": true,
+      "properties": {
+        "width_emu": { "type": "integer", "minimum": 1 },
+        "height_emu": { "type": "integer", "minimum": 1 },
+        "width_pt": { "type": "number", "exclusiveMinimum": 0 },
+        "height_pt": { "type": "number", "exclusiveMinimum": 0 },
+        "aspect_ratio": { "type": "string", "minLength": 1 },
+        "safe_area_percent": {
+          "type": "object",
+          "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": { "type": "number", "minimum": 0, "maximum": 100 },
+            "y": { "type": "number", "minimum": 0, "maximum": 100 },
+            "w": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+            "h": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "design_tokens": {
+      "type": "object",
+      "required": ["colors", "typography", "spacing", "visual_styles"],
+      "additionalProperties": true,
+      "properties": {
+        "colors": {
+          "type": "object",
+          "required": ["theme_slots", "semantic_roles", "observed_palette", "office_theme_mapping", "broken_theme_repaired"],
+          "properties": {
+            "theme_slots": { "type": "object" },
+            "semantic_roles": {
+              "type": "object",
+              "required": ["ink", "paper", "accent", "muted"],
+              "properties": {
+                "ink": { "type": "string" },
+                "paper": { "type": "string" },
+                "accent": { "type": "string" },
+                "muted": { "type": "string" }
+              }
+            },
+            "observed_palette": { "type": "array" },
+            "office_theme_mapping": {
+              "type": "object",
+              "required": ["PrimaryAccent", "SecondaryAccent", "DarkText", "LightBackground"]
+            },
+            "broken_theme_repaired": { "type": "boolean" }
+          }
+        },
+        "typography": {
+          "type": "object",
+          "required": ["major_font", "minor_font", "master_tx_styles", "observed_scale_pt", "typography_groups"],
+          "properties": {
+            "major_font": { "type": "object" },
+            "minor_font": { "type": "object" },
+            "master_tx_styles": { "type": "object" },
+            "observed_scale_pt": { "type": "object" },
+            "typography_groups": { "type": "array" }
+          }
+        },
+        "spacing": {
+          "type": "object",
+          "required": ["grid", "margins_percent", "spacing_scale_pt"],
+          "properties": {
+            "grid": { "type": "object" },
+            "margins_percent": { "type": "object" },
+            "spacing_scale_pt": { "type": "array", "items": { "type": "number" } }
+          }
+        },
+        "visual_styles": {
+          "type": "object",
+          "required": ["shape_language", "chart_styling", "image_treatment", "caption_styling", "header_footer_rules"]
+        }
+      }
+    },
+    "slide_roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["slide_number", "design_role", "content_role", "layout_id", "confidence", "evidence_source", "rationale"],
+        "properties": {
+          "slide_number": { "type": "integer", "minimum": 1 },
+          "design_role": { "type": "string", "minLength": 1 },
+          "content_role": { "type": "string", "minLength": 1 },
+          "layout_id": { "type": "string", "pattern": "^LAYOUT[0-9]{3,}$" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence_source": { "type": "string", "enum": ["observed", "inferred", "user_defined"] },
+          "rationale": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "layout_patterns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "layout_id",
+          "pattern_key",
+          "semantic_role",
+          "design_role",
+          "source_slides",
+          "geometry",
+          "slots",
+          "constraints",
+          "variants",
+          "generalization"
+        ],
+        "properties": {
+          "layout_id": { "type": "string", "pattern": "^LAYOUT[0-9]{3,}$" },
+          "pattern_key": { "type": "string", "minLength": 1 },
+          "semantic_role": { "type": "string", "minLength": 1 },
+          "design_role": { "type": "string", "minLength": 1 },
+          "source_slides": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 1 },
+          "geometry": {
+            "type": "object",
+            "required": ["normalized_0_100", "slot_ast_0_1"],
+            "properties": {
+              "normalized_0_100": { "type": "array" },
+              "slot_ast_0_1": { "type": "array" }
+            }
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "slot_id",
+                "slot_name",
+                "semantic_role",
+                "allowed_content_types",
+                "rect_percent",
+                "rect_ratio",
+                "typography_group",
+                "style_tokens",
+                "capacity_estimate",
+                "required",
+                "stretchable",
+                "replaceable",
+                "overflow_strategy"
+              ]
+            }
+          },
+          "constraints": {
+            "type": "object",
+            "required": ["alignments", "non_overlapping_pairs", "reading_order", "within_safe_area"]
+          },
+          "variants": { "type": "array" },
+          "generalization": {
+            "type": "object",
+            "required": ["applicable_content_roles", "inapplicable_cases", "fallback_patterns", "density_tier"]
+          }
+        }
+      }
+    },
+    "reusable_assets": {
+      "type": "object",
+      "required": ["fixed_chrome_elements", "master_backgrounds", "media_assets", "scope_summary"],
+      "properties": {
+        "fixed_chrome_elements": { "type": "array" },
+        "master_backgrounds": { "type": "array" },
+        "media_assets": { "type": "array" },
+        "scope_summary": { "type": "object" }
+      }
+    },
+    "source_traceability": {
+      "type": "object",
+      "required": ["rules", "conflicts"],
+      "properties": {
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["rule_id", "parameter", "evidence_source", "precision", "source_slide", "object_or_part", "confidence", "basis"],
+            "properties": {
+              "rule_id": { "type": "string" },
+              "parameter": { "type": "string" },
+              "evidence_source": { "type": "string", "enum": ["observed", "inferred", "user_defined"] },
+              "precision": { "type": "string", "enum": ["exact", "estimated", "derived", "unknown"] },
+              "source_slide": { "type": ["integer", "null"] },
+              "object_or_part": { "type": "string" },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "basis": { "type": "string" }
+            }
+          }
+        },
+        "conflicts": { "type": "array" }
+      }
+    },
+    "extraction_confidence": {
+      "type": "object",
+      "required": ["overall", "structural", "theme_resolution", "semantic_roles", "layout_generalization"],
+      "properties": {
+        "overall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "structural": { "type": "number", "minimum": 0, "maximum": 1 },
+        "theme_resolution": { "type": "number", "minimum": 0, "maximum": 1 },
+        "semantic_roles": { "type": "number", "minimum": 0, "maximum": 1 },
+        "layout_generalization": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "unsupported_features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slide_number", "object_id", "feature_kind", "support_level", "fallback_action"]
+      }
+    },
+    "validation_metadata": {
+      "type": "object",
+      "required": ["schema_valid", "validator", "package_compatible", "warnings"],
+      "properties": {
+        "schema_valid": { "type": "boolean" },
+        "validator": { "type": "string" },
+        "package_compatible": { "type": "boolean" },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

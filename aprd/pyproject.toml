@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "academic-presentation-reference-design"
+version = "1.0.0"
+description = "Package for the APRD fusion engine and reference-package checkers."
+requires-python = ">=3.11"
+readme = "README.md"
+
+[project.scripts]
+academic-presentation-reference-design = "aprd_pkg_cli:main"
+
+[tool.setuptools]
+py-modules = ["aprd_pkg_cli"]
