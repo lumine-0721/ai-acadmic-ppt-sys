@@ -1,0 +1,17 @@
+{
+  "project_id": " ",
+  "revision": "2",
+  "records": {
+    "C001": {
+      "summary": " ",
+      "depends_on": "E001",
+      "kind": "finding",
+      "status": "VERIFIED",
+      "origin": "user"
+    }
+  },
+  "slide_order": [
+    "S001",
+    "S001"
+  ]
+}

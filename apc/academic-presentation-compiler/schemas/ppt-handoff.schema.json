@@ -1,0 +1,513 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/schemas/apc-ppt-handoff-v1.schema.json",
+  "title": "APC PPT_HANDOFF Structural Index Schema",
+  "description": "Structural JSON Schema for Prompt 0 cross-tool index (PPT_HANDOFF.json). Validates shape, IDs, enums, and required structural fields while allowing forward-compatible extension properties. Cross-record graph & scientific admissibility checks remain enforced by check_handoff.py.",
+  "type": "object",
+  "required": [
+    "project_id",
+    "revision",
+    "records",
+    "slide_order"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "slide_order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^S[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "records": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[MCERVS][0-9]{3,}$"
+      },
+      "patternProperties": {
+        "^M[0-9]{3,}$": {
+          "$ref": "#/$defs/materialRecord"
+        },
+        "^E[0-9]{3,}$": {
+          "$ref": "#/$defs/evidenceRecord"
+        },
+        "^R[0-9]{3,}$": {
+          "$ref": "#/$defs/retrievalRecord"
+        },
+        "^C[0-9]{3,}$": {
+          "$ref": "#/$defs/claimRecord"
+        },
+        "^V[0-9]{3,}$": {
+          "$ref": "#/$defs/visualRecord"
+        },
+        "^S[0-9]{3,}$": {
+          "$ref": "#/$defs/slideRecord"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "idArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[MCERVS][0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "claimIdArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^C[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIdArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^E[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "scientificStatus": {
+      "type": "string",
+      "enum": [
+        "VERIFIED",
+        "USER_PROVIDED",
+        "INFERRED",
+        "HYPOTHESIS",
+        "TO_RETRIEVE",
+        "BLOCKED"
+      ]
+    },
+    "pageStatus": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "PROVISIONAL",
+        "BLOCKED"
+      ]
+    },
+    "baseRecord": {
+      "type": "object",
+      "required": [
+        "summary",
+        "depends_on"
+      ],
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "depends_on": {
+          "$ref": "#/$defs/idArray"
+        },
+        "retired": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "materialRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseRecord"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "depends_on": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "source": {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          },
+          "if": {
+            "not": {
+              "properties": {
+                "retired": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retired"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "source"
+            ]
+          }
+        }
+      ]
+    },
+    "evidenceRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseRecord"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "depends_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^M[0-9]{3,}$"
+              },
+              "uniqueItems": true
+            },
+            "status": {
+              "$ref": "#/$defs/scientificStatus"
+            },
+            "origin": {
+              "type": "string",
+              "enum": [
+                "user",
+                "literature",
+                "other"
+              ]
+            },
+            "source": {
+              "$ref": "#/$defs/nonEmptyString"
+            },
+            "locator": {
+              "$ref": "#/$defs/nonEmptyString"
+            },
+            "supports": {
+              "$ref": "#/$defs/claimIdArray"
+            },
+            "opposes": {
+              "$ref": "#/$defs/claimIdArray"
+            }
+          },
+          "if": {
+            "not": {
+              "properties": {
+                "retired": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retired"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "status",
+              "origin"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "VERIFIED",
+                        "USER_PROVIDED"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "source",
+                    "locator"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "retrievalRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseRecord"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "depends_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[ME][0-9]{3,}$"
+              },
+              "uniqueItems": true
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "IN_PROGRESS",
+                "DONE",
+                "BLOCKED"
+              ]
+            },
+            "target_claims": {
+              "$ref": "#/$defs/claimIdArray"
+            },
+            "result_ids": {
+              "$ref": "#/$defs/evidenceIdArray"
+            },
+            "resolution": {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          },
+          "if": {
+            "not": {
+              "properties": {
+                "retired": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retired"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "status"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "const": "DONE"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "then": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "result_ids"
+                      ],
+                      "properties": {
+                        "result_ids": {
+                          "type": "array",
+                          "minItems": 1
+                        }
+                      }
+                    },
+                    {
+                      "required": [
+                        "resolution"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "claimRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseRecord"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "depends_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[MER][0-9]{3,}$"
+              },
+              "uniqueItems": true
+            },
+            "status": {
+              "$ref": "#/$defs/scientificStatus"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "finding",
+                "inference",
+                "hypothesis",
+                "question",
+                "context"
+              ]
+            },
+            "origin": {
+              "type": "string",
+              "enum": [
+                "user",
+                "literature",
+                "mixed",
+                "other",
+                "not_applicable"
+              ]
+            },
+            "disclosure": {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          },
+          "if": {
+            "not": {
+              "properties": {
+                "retired": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retired"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "status",
+              "kind",
+              "origin"
+            ]
+          }
+        }
+      ]
+    },
+    "visualRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseRecord"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "depends_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[MCER][0-9]{3,}$"
+              },
+              "uniqueItems": true
+            },
+            "status": {
+              "$ref": "#/$defs/pageStatus"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "empirical",
+                "schematic",
+                "layout"
+              ]
+            }
+          },
+          "if": {
+            "not": {
+              "properties": {
+                "retired": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retired"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "status",
+              "kind"
+            ]
+          }
+        }
+      ]
+    },
+    "slideRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseRecord"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "depends_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[MCERV][0-9]{3,}$"
+              },
+              "uniqueItems": true
+            },
+            "status": {
+              "$ref": "#/$defs/pageStatus"
+            },
+            "reviewed_in": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "if": {
+            "not": {
+              "properties": {
+                "retired": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retired"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "status"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "const": "READY"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "reviewed_in"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

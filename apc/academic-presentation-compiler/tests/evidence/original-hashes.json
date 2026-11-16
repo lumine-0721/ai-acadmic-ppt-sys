@@ -1,0 +1,44 @@
+[
+  {
+    "path": "agents/openai.yaml",
+    "original_sha256": "d4fbd660f0dc63834678655a9e159408f4ed32e667491d97a48a8db02e680d27",
+    "worktree_initial_sha256": "d4fbd660f0dc63834678655a9e159408f4ed32e667491d97a48a8db02e680d27",
+    "bytes_equal": true,
+    "lf_normalized_equal": true
+  },
+  {
+    "path": "references/full-stack.md",
+    "original_sha256": "d21a61f6279fc3ea22f8e2b99f2e2ce9fa020634d49d8e7f050fa04e7d4b89b4",
+    "worktree_initial_sha256": "37a03f097b8d127bef703982c1fa07f4a005ece5b33b62c23a7bc2d6265efd6f",
+    "bytes_equal": false,
+    "lf_normalized_equal": true
+  },
+  {
+    "path": "references/handoff-contract.md",
+    "original_sha256": "990948f6e0a7441d4ad67f0d4fd6d3475f347ba328b2fb819930ac893cc7bdb5",
+    "worktree_initial_sha256": "c2f33782385b1c8059f210cec3b911b9f642317a34a648c6d371497f82624e0e",
+    "bytes_equal": false,
+    "lf_normalized_equal": true
+  },
+  {
+    "path": "references/prompt-0.md",
+    "original_sha256": "72a89e867f7714a6e99093376e44e01a85f4642bd22a88ab5f8cdfa270c9e06d",
+    "worktree_initial_sha256": "72a89e867f7714a6e99093376e44e01a85f4642bd22a88ab5f8cdfa270c9e06d",
+    "bytes_equal": true,
+    "lf_normalized_equal": true
+  },
+  {
+    "path": "scripts/check_handoff.py",
+    "original_sha256": "37b49ad1c4e9d2c87411a5fe9f7a70733f7c9b65c2ad5f0fc42f48313ca7e970",
+    "worktree_initial_sha256": "dd6128f30aba0cfc3ec9ca5374b1d21b4d3ef23c102d853aa580ab560bccde0f",
+    "bytes_equal": false,
+    "lf_normalized_equal": true
+  },
+  {
+    "path": "SKILL.md",
+    "original_sha256": "c2abed8a2cfe585952c7657ba82831af24e7919ef743fcf0c68ecddf2ed8ed42",
+    "worktree_initial_sha256": "9174a1e1764043d98abe4dadfb48e7f2b36563f0a257f7bdce3592de549534e7",
+    "bytes_equal": false,
+    "lf_normalized_equal": true
+  }
+]
