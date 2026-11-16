@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/schemas/research-core.bundle.v1.json",
+  "title": "Reusable Research Evidence & Asset Core Bundle v1",
+  "type": "object",
+  "required": [
+    "bundle_id",
+    "title",
+    "schema_version",
+    "core_version",
+    "revision",
+    "sources",
+    "passages",
+    "evidence",
+    "claims",
+    "assets",
+    "comparisons",
+    "consistency_issues"
+  ],
+  "properties": {
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "const": "research-core.bundle.v1"
+    },
+    "core_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "base_revision": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "research_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "title",
+          "origin",
+          "access_status",
+          "verification_level"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^SRC\\d{3,}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "origin": {
+            "enum": [
+              "primary_research",
+              "review",
+              "user_raw",
+              "user_processed",
+              "user_statement",
+              "other"
+            ]
+          },
+          "access_status": {
+            "enum": [
+              "FULL_TEXT_LOCAL",
+              "ABSTRACT_ONLY",
+              "METADATA_ONLY",
+              "USER_DATA_VERIFIED",
+              "USER_NOTES_ONLY",
+              "UNAVAILABLE"
+            ]
+          },
+          "verification_level": {
+            "enum": [
+              "UNVERIFIED",
+              "SOURCE_LOCATED",
+              "EVIDENCE_LOCATED",
+              "SEMANTICALLY_CHECKED",
+              "APPROVED",
+              "CONFLICTED"
+            ]
+          }
+        }
+      }
+    },
+    "passages": {
+      "type": "array"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "evidence_id",
+          "source_id",
+          "origin",
+          "verification_level",
+          "verification_scope",
+          "locator",
+          "subject",
+          "method",
+          "finding"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "pattern": "^E\\d{3,}$"
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^SRC\\d{3,}$"
+          },
+          "origin": {
+            "enum": [
+              "literature",
+              "user",
+              "other"
+            ]
+          },
+          "verification_level": {
+            "enum": [
+              "UNVERIFIED",
+              "SOURCE_LOCATED",
+              "EVIDENCE_LOCATED",
+              "SEMANTICALLY_CHECKED",
+              "APPROVED",
+              "CONFLICTED"
+            ]
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "array"
+    },
+    "assets": {
+      "type": "array"
+    },
+    "comparisons": {
+      "type": "array"
+    },
+    "consistency_issues": {
+      "type": "array"
+    },
+    "processing_records": {
+      "type": "array"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}
