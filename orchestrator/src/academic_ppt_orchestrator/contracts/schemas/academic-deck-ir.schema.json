@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "academic-deck-ir/1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "deck_metadata",
+    "presentation_requirements",
+    "narrative_structure",
+    "evidence_bindings",
+    "design_bindings",
+    "asset_bindings",
+    "slide_specifications",
+    "validation_state",
+    "execution_metadata"
+  ],
+  "properties": {
+    "schema_version": {"const": "academic-deck-ir/1"},
+    "deck_metadata": {"type": "object"},
+    "presentation_requirements": {"type": "object"},
+    "narrative_structure": {"type": "object"},
+    "evidence_bindings": {"type": "array"},
+    "design_bindings": {"type": "object"},
+    "asset_bindings": {"type": "array"},
+    "slide_specifications": {"type": "array"},
+    "validation_state": {"type": "object"},
+    "execution_metadata": {"type": "object"}
+  }
+}

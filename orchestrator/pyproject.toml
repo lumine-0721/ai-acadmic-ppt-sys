@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "academic-ppt-orchestrator"
+version = "0.1.0"
+description = "Control plane that schedules existing APC, APRD, and SEAA modules."
+requires-python = ">=3.11"
+dependencies = [
+  "langgraph==1.2.21",
+  "langgraph-checkpoint-sqlite==3.1.3",
+  "jsonschema==4.25.1",
+  "python-pptx==1.0.2",
+]
+
+[project.scripts]
+academic-ppt-orchestrator = "academic_ppt_orchestrator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+academic_ppt_orchestrator = ["contracts/schemas/*.json"]
