@@ -12,7 +12,7 @@ from academic_ppt_orchestrator.adapters.common import read_json
 SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "academic-deck-ir.schema.json"
 SCHEMA = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 VALIDATOR = Draft202012Validator(SCHEMA)
-IR_VERSION = "academic-deck-ir/1"
+IR_VERSION = "academic-deck-ir/2"
 SLIDE_STATUS_ORDER = {"READY": 0, "PROVISIONAL": 1, "BLOCKED": 2}
 
 
@@ -61,12 +61,54 @@ def merge_slide_status(record: dict, evidence_rows: list[dict], apc_ok: bool,
             "status_reasons": reasons or ["both_modules_ready"], "evidence_gaps": gaps}
 
 
+def _evidence_bindings(state: dict, manifest: dict, records: dict, can_support: bool) -> tuple[list, list]:
+    """One active (claim, evidence, relation) edge; supporting eligibility stays separate."""
+    result = state.get("seaa_result") or {}
+    payload = result.get("payload") or {}
+    package = payload.get("evidence_package") or state.get("evidence_package")
+    supports = (result.get("validation_report") or {}).get("supports") or {}
+    bindings, errors, seen_evidence = {}, [], set()
+    for index, evidence in enumerate(manifest.get("evidence") or []):
+        if evidence.get("retired"):
+            continue
+        eid, source = evidence.get("evidence_id"), evidence.get("source_id")
+        if not eid or not source or eid in seen_evidence:
+            errors.append(f"Invalid or duplicate evidence identity at /evidence/{index}.")
+            continue
+        seen_evidence.add(eid)
+        for link in evidence.get("claim_links") or []:
+            cid, relation = link.get("claim_id"), link.get("relation")
+            if relation not in ("supports", "context", "opposes"):
+                errors.append(f"{eid}: unsupported relation {relation!r}.")
+                continue
+            if cid not in records or not str(cid).startswith("C") or records[cid].get("retired"):
+                errors.append(f"{eid}: missing or retired claim {cid!r}.")
+                continue
+            eligible = (can_support and relation == "supports"
+                        and evidence.get("status") in ("VERIFIED", "USER_PROVIDED")
+                        and eid in supports.get(cid, []))
+            bindings[(cid, relation, eid)] = {
+                "claim_id": cid, "evidence_ids": [eid], "source_ids": [source],
+                "relation": relation, "evidence_status": evidence.get("status"),
+                "verification_scope": evidence.get("verification_scope"),
+                "locator": evidence.get("locator"), "eligible_support": eligible,
+                "manifest_ref": {
+                    "path": str(Path(package) / "02_EVIDENCE_MANIFEST.json") if package else None,
+                    "pointer": f"/evidence/{index}",
+                },
+                "source_manifest_ref": {
+                    "path": str(Path(package) / "01_SOURCE_MANIFEST.json") if package else None,
+                    "source_id": source,
+                },
+            }
+    return [bindings[key] for key in sorted(bindings)], errors
+
+
 def build_ir(state: dict) -> dict:
     handoff_path = state.get("handoff_path")
     handoff = _load(handoff_path) or {}
     records = handoff.get("records") or {}
     manifest = ((state.get("seaa_result") or {}).get("payload") or {}).get("manifest") or {}
-    supports = ((state.get("seaa_result") or {}).get("validation_report") or {}).get("supports") or {}
     package = state.get("design_package")
     design = _load(str(Path(package) / "DESIGN_SYSTEM.json")) if package and Path(package).is_dir() else None
     layouts = _load(str(Path(package) / "LAYOUT_LIBRARY.json")) if package and Path(package).is_dir() else None
@@ -103,17 +145,10 @@ def build_ir(state: dict) -> dict:
             "overflow_policy": overflow.get("resolution") if overflow else None,
             "layout_preserved": True,
         })
-    bindings = []
-    for claim_id, evidence_ids in sorted(supports.items()):
-        bindings.append({
-            "claim_id": claim_id,
-            "evidence_ids": evidence_ids,
-            "source_ids": sorted({
-                item.get("source_id")
-                for item in manifest.get("evidence") or []
-                if item.get("evidence_id") in evidence_ids and item.get("source_id")
-            }),
-        })
+    # Identical IDs in another project are not the same claim. The source package
+    # remains available in the module artifacts, but must not be joined to this deck.
+    bindings, binding_errors = _evidence_bindings(state, manifest if evidence_gate != "conflict" else {},
+                                                 records, apc_ok and seaa_ok)
     asset_bindings = []
     for asset in (assets or {}).get("assets") or []:
         asset_bindings.append({
@@ -132,12 +167,14 @@ def build_ir(state: dict) -> dict:
         reasons.append("evidence_" + str(evidence_gate))
     if conflicts:
         reasons.append("design_conflict_recorded")
+    if binding_errors:
+        reasons.append("evidence_binding_invalid")
     if not slides:
         reasons.append("slides_missing")
     for slide in slides:
         if slide["status"] != "READY":
             reasons.append(f"slide_{slide['slide_id']}_{slide['status'].lower()}")
-    if (not apc_ok or not seaa_ok or not slides
+    if (not apc_ok or not seaa_ok or not slides or binding_errors
             or aprd_acceptance not in ("accepted", "conflict") or evidence_gate == "insufficient"
             or any(slide["status"] == "BLOCKED" for slide in slides)):
         status = "blocked"
@@ -176,6 +213,7 @@ def build_ir(state: dict) -> dict:
             "evidence_reason": decision.get("reason"),
             "conflicts": conflicts,
             "adjustments": adjustments,
+            "binding_errors": binding_errors,
         },
         "execution_metadata": {
             "module_runs": [

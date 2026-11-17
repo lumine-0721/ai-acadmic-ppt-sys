@@ -78,7 +78,7 @@ class OrchestratorTests(unittest.TestCase):
             self.assertEqual(result["apc_result"]["acceptance"], "accepted")
             self.assertEqual(result["aprd_result"]["acceptance"], "accepted")
             ir = json.loads(Path(result["ir_path"]).read_text(encoding="utf-8"))
-            self.assertEqual(ir["schema_version"], "academic-deck-ir/1")
+            self.assertEqual(ir["schema_version"], "academic-deck-ir/2")
             self.assertEqual(ir["design_bindings"]["constraints_dropped"], False)
             self.assertTrue(ir["design_bindings"]["layouts"]["layouts"])
             self.assertTrue(Path(result["pptx_path"]).is_file())

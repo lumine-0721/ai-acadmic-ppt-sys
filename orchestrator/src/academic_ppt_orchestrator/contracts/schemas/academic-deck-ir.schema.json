@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "academic-deck-ir/1",
+  "$id": "academic-deck-ir/2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,15 +16,57 @@
     "execution_metadata"
   ],
   "properties": {
-    "schema_version": {"const": "academic-deck-ir/1"},
+    "schema_version": {"const": "academic-deck-ir/2"},
     "deck_metadata": {"type": "object"},
     "presentation_requirements": {"type": "object"},
     "narrative_structure": {"type": "object"},
-    "evidence_bindings": {"type": "array"},
+    "evidence_bindings": {"type": "array", "items": {"$ref": "#/$defs/evidenceBinding"}},
     "design_bindings": {"type": "object"},
     "asset_bindings": {"type": "array"},
-    "slide_specifications": {"type": "array"},
+    "slide_specifications": {"type": "array", "items": {"$ref": "#/$defs/slide"}},
     "validation_state": {"type": "object"},
     "execution_metadata": {"type": "object"}
+  },
+  "$defs": {
+    "slide": {
+      "type": "object",
+      "required": ["slide_id", "status", "status_sources", "status_reasons", "evidence_gaps"],
+      "properties": {
+        "slide_id": {"type": "string", "pattern": "^S[0-9]{3,}$"},
+        "status": {"enum": ["READY", "PROVISIONAL", "BLOCKED"]},
+        "status_sources": {
+          "type": "object", "required": ["apc", "seaa"],
+          "properties": {"apc": {"type": ["string", "null"]}, "seaa": {"type": ["string", "null"]}}
+        },
+        "status_reasons": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "evidence_gaps": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "evidenceBinding": {
+      "type": "object",
+      "required": ["claim_id", "evidence_ids", "source_ids", "relation", "evidence_status", "eligible_support", "verification_scope", "locator", "manifest_ref", "source_manifest_ref"],
+      "properties": {
+        "claim_id": {"type": "string", "pattern": "^C[0-9]{3,}$"},
+        "evidence_ids": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^E[0-9]{3,}$"}},
+        "source_ids": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "pattern": "^SRC[0-9]{3,}$"}},
+        "relation": {"enum": ["supports", "context", "opposes"]},
+        "evidence_status": {"enum": ["VERIFIED", "USER_PROVIDED", "INFERRED", "HYPOTHESIS", "TO_RETRIEVE", "BLOCKED"]},
+        "eligible_support": {"type": "boolean"},
+        "verification_scope": {"type": ["string", "null"]},
+        "locator": {"type": ["string", "null"]},
+        "manifest_ref": {
+          "type": "object", "required": ["path", "pointer"],
+          "properties": {"path": {"type": ["string", "null"]}, "pointer": {"type": "string", "pattern": "^/evidence/[0-9]+$"}}
+        },
+        "source_manifest_ref": {
+          "type": "object", "required": ["path", "source_id"],
+          "properties": {"path": {"type": ["string", "null"]}, "source_id": {"type": "string", "pattern": "^SRC[0-9]{3,}$"}}
+        }
+      },
+      "allOf": [{
+        "if": {"properties": {"eligible_support": {"const": true}}},
+        "then": {"properties": {"relation": {"const": "supports"}, "evidence_status": {"enum": ["VERIFIED", "USER_PROVIDED"]}}}
+      }]
+    }
   }
 }

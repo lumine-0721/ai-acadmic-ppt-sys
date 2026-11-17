@@ -11,7 +11,7 @@ from langgraph.graph import END, START, StateGraph
 
 from academic_ppt_orchestrator.adapters import apc, aprd, seaa
 from academic_ppt_orchestrator.adapters.common import write_json
-from academic_ppt_orchestrator.backends.plan import build_plan
+from academic_ppt_orchestrator.backends.plan import blocked_schema_plan, build_plan
 from academic_ppt_orchestrator.backends.probe_pptx import write_probe
 from academic_ppt_orchestrator.contracts.ir import build_ir
 from academic_ppt_orchestrator.journal import append_event
@@ -187,11 +187,13 @@ def node_assemble(state: dict) -> dict:
 
 
 def node_plan(state: dict) -> dict:
-    plan = build_plan(state, state["ir"])
+    ir = state["ir"]
+    schema_errors = ir["validation_state"].get("schema_errors")
+    plan = blocked_schema_plan(state, ir) if schema_errors else build_plan(state, ir)
     path = Path(state["run_dir"]) / "backend_execution_plan.json"
     write_json(path, plan)
     pptx_path = None
-    if state["task"].get("write_probe_pptx", True):
+    if not schema_errors and state["task"].get("write_probe_pptx", True):
         pptx_path = str(Path(state["run_dir"]) / "probe.pptx")
         write_probe(Path(pptx_path), state["ir"])
         plan["output_artifact_targets"] = [{
