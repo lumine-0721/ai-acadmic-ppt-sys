@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import sys
 import unittest
@@ -10,14 +11,16 @@ SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
 
 from academic_ppt_orchestrator.journal import read_events
+from academic_ppt_orchestrator.config import module_roots
 from academic_ppt_orchestrator.process import run_command
 from academic_ppt_orchestrator.qa.router import route_report
 from academic_ppt_orchestrator.workflow.graph import invoke_run, resume_run
 
 PYTHON = sys.executable
-APC = Path(r"C:\Users\86139\.codex\skills\academic-presentation-compiler")
-APRD = Path(r"C:\Users\86139\.codex\skills\academic-presentation-reference-design")
-SEAA = Path(r"C:\Users\86139\.codex\skills\scientific-evidence-asset-acquisition")
+MODULE_ROOTS = module_roots()
+APC = MODULE_ROOTS["apc"]
+APRD = MODULE_ROOTS["aprd"]
+SEAA = MODULE_ROOTS["seaa"]
 SMOKE = Path(r"C:\Users\86139\Desktop\codex\outputs")
 HANDOFF = SMOKE / "academic-presentation-compiler" / "smoke" / "v002" / "PPT_HANDOFF.json"
 REQUIREMENTS = SMOKE / "academic-presentation-compiler" / "smoke" / "v002" / "PPT_REQUIREMENTS.md"
@@ -28,7 +31,7 @@ SEAA_HANDOFF = SMOKE / "scientific-evidence-asset-acquisition" / "smoke" / "PPT_
 SEAA_REQUIREMENTS = SMOKE / "scientific-evidence-asset-acquisition" / "smoke" / "PPT_REQUIREMENTS.md"
 
 
-WORK = ROOT / ".tmp-tests"
+WORK = Path(os.environ.get("ORCHESTRATOR_TEST_WORK", str(ROOT / ".tmp-tests")))
 
 
 def workspace():

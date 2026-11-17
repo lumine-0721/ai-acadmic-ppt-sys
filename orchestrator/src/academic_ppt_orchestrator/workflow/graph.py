@@ -214,7 +214,10 @@ def node_terminal(state: dict) -> dict:
     status = ((state.get("ir") or {}).get("validation_state") or {}).get("status")
     mapping = {"accepted": "SUCCEEDED", "partial": "PARTIAL", "blocked": "BLOCKED"}
     terminal = mapping.get(status, "FAILED")
-    reason = ((state.get("ir") or {}).get("validation_state") or {}).get("evidence_reason") or status or "no ir"
+    validation = ((state.get("ir") or {}).get("validation_state") or {})
+    reason_parts = [validation.get("evidence_reason"), *(validation.get("reasons") or []),
+                    *(validation.get("schema_errors") or [])]
+    reason = "; ".join(str(part) for part in reason_parts if part) or status or "no ir"
     manifest = {
         "run_id": state["run_id"],
         "terminal": terminal,
