@@ -41,13 +41,15 @@ from research_core.models import (
 from research_core.pdf_processor import parse_scientific_pdf
 from seaa_adapter import compile_evidence_package_from_bundle
 
-WORK_TMP_ROOT = Path("C:/Users/86139/Desktop/codex/_review_tmp")
+# Committed fixtures live at <repo>/fixtures/seaa (rebuild with tools/build_seaa_fixtures.py).
+# Override with ACADEMIC_PPT_FIXTURES to point at another fixture tree.
+FIXTURES = Path(os.environ.get("ACADEMIC_PPT_FIXTURES") or SKILL_DIR.parents[1] / "fixtures")
+# Scratch space; defaults to the system temp dir (override with SEAA_TEST_TMP).
+WORK_TMP_ROOT = Path(os.environ.get("SEAA_TEST_TMP") or Path(tempfile.gettempdir()) / "seaa-tests")
 WORK_TMP_ROOT.mkdir(parents=True, exist_ok=True)
-os.environ["TMP"] = str(WORK_TMP_ROOT)
-os.environ["TEMP"] = str(WORK_TMP_ROOT)
 
-CORE_LIT_JSON = Path("C:/Users/86139/Desktop/codex/outputs/01a075cf-062b-7c21-b553-8ba869c5e511/核心文献元数据.json")
-PLOS_PDF = Path("C:/Users/86139/Desktop/codex/outputs/copy-first-evolution-20261112/experiments/seaa/evidence/plos-1003285.pdf")
+CORE_LIT_JSON = FIXTURES / "seaa" / "core-literature-catalog.json"
+PLOS_PDF = FIXTURES / "seaa" / "plos-1003285.pdf"  # synthetic stand-in, see tools/build_seaa_fixtures.py
 
 
 def build_synthetic_multipanel_scientific_pdf(pdf_path: Path) -> None:

@@ -2,6 +2,7 @@
 """Regression and capability tests for APRD inspect_design.py, inspect_pptx.py, and check_package.py."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,9 +12,11 @@ import unittest
 SKILL_DIR = Path(__file__).resolve().parents[1]
 DESIGN_CLI = SKILL_DIR / "scripts" / "inspect_design.py"
 DIRECT_CLI = SKILL_DIR / "scripts" / "inspect_pptx.py"
-BASE = Path("C:/Users/86139/Desktop/codex/outputs/copy-first-evolution-20261112")
-DEMO_PPTX = BASE / "experiments" / "aprd" / "source-api-demo.pptx"
-LEGACY_PPTX = BASE / "evidence" / "legacy" / "academic-presentation-compiler" / "out" / "instrument-gain-v002.pptx"
+# Committed fixtures live at <repo>/fixtures (rebuild with tools/build_pptx_fixtures.py).
+# Override with ACADEMIC_PPT_FIXTURES to point at another fixture tree.
+FIXTURES = Path(os.environ.get("ACADEMIC_PPT_FIXTURES") or SKILL_DIR.parents[1] / "fixtures")
+DEMO_PPTX = FIXTURES / "aprd" / "source-api-demo.pptx"
+LEGACY_PPTX = FIXTURES / "apc" / "out" / "instrument-gain-v002.pptx"
 
 
 class TestInspectDesign(unittest.TestCase):

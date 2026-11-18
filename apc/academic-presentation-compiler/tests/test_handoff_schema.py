@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Unit and CLI regression tests for APC check_handoff_schema.py and check_handoff.py."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,7 +12,10 @@ SKILL_DIR = Path(__file__).resolve().parents[1]
 SCHEMA_CLI = SKILL_DIR / "scripts" / "check_handoff_schema.py"
 STD_CLI = SKILL_DIR / "scripts" / "check_handoff.py"
 FIXTURES = SKILL_DIR / "tests" / "fixtures"
-LEGACY = Path("C:/Users/86139/Desktop/codex/outputs/copy-first-evolution-20261112/evidence/legacy/academic-presentation-compiler")
+# Committed fixtures live at <repo>/fixtures (rebuild with tools/build_apc_fixtures.py).
+# Override with ACADEMIC_PPT_FIXTURES to point at another fixture tree.
+FIXTURE_ROOT = Path(os.environ.get("ACADEMIC_PPT_FIXTURES") or SKILL_DIR.parents[1] / "fixtures")
+LEGACY = FIXTURE_ROOT / "apc"  # holds v001/ and v002/ (PPT_REQUIREMENTS.md + PPT_HANDOFF.json)
 
 
 class TestHandoffSchema(unittest.TestCase):

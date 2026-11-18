@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -39,12 +40,15 @@ from aprd_engine.spec_compiler import (  # noqa: E402
     validate_design_spec_schema,
 )
 
-BASE_COPY_FIRST = Path("C:/Users/86139/Desktop/codex/outputs/copy-first-evolution-20261112")
-DEMO_PPTX = BASE_COPY_FIRST / "experiments" / "aprd" / "source-api-demo.pptx"
-LEGACY_PPTX = BASE_COPY_FIRST / "evidence" / "legacy" / "academic-presentation-compiler" / "out" / "instrument-gain-v002.pptx"
-HOSTILE_PPTX = Path("C:/Users/86139/.codex/skills/jameshemson-slides/tests/fixtures/hostile-template.pptx")
-HANDOFF_V002 = Path("C:/Users/86139/Desktop/codex/outputs/academic-presentation-compiler/smoke/v002/PPT_HANDOFF.json")
-WORK_TMP = Path("C:/Users/86139/Desktop/codex/outputs/aprd-fusion-20261113/tmp")
+# Committed fixtures live at <repo>/fixtures (rebuild with tools/build_pptx_fixtures.py).
+# Override with ACADEMIC_PPT_FIXTURES to point at another fixture tree.
+FIXTURES = Path(os.environ.get("ACADEMIC_PPT_FIXTURES") or SKILL_DIR.parents[1] / "fixtures")
+DEMO_PPTX = FIXTURES / "aprd" / "source-api-demo.pptx"
+LEGACY_PPTX = FIXTURES / "apc" / "out" / "instrument-gain-v002.pptx"
+HOSTILE_PPTX = FIXTURES / "aprd" / "hostile-template.pptx"
+HANDOFF_V002 = FIXTURES / "apc" / "v002" / "PPT_HANDOFF.json"
+# Scratch space for generated packages; defaults to the system temp dir (override with APRD_TEST_TMP).
+WORK_TMP = Path(os.environ.get("APRD_TEST_TMP") or Path(tempfile.gettempdir()) / "aprd-tests")
 
 
 class TestAprdFusionEngine(unittest.TestCase):

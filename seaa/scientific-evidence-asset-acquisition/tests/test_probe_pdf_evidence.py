@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Unit and CLI regression tests for SEAA probe_pdf_evidence.py."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -9,9 +10,11 @@ import unittest
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
 PROBE_CLI = SKILL_DIR / "scripts" / "probe_pdf_evidence.py"
-BASE = Path("C:/Users/86139/Desktop/codex/outputs/copy-first-evolution-20261112")
-SYNTH_PDF = BASE / "experiments" / "seaa" / "evidence" / "synthetic-probe.pdf"
-PLOS_PDF = BASE / "experiments" / "seaa" / "evidence" / "plos-1003285.pdf"
+# Committed fixtures live at <repo>/fixtures/seaa (rebuild with tools/build_seaa_fixtures.py).
+# Override with ACADEMIC_PPT_FIXTURES to point at another fixture tree.
+FIXTURES = Path(os.environ.get("ACADEMIC_PPT_FIXTURES") or SKILL_DIR.parents[1] / "fixtures")
+SYNTH_PDF = FIXTURES / "seaa" / "synthetic-probe.pdf"
+PLOS_PDF = FIXTURES / "seaa" / "plos-1003285.pdf"  # synthetic stand-in, see tools/build_seaa_fixtures.py
 
 
 class TestProbePdfEvidence(unittest.TestCase):

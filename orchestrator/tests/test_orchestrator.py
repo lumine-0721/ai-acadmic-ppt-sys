@@ -21,14 +21,17 @@ MODULE_ROOTS = module_roots()
 APC = MODULE_ROOTS["apc"]
 APRD = MODULE_ROOTS["aprd"]
 SEAA = MODULE_ROOTS["seaa"]
-SMOKE = Path(r"C:\Users\86139\Desktop\codex\outputs")
-HANDOFF = SMOKE / "academic-presentation-compiler" / "smoke" / "v002" / "PPT_HANDOFF.json"
-REQUIREMENTS = SMOKE / "academic-presentation-compiler" / "smoke" / "v002" / "PPT_REQUIREMENTS.md"
-DESIGN = SMOKE / "academic-presentation-reference-design" / "smoke" / "design-v002" / "PPT_REFERENCE_PACKAGE"
-PPTX = SMOKE / "academic-presentation-compiler" / "smoke" / "out" / "instrument-gain-v002.pptx"
-EVIDENCE = SMOKE / "scientific-evidence-asset-acquisition" / "smoke" / "v002" / "EVIDENCE_PACKAGE"
-SEAA_HANDOFF = SMOKE / "scientific-evidence-asset-acquisition" / "smoke" / "PPT_HANDOFF.json"
-SEAA_REQUIREMENTS = SMOKE / "scientific-evidence-asset-acquisition" / "smoke" / "PPT_REQUIREMENTS.md"
+# Committed fixtures live at <repo>/fixtures (rebuild with tools/build_fixtures.py).
+# Override with ACADEMIC_PPT_FIXTURES to point at another fixture tree.
+FIXTURES = Path(os.environ.get("ACADEMIC_PPT_FIXTURES") or ROOT.parent / "fixtures")
+HANDOFF = FIXTURES / "apc" / "v002" / "PPT_HANDOFF.json"
+REQUIREMENTS = FIXTURES / "apc" / "v002" / "PPT_REQUIREMENTS.md"
+DESIGN = FIXTURES / "aprd" / "design-v002" / "PPT_REFERENCE_PACKAGE"
+PPTX = FIXTURES / "apc" / "out" / "instrument-gain-v002.pptx"
+EVIDENCE = FIXTURES / "seaa" / "v002" / "EVIDENCE_PACKAGE"
+# The evidence package fixture is built against the same handoff the other modules use.
+SEAA_HANDOFF = HANDOFF
+SEAA_REQUIREMENTS = REQUIREMENTS
 
 
 WORK = Path(os.environ.get("ORCHESTRATOR_TEST_WORK", str(ROOT / ".tmp-tests")))
