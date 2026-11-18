@@ -1,0 +1,108 @@
+{
+  "layouts": [
+    {
+      "alignment_rules": [
+        "left-align headline and body to the same margin"
+      ],
+      "fixed_constraints": [
+        "headline stays above content"
+      ],
+      "variable_parameters": [
+        "headline text",
+        "figure"
+      ],
+      "content_capacity": {
+        "headline_max_chars": 40,
+        "note": "one line at 32 pt"
+      },
+      "adaptation_rules": [
+        "overflow goes to speaker notes; never shrink below 24 pt"
+      ],
+      "scientific_content_compatibility": [
+        "context slides",
+        "one empirical figure per slide"
+      ],
+      "source_ref_id": "REF001",
+      "precision": "exact",
+      "layout_id": "LAYOUT001",
+      "semantic_role": "problem statement",
+      "source_slide": 1,
+      "element_hierarchy": [
+        "headline",
+        "body"
+      ],
+      "normalized_geometry": [
+        {
+          "slot": "headline",
+          "x": 6,
+          "y": 5,
+          "w": 88,
+          "h": 15
+        },
+        {
+          "slot": "body",
+          "x": 6,
+          "y": 25,
+          "w": 88,
+          "h": 65
+        }
+      ]
+    },
+    {
+      "alignment_rules": [
+        "left-align headline and body to the same margin"
+      ],
+      "fixed_constraints": [
+        "headline stays above content"
+      ],
+      "variable_parameters": [
+        "headline text",
+        "figure"
+      ],
+      "content_capacity": {
+        "headline_max_chars": 40,
+        "note": "one line at 32 pt"
+      },
+      "adaptation_rules": [
+        "overflow goes to speaker notes; never shrink below 24 pt"
+      ],
+      "scientific_content_compatibility": [
+        "context slides",
+        "one empirical figure per slide"
+      ],
+      "source_ref_id": "REF001",
+      "precision": "exact",
+      "layout_id": "LAYOUT002",
+      "semantic_role": "result with main figure",
+      "source_slide": 2,
+      "element_hierarchy": [
+        "headline",
+        "main_figure",
+        "caption"
+      ],
+      "normalized_geometry": [
+        {
+          "slot": "headline",
+          "x": 6,
+          "y": 5,
+          "w": 88,
+          "h": 15
+        },
+        {
+          "slot": "main_figure",
+          "x": 6,
+          "y": 25,
+          "w": 88,
+          "h": 55
+        },
+        {
+          "slot": "caption",
+          "x": 6,
+          "y": 82,
+          "w": 88,
+          "h": 10
+        }
+      ]
+    }
+  ]
+}

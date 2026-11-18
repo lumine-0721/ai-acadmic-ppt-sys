@@ -1,0 +1,74 @@
+{
+  "design_revision": 1,
+  "primary_anchor_ref_id": "REF001",
+  "canvas": {
+    "width": 9144000,
+    "height": 6858000,
+    "unit": "emu"
+  },
+  "provenance": [
+    {
+      "parameter": "canvas",
+      "basis": "presentation.xml sldSz of REF001",
+      "ref_id": "REF001",
+      "precision": "exact"
+    },
+    {
+      "parameter": "palette",
+      "basis": "default Office theme, not tuned",
+      "ref_id": null,
+      "precision": "derived"
+    }
+  ],
+  "grid": {
+    "columns": 12,
+    "gutter_percent": 2
+  },
+  "margins": {
+    "left_percent": 6,
+    "right_percent": 6,
+    "top_percent": 5,
+    "bottom_percent": 6
+  },
+  "colors": {
+    "text": "#1A202C",
+    "background": "#FFFFFF",
+    "accent": "#1F4E79"
+  },
+  "typography": {
+    "headline_pt": 32,
+    "body_pt": 18,
+    "caption_pt": 12
+  },
+  "spacing": {
+    "paragraph_pt": 6,
+    "block_gap_percent": 3
+  },
+  "shapes": {
+    "corner": "square",
+    "line_pt": 1
+  },
+  "components": {
+    "title": "single-line headline",
+    "figure": "one main figure with caption"
+  },
+  "graphics": {
+    "style": "flat, no shadows"
+  },
+  "image_treatment": {
+    "crop": "none",
+    "border": "none"
+  },
+  "chart_style": {
+    "axes": "labelled with units",
+    "gridlines": "light"
+  },
+  "consistency_rules": [
+    "one headline per slide",
+    "units on every axis"
+  ],
+  "constraints": [
+    "do not crop axes",
+    "keep figure aspect ratio"
+  ]
+}

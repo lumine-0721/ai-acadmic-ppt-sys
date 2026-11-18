@@ -1,0 +1,37 @@
+{
+  "assets": [
+    {
+      "asset_id": "A001",
+      "source_id": "SRC001",
+      "evidence_ids": [
+        "E001"
+      ],
+      "slide_ids": [
+        "S002"
+      ],
+      "status": "ACQUIRED",
+      "source_locator": "Table 1, rows 1-12",
+      "path": "assets/gain-curve.png",
+      "sha256": "bcb1988d1f7614a11a23aa03d0365794c68430bc6516daded09089a58519c8d7",
+      "format": "png",
+      "caption": "设定增益与实测输出（合成数据，仅作夹具）",
+      "conditions": [
+        "synthetic data",
+        "gain 1-100x"
+      ],
+      "rights": {
+        "status": "ALLOWED",
+        "basis": "user-owned data",
+        "attribution": ""
+      },
+      "scientific_immutable": [
+        "axis ranges",
+        "units"
+      ],
+      "transformation": {
+        "kind": "original",
+        "basis": "tiny placeholder image, no data re-plotted"
+      }
+    }
+  ]
+}

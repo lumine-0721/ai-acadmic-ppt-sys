@@ -1,0 +1,90 @@
+{
+  "project_id": "instrument-gain-smoke",
+  "revision": 2,
+  "slide_order": [
+    "S001",
+    "S002"
+  ],
+  "records": {
+    "M001": {
+      "summary": "用户提供的增益标定表：设定增益 1-100 倍，各点实测输出",
+      "depends_on": [],
+      "source": "user-data/instrument-gain-calibration.csv"
+    },
+    "E001": {
+      "summary": "增益设定值与实测输出的线性拟合结果（R2 = 0.999，虚构数值）",
+      "depends_on": [
+        "M001"
+      ],
+      "status": "VERIFIED",
+      "origin": "user",
+      "source": "user-data/instrument-gain-calibration.csv",
+      "locator": "Table 1, rows 1-12",
+      "supports": [],
+      "opposes": []
+    },
+    "R001": {
+      "summary": "确认本页结论不依赖外部文献，无需检索",
+      "depends_on": [
+        "M001"
+      ],
+      "status": "DONE",
+      "target_claims": [
+        "C002"
+      ],
+      "result_ids": [],
+      "resolution": "结论只依据用户自有标定数据；无外部文献需求。"
+    },
+    "C001": {
+      "summary": "背景：仪器增益需要在使用前标定，否则无法比较不同日期的信号",
+      "depends_on": [],
+      "status": "INFERRED",
+      "kind": "context",
+      "origin": "not_applicable"
+    },
+    "C002": {
+      "summary": "在 1-100 倍设定范围内，实测输出与设定增益呈线性关系",
+      "depends_on": [
+        "E001",
+        "R001"
+      ],
+      "status": "VERIFIED",
+      "kind": "finding",
+      "origin": "user"
+    },
+    "V001": {
+      "summary": "增益设定值对实测输出的散点与拟合线",
+      "depends_on": [
+        "C002",
+        "E001"
+      ],
+      "status": "READY",
+      "kind": "empirical"
+    },
+    "V002": {
+      "summary": "标题加正文的单栏版式",
+      "depends_on": [],
+      "status": "READY",
+      "kind": "layout"
+    },
+    "S001": {
+      "summary": "仪器增益标定：问题与目标",
+      "depends_on": [
+        "C001",
+        "V002"
+      ],
+      "status": "READY",
+      "reviewed_in": 2
+    },
+    "S002": {
+      "summary": "增益线性度在 1-100 倍范围内保持稳定",
+      "depends_on": [
+        "C002",
+        "V001",
+        "R001"
+      ],
+      "status": "READY",
+      "reviewed_in": 2
+    }
+  }
+}

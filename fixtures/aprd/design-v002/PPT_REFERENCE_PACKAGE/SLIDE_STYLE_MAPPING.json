@@ -1,0 +1,38 @@
+{
+  "scope": "project",
+  "project_id": "instrument-gain-smoke",
+  "base_revision": 2,
+  "design_revision": 1,
+  "target_slide_ids": [
+    "S001",
+    "S002"
+  ],
+  "mappings": [
+    {
+      "target_slide_id": "S001",
+      "required_content_type": "problem statement",
+      "adaptation_instructions": "Use the headline and one body block.",
+      "selected_layout_id": "LAYOUT001",
+      "reference_source": "REF001",
+      "coverage": "COVERED",
+      "visual_requirements": [
+        "V002"
+      ],
+      "layout_risks": [],
+      "unresolved_requirements": []
+    },
+    {
+      "target_slide_id": "S002",
+      "required_content_type": "empirical result",
+      "adaptation_instructions": "Place the gain curve in the main figure slot with its caption.",
+      "selected_layout_id": "LAYOUT002",
+      "reference_source": "REF001",
+      "coverage": "COVERED",
+      "visual_requirements": [
+        "V001"
+      ],
+      "layout_risks": [],
+      "unresolved_requirements": []
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "project_id": "instrument-gain-smoke",
+  "base_revision": 2,
+  "package_revision": 1,
+  "mode": "GIVEN_FIRST_AUDIT",
+  "scope": "full",
+  "target_slide_ids": [
+    "S001",
+    "S002"
+  ],
+  "claim_ids": [
+    "C001",
+    "C002"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E001",
+      "source_id": "SRC001",
+      "origin": "user",
+      "status": "VERIFIED",
+      "verification_scope": "calibration table read in full",
+      "locator": "Table 1, rows 1-12",
+      "subject": "instrument gain linearity",
+      "method": "linear least-squares fit of measured output against set gain",
+      "finding": "Measured output is linear in set gain from 1x to 100x (R2 = 0.999, invented value).",
+      "measurements": [
+        {
+          "value": 0.999,
+          "unit": "1",
+          "definition": "R2 of the linear fit"
+        }
+      ],
+      "conditions": [
+        "room temperature",
+        "fixed input amplitude"
+      ],
+      "controls": [
+        "repeat measurement at each gain setting"
+      ],
+      "limitations": [
+        "single instrument",
+        "range limited to 1-100x"
+      ],
+      "alternative_explanations": [
+        "detector saturation would bend the curve above 100x"
+      ],
+      "applicability": "Only this instrument within the tested range.",
+      "claim_links": [
+        {
+          "claim_id": "C002",
+          "relation": "supports"
+        }
+      ],
+      "slide_ids": [
+        "S002"
+      ],
+      "task_ids": [
+        "R001"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "R001",
+      "status": "DONE",
+      "evidence_ids": [
+        "E001"
+      ],
+      "asset_ids": [
+        "A001"
+      ],
+      "resolution": "Answered from the user's own calibration table; no literature needed."
+    }
+  ],
+  "comparisons": [],
+  "slides": [
+    {
+      "slide_id": "S001",
+      "status": "READY",
+      "scientific_message": "增益必须在使用前标定",
+      "asset_rationale": "背景页，不需要实验素材",
+      "claims": [
+        {
+          "claim_id": "C001",
+          "purpose": "discuss",
+          "disclosure": "背景说明，不是实验结论"
+        }
+      ],
+      "evidence_ids": [],
+      "asset_ids": [],
+      "visual_ids": [
+        "V002"
+      ],
+      "asset_requirement": "none",
+      "must_preserve": [],
+      "prohibited_inferences": [],
+      "gaps": [],
+      "comparison_ids": []
+    },
+    {
+      "slide_id": "S002",
+      "status": "READY",
+      "scientific_message": "1-100 倍范围内增益线性",
+      "asset_rationale": "增益曲线直接展示线性关系",
+      "claims": [
+        {
+          "claim_id": "C002",
+          "purpose": "establish",
+          "disclosure": ""
+        }
+      ],
+      "evidence_ids": [
+        "E001"
+      ],
+      "asset_ids": [
+        "A001"
+      ],
+      "visual_ids": [
+        "V001"
+      ],
+      "asset_requirement": "required",
+      "must_preserve": [
+        "axis ranges",
+        "units"
+      ],
+      "prohibited_inferences": [
+        "extrapolation above 100x"
+      ],
+      "gaps": [],
+      "comparison_ids": []
+    }
+  ]
+}

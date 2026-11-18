@@ -1,0 +1,146 @@
+[
+  {
+    "title": "Ratiometric FRET probe for mitochondrial H2O2 in living cells",
+    "doi": "10.99999/fixture.001",
+    "authors": [
+      "Fixture Author 1A",
+      "Fixture Author 1B"
+    ],
+    "year": 2016,
+    "publication": "Journal of Invented Results",
+    "abstract": "A ratiometric FRET probe built on a polymer micelle reports H2O2 in mitochondria. 聚合物胶束 载体 提高了线粒体靶向性。",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Polymeric micelle carriers for organelle-targeted fluorescent probes",
+    "doi": "10.99999/fixture.002",
+    "authors": [
+      "Fixture Author 2A",
+      "Fixture Author 2B"
+    ],
+    "year": 2017,
+    "publication": "Journal of Invented Results",
+    "abstract": "聚合物胶束 can carry hydrophobic dyes to the 线粒体 while keeping FRET efficiency.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Boronate-based H2O2 sensing: kinetics and selectivity",
+    "doi": "10.99999/fixture.003",
+    "authors": [
+      "Fixture Author 3A",
+      "Fixture Author 3B"
+    ],
+    "year": 2018,
+    "publication": "Journal of Invented Results",
+    "abstract": "Boronate oxidation gives a selective H2O2 response in PBS; FRET read-out discussed.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Mitochondria-targeted ratiometric imaging of reactive oxygen species",
+    "doi": "10.99999/fixture.004",
+    "authors": [
+      "Fixture Author 4A",
+      "Fixture Author 4B"
+    ],
+    "year": 2019,
+    "publication": "Journal of Invented Results",
+    "abstract": "线粒体 靶向 ratiometric imaging of ROS with H2O2 calibration curves.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Design rules for FRET pairs in nanoscale carriers",
+    "doi": "10.99999/fixture.005",
+    "authors": [
+      "Fixture Author 5A",
+      "Fixture Author 5B"
+    ],
+    "year": 2020,
+    "publication": "Journal of Invented Results",
+    "abstract": "FRET pair spacing inside micelles and its effect on ratio response.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Calibration of fluorescence ratio readouts",
+    "doi": "10.99999/fixture.006",
+    "authors": [
+      "Fixture Author 6A",
+      "Fixture Author 6B"
+    ],
+    "year": 2021,
+    "publication": "Journal of Invented Results",
+    "abstract": "Generic calibration practice for ratiometric fluorescence measurements.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Long-term stability of dye-loaded polymer nanoparticles",
+    "doi": "10.99999/fixture.007",
+    "authors": [
+      "Fixture Author 7A",
+      "Fixture Author 7B"
+    ],
+    "year": 2022,
+    "publication": "Journal of Invented Results",
+    "abstract": "聚合物胶束 and nanoparticle storage stability under light.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Cell uptake of block-copolymer micelles",
+    "doi": "10.99999/fixture.008",
+    "authors": [
+      "Fixture Author 8A",
+      "Fixture Author 8B"
+    ],
+    "year": 2023,
+    "publication": "Journal of Invented Results",
+    "abstract": "Endocytosis routes of 聚合物胶束 in several cell lines.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Hydrogen peroxide signalling overview",
+    "doi": "10.99999/fixture.009",
+    "authors": [
+      "Fixture Author 9A",
+      "Fixture Author 9B"
+    ],
+    "year": 2015,
+    "publication": "Journal of Invented Results",
+    "abstract": "Review of H2O2 as a second messenger; no imaging probe content.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Quantifying ratio imaging noise",
+    "doi": "10.99999/fixture.010",
+    "authors": [
+      "Fixture Author 10A",
+      "Fixture Author 10B"
+    ],
+    "year": 2016,
+    "publication": "Journal of Invented Results",
+    "abstract": "Noise sources in two-channel ratio imaging, FRET included.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Mitochondrial membrane potential indicators",
+    "doi": "10.99999/fixture.011",
+    "authors": [
+      "Fixture Author 11A",
+      "Fixture Author 11B"
+    ],
+    "year": 2017,
+    "publication": "Journal of Invented Results",
+    "abstract": "线粒体 membrane potential dyes compared; unrelated to H2O2.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  },
+  {
+    "title": "Ratiometric FRET probe for mitochondrial H2O2 in living cells (preprint)",
+    "doi": "https://doi.org/10.99999/FIXTURE.001",
+    "authors": [
+      "Fixture Author 12A",
+      "Fixture Author 12B"
+    ],
+    "year": 2018,
+    "publication": "Journal of Invented Results",
+    "abstract": "Preprint version of the first record with the same DOI.",
+    "note": "Invented catalog record for offline tests; not real literature."
+  }
+]

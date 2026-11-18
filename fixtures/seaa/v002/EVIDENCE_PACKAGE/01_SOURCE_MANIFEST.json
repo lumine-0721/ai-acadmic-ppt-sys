@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "source_id": "SRC001",
+      "title": "Instrument gain calibration table (synthetic user data)",
+      "url_or_path": "user-data/instrument-gain-calibration.csv",
+      "usage_notes": "User-owned data; values are invented for tests.",
+      "origin": "user_raw",
+      "read_scope": "data",
+      "verification_status": "VERIFIED",
+      "metadata": {
+        "authors": [
+          "fixture"
+        ],
+        "year": 2026,
+        "doi": null,
+        "publication": null,
+        "peer_reviewed": null
+      }
+    }
+  ]
+}

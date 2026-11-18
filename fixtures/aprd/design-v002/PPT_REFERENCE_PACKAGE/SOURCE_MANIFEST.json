@@ -1,0 +1,22 @@
+{
+  "references": [
+    {
+      "ref_id": "REF001",
+      "title": "instrument-gain-v002 (synthetic two-slide reference deck)",
+      "source_url_or_path": "fixtures/apc/out/instrument-gain-v002.pptx",
+      "file_format": "pptx",
+      "editability_status": "editable",
+      "usage_notes": "Synthetic fixture deck; geometry is the python-pptx default Title Only layout.",
+      "page_count_if_verified": 2,
+      "inspected_pages": [
+        1,
+        2
+      ],
+      "source_type": "deck",
+      "access_status": "opened",
+      "inspection_level": "object_parsed",
+      "rights_status": "reference_only",
+      "selected_role": "primary"
+    }
+  ]
+}
