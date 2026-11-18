@@ -1,9 +1,9 @@
 {
   "run_id": "instrument-gain-example",
-  "handoff": "C:/Users/86139/Desktop/codex/outputs/academic-presentation-compiler/smoke/v002/PPT_HANDOFF.json",
-  "requirements": "C:/Users/86139/Desktop/codex/outputs/academic-presentation-compiler/smoke/v002/PPT_REQUIREMENTS.md",
-  "design_package": "C:/Users/86139/Desktop/codex/outputs/academic-presentation-reference-design/smoke/design-v002/PPT_REFERENCE_PACKAGE",
-  "reference_pptx": "C:/Users/86139/Desktop/codex/outputs/academic-presentation-compiler/smoke/out/instrument-gain-v002.pptx",
+  "handoff": "fixtures/apc/v002/PPT_HANDOFF.json",
+  "requirements": "fixtures/apc/v002/PPT_REQUIREMENTS.md",
+  "design_package": "fixtures/aprd/design-v002/PPT_REFERENCE_PACKAGE",
+  "reference_pptx": "fixtures/apc/out/instrument-gain-v002.pptx",
   "write_probe_pptx": true,
   "budgets": {
     "max_iterations": 2,

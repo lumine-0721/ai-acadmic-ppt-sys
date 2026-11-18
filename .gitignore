@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.tmp-tests/
+.pytest_cache/
+dist/
+runs/

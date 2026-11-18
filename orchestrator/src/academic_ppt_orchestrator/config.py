@@ -8,27 +8,34 @@ from pathlib import Path
 from academic_ppt_orchestrator.hashing import sha256_file
 
 
-def _env_path(name: str, default: str) -> Path:
-    return Path(os.environ.get(name, default)).resolve()
+# config.py lives at <repo>/orchestrator/src/academic_ppt_orchestrator/config.py:
+# parents[0]=academic_ppt_orchestrator, [1]=src, [2]=orchestrator, [3]=<repo>,
+# the directory that holds the sibling packages apc/, aprd/ and seaa/.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _env_path(name: str, default: str | Path) -> Path:
+    """Return the path in environment variable ``name``, else ``default``."""
+    return Path(os.environ.get(name) or default).resolve()
 
 
 def module_roots() -> dict[str, Path]:
     return {
         "apc": _env_path(
             "APC_ROOT",
-            r"F:/codex/projects/academic-ppt/apc/academic-presentation-compiler",
+            REPO_ROOT / "apc" / "academic-presentation-compiler",
         ),
         "aprd": _env_path(
             "APRD_ROOT",
-            r"F:/codex/projects/academic-ppt/aprd/academic-presentation-reference-design",
+            REPO_ROOT / "aprd" / "academic-presentation-reference-design",
         ),
         "seaa": _env_path(
             "SEAA_ROOT",
-            r"F:/codex/projects/academic-ppt/seaa/scientific-evidence-asset-acquisition",
+            REPO_ROOT / "seaa" / "scientific-evidence-asset-acquisition",
         ),
         "aprd_fusion": _env_path(
             "APRD_FUSION_ROOT",
-            r"F:/codex/projects/academic-ppt/aprd/academic-presentation-reference-design",
+            REPO_ROOT / "aprd" / "academic-presentation-reference-design",
         ),
     }
 

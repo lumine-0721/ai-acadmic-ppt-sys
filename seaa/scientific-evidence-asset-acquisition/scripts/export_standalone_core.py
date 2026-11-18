@@ -14,6 +14,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import sys
@@ -305,7 +306,9 @@ def export_standalone_core(out_root: Path, version: str = "1.0.0", commit_sha: s
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--out-root", type=Path, default=Path("C:/Users/86139/Desktop/codex/deliverables"))
+    # Default: <repo>/dist/seaa-standalone-core, or the directory in SEAA_EXPORT_ROOT.
+    default_out = Path(os.environ.get("SEAA_EXPORT_ROOT") or Path(__file__).resolve().parents[3] / "dist" / "seaa-standalone-core")
+    p.add_argument("--out-root", type=Path, default=default_out)
     p.add_argument("--version", type=str, default="1.0.0")
     p.add_argument("--commit", type=str, default="HEAD")
     args = p.parse_args()
