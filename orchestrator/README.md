@@ -4,21 +4,26 @@ Control plane for the installed APC, APRD, and SEAA CLIs. It schedules them, che
 
 ## Run
 
-From PowerShell 7, set PYTHONPATH to academic_ppt_orchestrator/src and run:
+From the repository root (the example task uses repo-relative paths into `fixtures/`):
 
-    .venv/Scripts/python.exe -m academic_ppt_orchestrator run --task examples/instrument-gain-task.json --out C:/Users/86139/Desktop/codex/outputs/orchestrator-runs --run-id instrument-gain-example-2
+    pip install -r orchestrator/requirements.txt
+    PYTHONPATH=orchestrator/src python -m academic_ppt_orchestrator run --task orchestrator/examples/instrument-gain-task.json --out runs --run-id instrument-gain-example-2
+
+(Windows PowerShell: set `$env:PYTHONPATH = "orchestrator/src"` first, then run the same `python -m ...` command.)
+
+APC, APRD and SEAA are located next to the orchestrator by default; see `PORTABILITY.md` in the repo root for the `APC_ROOT`, `APRD_ROOT`, `SEAA_ROOT` overrides.
 
 Resume a failed thread:
 
-    .venv/Scripts/python.exe -m academic_ppt_orchestrator resume --run-dir RUN_DIR --thread-id RUN_ID
+    PYTHONPATH=orchestrator/src python -m academic_ppt_orchestrator resume --run-dir RUN_DIR --thread-id RUN_ID
 
-Tests:
+Tests (from `orchestrator/`):
 
-    .venv/Scripts/python.exe -m unittest discover -s tests -v
+    python -m pytest -q        # or: python -m unittest discover -s tests -v
 
-The verified example run is outputs/orchestrator-runs/instrument-gain-example-2. Its terminal state is BLOCKED because no evidence package was supplied. APC and APRD accepted. PowerPoint opened probe.pptx read-only: 2 slides, first shape text S001. That file is a python-pptx probe, not a production render.
+The original verified example run (kept on the author's machine, not in this repo) was instrument-gain-example-2. Its terminal state is BLOCKED because no evidence package was supplied. APC and APRD accepted. PowerPoint opened probe.pptx read-only: 2 slides, first shape text S001. That file is a python-pptx probe, not a production render.
 
-Engineering notes are in C:/Users/86139/Desktop/codex/docs/orchestrator.
+Engineering notes were kept outside this repository, on the author's machine.
 
 ## IR and execution plan v2
 

@@ -1,5 +1,7 @@
 # File move map
 
+NOTE: C:/ and F:/ paths below are historical (author machine) and kept as a record only. Nothing in the code or tests depends on them any more; see PORTABILITY.md.
+
 Pinned paths were not deleted. Skills remain at C:/Users/86139/.codex/skills. The desktop workspace was not moved.
 Each package below is a copy. The previous skill text is kept as SKILL.before-package.md.
 
