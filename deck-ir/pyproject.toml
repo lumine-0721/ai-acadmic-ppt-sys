@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "academic-deck-ir"
+version = "3.0.0"
+description = "Portable, validated academic presentation intermediate representation"
+requires-python = ">=3.11"
+dependencies = ["jsonschema>=4.25,<5"]
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+academic_deck_ir = ["schemas/*.json"]
