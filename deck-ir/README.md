@@ -22,4 +22,5 @@ assert inspect_deck(dumps(deck))["pages"][0]["objects"][0]["id"] == "body"
 - [输入输出、编辑与版本契约](docs/spec/academic-deck-ir/contracts.md)
 - [审计、依赖图和验收条件](docs/spec/academic-deck-ir/spec.md) · [技术选择与任务依赖](docs/spec/academic-deck-ir/plan.md)
 - [正式 Schema](src/academic_deck_ir/schemas/deck-v3.json) · [验证记录](docs/spec/academic-deck-ir/evidence.md)
+- [真实 Orchestrator 桥接验收脚本](tools/check_graph_bridge.py)：给定同一项目的工件，在临时目录运行现有 graph，核对 v2、v3 和 Mock 的逐页引用与状态；仅测试时需要 Orchestrator。
 - `src/academic_deck_ir/`：model（结构与图约束）、operations（编辑与并发合并）、adapters（工件与迁移）、consumer（验收替身）；`examples/` 是标注为测试用途的本地示例，`tests/` 为 unittest。
