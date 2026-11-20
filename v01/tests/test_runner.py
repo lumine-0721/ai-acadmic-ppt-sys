@@ -62,7 +62,7 @@ def test_invalid_run_id(tmp_path):
 
 
 def test_cli_without_env_fails_clearly_and_creates_nothing(tmp_path, monkeypatch, capsys):
-    for k in ("PPTV01_LLM_BASE_URL", "PPTV01_LLM_API_KEY", "PPTV01_LLM_MODEL"):
+    for k in ("PPTV01_LLM_BASE_URL", "PPTV01_LLM_API_KEY", "PPTV01_LLM_MODEL", "PPTV01_LLM_BACKEND", "PPTV01_AGENT_RESPONSES_DIR"):
         monkeypatch.delenv(k, raising=False)
     rc = cli.main(["run", U, "--out", str(tmp_path / "runs")])
     assert rc == 2
