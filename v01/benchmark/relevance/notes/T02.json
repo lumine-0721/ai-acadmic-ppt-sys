@@ -1,0 +1,325 @@
+{
+ "task": "T02",
+ "topic": "城市热岛效应",
+ "retrieval_topics": [
+  {
+   "topic": "城市热岛的定义与度量",
+   "queries": [
+    "城市热岛",
+    "urban heat island intensity measurement"
+   ]
+  },
+  {
+   "topic": "热岛的成因",
+   "queries": [
+    "城市热岛 成因",
+    "urban heat island causes review"
+   ]
+  },
+  {
+   "topic": "热岛的影响与缓解",
+   "queries": [
+    "urban heat island mitigation green roofs",
+    "海绵城市"
+   ]
+  }
+ ],
+ "queries": [
+  {
+   "backend": "wikipedia",
+   "topic": "城市热岛的定义与度量",
+   "query": "城市热岛",
+   "lang": "zh",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:24.076467+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "城市热岛的定义与度量",
+   "query": "urban heat island intensity measurement",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:24.347890+08:00"
+  },
+  {
+   "backend": "crossref",
+   "topic": "城市热岛的定义与度量",
+   "query": "urban heat island intensity measurement",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:24.698909+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "热岛的成因",
+   "query": "城市热岛 成因",
+   "lang": "zh",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:25.278102+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "热岛的成因",
+   "query": "urban heat island causes review",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:25.533300+08:00"
+  },
+  {
+   "backend": "crossref",
+   "topic": "热岛的成因",
+   "query": "urban heat island causes review",
+   "lang": "en",
+   "status": "error",
+   "hits": 0,
+   "error": "HTTP 429 from api.crossref.org",
+   "requested_at": "2026-11-20T12:42:25.887108+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "热岛的影响与缓解",
+   "query": "urban heat island mitigation green roofs",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:25.966204+08:00"
+  },
+  {
+   "backend": "crossref",
+   "topic": "热岛的影响与缓解",
+   "query": "urban heat island mitigation green roofs",
+   "lang": "en",
+   "status": "error",
+   "hits": 0,
+   "error": "HTTP 429 from api.crossref.org",
+   "requested_at": "2026-11-20T12:42:26.326659+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "热岛的影响与缓解",
+   "query": "海绵城市",
+   "lang": "zh",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:26.406071+08:00"
+  }
+ ],
+ "notes": [
+  {
+   "note_id": "R001",
+   "kind": "encyclopedia",
+   "title": "城市熱島",
+   "text": "城市热岛（英语：Urban heat island，UHI）指的是城市区域，由于人类活动的缘故，让其温度明显比周边的农村地区为高。两者间的夜间温度差距通常会高于日间的，碰到风力微弱的时候会更为明显。城市热岛现象在夏季和冬季期间最为明显。造成热岛效应的主要原因是地表受到人类改变的结果。一项研究显示UHI会因靠近不同的地表而受到不同的影响，因此靠近荒地会让城市区域变得更热，而靠近植被覆盖的土地会让城市区域变得较为凉爽。使用能源而产生的废热是导致此种现象的次要原因。随着人口中心增长，受影响的区域往往会扩大，而导致的平均温度也更高。 城市下风处的月降雨量较大，也部分是由热岛效应造成。城市中心的热度把植物的生长季节延长，并减少小型龙卷风发生的机会。热岛效应会增加污染物（例如臭氧）的产生而造成空气污染，而温暖的水进入区域中的溪流，会对其中生态系统造成压力，产生水污染。 并非所有城市都有明显的UHI现象，这种特征在很大程度上取决于城市所在地区的气候背景。城市内受到的影响会因环境条件不同而有很大差异。树木和绿色空间可减少热量，它们提供遮荫并促进湿气蒸发的冷却效果。其他降低气温的做法包括有绿化屋顶、采用被动式日间辐射冷却技术，以及在城市地区使用浅色表面（参见反射表面）和吸热性较低的建筑材料，用来反射更多的阳光，吸收更少的热量。 气候变化不是导致UHI效应的原因，但会引起更频繁、更强烈的热浪，进而加剧城市的UHI效应…",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%9F%8E%E5%B8%82%E7%86%B1%E5%B3%B6",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "城市热岛",
+   "retrieved_at": "2026-11-20T12:42:24.347718+08:00"
+  },
+  {
+   "note_id": "R002",
+   "kind": "encyclopedia",
+   "title": "屋頂花園",
+   "text": "屋顶花园是指在屋顶种植植物，成为庭园，天台花园、空中花园都是屋顶花园的类型。屋顶花园不仅在视觉上带来绿美化的环境，也有减缓城市热岛效应、调节微气候、增加保水性能、建筑节能、绿化屋顶等功能，因此备受等先进国家重视。先进国家更订定屋顶绿化的推广与奖励政策。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%B1%8B%E9%A0%82%E8%8A%B1%E5%9C%92",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "城市热岛",
+   "retrieved_at": "2026-11-20T12:42:24.347746+08:00"
+  },
+  {
+   "note_id": "R003",
+   "kind": "encyclopedia",
+   "title": "海绵城市",
+   "text": "海绵城市是一种在城市中建设防洪防涝并兼有生态环保功能的新型城市模型，将城市比喻为海绵，在降水时能吸水、蓄水、渗水、净水，而平时则可“挤”出收集的雨水来利用。海绵城市概括而言有“渗、滞、蓄、净、用、排”六大措施，其建设途径包括对城市原有生态系统的保护、生态恢复和修复，以及低影响开发。 “海绵城市”一词最早由中国大陆学者提出，后来先后被中国大陆和台湾官方采纳作为指导理念。与之相关的国际通用术语为源于北美的“低影响开发”。二者都强调开发前后场地的水文特征基本保持不变。尽管有人将二者等同，但也有学者指出，“海绵城市”强调的是城市层级的整体建设理念和方式，而不是具体的技术措施。《海绵城市建设技术指南——低影响开发雨水系统构建（试行）》将低影响开发列为海绵城市建设途径的一个方面。 “海绵城市”是推动绿色基础设施建设、低碳城市发展、智慧城市形成的创新表现，是现代绿色新技术与社会、环境、人文等多种因素的有机结合。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E6%B5%B7%E7%BB%B5%E5%9F%8E%E5%B8%82",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "城市热岛",
+   "retrieved_at": "2026-11-20T12:42:24.347757+08:00"
+  },
+  {
+   "note_id": "R004",
+   "kind": "encyclopedia",
+   "title": "Urban heat island",
+   "text": "The urban heat island (UHI) effect is a meteorological and climatological phenomenon in which urban areas experience significantly warmer temperatures than surrounding rural areas. The temperature difference is usually larger at night than during the day, and is most apparent when winds are weak, under block conditions, noticeably during the summer and winter. The main cause of the UHI effect is from the modification of land surfaces, while waste heat generated by energy usage is a secondary contributor. Urban areas occupy about 0.5% of the Earth's land surface but host more than half of the world...",
+   "source_url": "https://en.wikipedia.org/wiki/Urban_heat_island",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island intensity measurement",
+   "retrieved_at": "2026-11-20T12:42:24.698777+08:00"
+  },
+  {
+   "note_id": "R005",
+   "kind": "encyclopedia",
+   "title": "Heat map",
+   "text": "A heat map (or heatmap) is a two-dimensional data visualization technique that represents the magnitude of individual values within a dataset as a color. The variation in color may be by hue or intensity. In some applications such as crime analytics or website click-tracking, color is used to represent the density of data points rather than a value associated with each point. \"Heat map\" is a relatively new term, but the practice of shading matrices has existed for over a century.",
+   "source_url": "https://en.wikipedia.org/wiki/Heat_map",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island intensity measurement",
+   "retrieved_at": "2026-11-20T12:42:24.698814+08:00"
+  },
+  {
+   "note_id": "R006",
+   "kind": "encyclopedia",
+   "title": "Temperature measurement",
+   "text": "Temperature measurement (also known as thermometry) describes the process of measuring a current temperature for immediate or later evaluation. Datasets consisting of repeated standardized measurements can be used to assess temperature trends.",
+   "source_url": "https://en.wikipedia.org/wiki/Temperature_measurement",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island intensity measurement",
+   "retrieved_at": "2026-11-20T12:42:24.698822+08:00"
+  },
+  {
+   "note_id": "R007",
+   "kind": "reference",
+   "title": "Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones",
+   "text": "Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones — Urban Sustainability (2025); DOI 10.1007/978-981-96-3541-2_2",
+   "source_url": "https://doi.org/10.1007/978-981-96-3541-2_2",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "urban heat island intensity measurement",
+   "retrieved_at": "2026-11-20T12:42:25.277981+08:00"
+  },
+  {
+   "note_id": "R008",
+   "kind": "reference",
+   "title": "Water Bodies as Stable Reference for Urban Heat Island Intensity Measurement",
+   "text": "Water Bodies as Stable Reference for Urban Heat Island Intensity Measurement (2024); DOI 10.2139/ssrn.4808152",
+   "source_url": "https://doi.org/10.2139/ssrn.4808152",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "urban heat island intensity measurement",
+   "retrieved_at": "2026-11-20T12:42:25.278011+08:00"
+  },
+  {
+   "note_id": "R009",
+   "kind": "reference",
+   "title": "Influence of urban design factors on summertime urban heat island intensity : on-site measurement of pocket parks in high-rise high-density environment in Hong Kong",
+   "text": "Influence of urban design factors on summertime urban heat island intensity : on-site measurement of pocket parks in high-rise high-density environment in Hong Kong; DOI 10.5353/th_b5481869",
+   "source_url": "https://doi.org/10.5353/th_b5481869",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "urban heat island intensity measurement",
+   "retrieved_at": "2026-11-20T12:42:25.278015+08:00"
+  },
+  {
+   "note_id": "R010",
+   "kind": "encyclopedia",
+   "title": "大氣環流",
+   "text": "大气环流（英语：atmospheric circulation）是指地球表面上大规模的空气流动，是（与较小规模的海洋环流一起[1]）重新分配热量和水汽的途径。 尽管每年的大气环流细节会有差异，但其基本结构始终保持稳定。然而，个别天气系统，如中纬度低压区、热带对流环流等，是在“随机”情况下产生的，而且气象通常只能在发生前一段短时间内被预测。这段时间理论上可以长达一个月，而现在实际上只有十天左右（见混沌理论）。不过，这些系统总生成的结果气候较为稳定。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%A4%A7%E6%B0%A3%E7%92%B0%E6%B5%81",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "城市热岛 成因",
+   "retrieved_at": "2026-11-20T12:42:25.533211+08:00"
+  },
+  {
+   "note_id": "R011",
+   "kind": "encyclopedia",
+   "title": "亚热带季风气候",
+   "text": "亚热带季风气候（subtropical monsoon climate），又称亚热带季风气候，其特点是夏季高温并多雨，冬季较同纬度地区凉冷湿润。主要分布于纬度在20°~35°之间的大陆东部。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E4%BA%9A%E7%83%AD%E5%B8%A6%E5%AD%A3%E9%A3%8E%E6%B0%94%E5%80%99",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "城市热岛 成因",
+   "retrieved_at": "2026-11-20T12:42:25.533216+08:00"
+  },
+  {
+   "note_id": "R012",
+   "kind": "encyclopedia",
+   "title": "Heat dome",
+   "text": "A heat dome is a weather phenomenon consisting of extreme heat that is caused when the atmosphere traps hot air as if bounded by a lid or cap. Heat domes happen when strong high pressure atmospheric conditions remain stationary for an unusual amount of time, preventing convection and precipitation and keeping hot air \"trapped\" within a region. This can be caused by multiple factors, including sea surface temperature anomalies and the influence of a La Niña. The upper air weather patterns are slow to move, referred to by meteorologists as an Omega block. The term is often overextended in media terminology...",
+   "source_url": "https://en.wikipedia.org/wiki/Heat_dome",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island causes review",
+   "retrieved_at": "2026-11-20T12:42:25.887007+08:00"
+  },
+  {
+   "note_id": "R013",
+   "kind": "encyclopedia",
+   "title": "Urban forest inequity",
+   "text": "Urban forest inequity, also known as shade inequity or tree canopy inequity, is the inequitable distribution of trees, with their associated benefits, across metropolitan areas. Urban forest inequity is often seen as a form of environmental injustice because lower-income communities and marginalized groups commonly receive less of the social, environmental, and health benefits urban forests provide. Urban forest inequity has a number of follow-on effects, including impacts on faunal biodiversity and the urban heat island effect. Urban heat inequity occurs when intra-urban heat islands, with their...",
+   "source_url": "https://en.wikipedia.org/wiki/Urban_forest_inequity",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island causes review",
+   "retrieved_at": "2026-11-20T12:42:25.887025+08:00"
+  },
+  {
+   "note_id": "R014",
+   "kind": "encyclopedia",
+   "title": "Green roof",
+   "text": "A green roof or living roof is a roof of a building that is partially or completely covered with vegetation and a growing medium, planted over a waterproofing membrane. It may also include additional layers such as a root barrier and drainage, and irrigation systems. Container gardens on roofs, where plants are maintained in pots, are not generally considered to be true green roofs, although this is debated. Rooftop ponds are another form of green roofs, which are used to treat greywater. Vegetation, soil, drainage layer, root barrier, and irrigation system constitute the green roof. Green roofs...",
+   "source_url": "https://en.wikipedia.org/wiki/Green_roof",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island mitigation green roofs",
+   "retrieved_at": "2026-11-20T12:42:26.326560+08:00"
+  },
+  {
+   "note_id": "R015",
+   "kind": "encyclopedia",
+   "title": "Urban green space",
+   "text": "In land-use planning, urban green spaces are open-space areas reserved for parks and other spaces of greenery. These include plant life, water features – also known as blue spaces – and other kinds of natural environments. Most urban open spaces are green spaces, though some may consist of other types of open areas. The landscape of open spaces in urban areas can range from playing fields and other highly maintained environments to more natural landscapes that appear less managed. Urban green spaces may also include areas that are not publicly accessible, such as privately owned higher education...",
+   "source_url": "https://en.wikipedia.org/wiki/Urban_green_space",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "urban heat island mitigation green roofs",
+   "retrieved_at": "2026-11-20T12:42:26.326581+08:00"
+  },
+  {
+   "note_id": "R016",
+   "kind": "encyclopedia",
+   "title": "俞孔坚",
+   "text": "俞孔坚（1963年5月12日—2025年9月23日），男，浙江金华人，北京大学教授、北京大学建筑与景观设计学院院长，美国景观设计师协会会士，教育部长江学者特聘教授，中组部国家千人计划专家和“国家特聘专家”。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E4%BF%9E%E5%AD%94%E5%9D%9A",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "海绵城市",
+   "retrieved_at": "2026-11-20T12:42:26.584074+08:00"
+  },
+  {
+   "note_id": "R017",
+   "kind": "encyclopedia",
+   "title": "海绵宝宝角色列表",
+   "text": "海绵宝宝角色列表是美国电视动画作品《海绵宝宝》登场角色的介绍条目。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E6%B5%B7%E7%BB%B5%E5%AE%9D%E5%AE%9D%E8%A7%92%E8%89%B2%E5%88%97%E8%A1%A8",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "海绵城市",
+   "retrieved_at": "2026-11-20T12:42:26.584078+08:00"
+  }
+ ]
+}

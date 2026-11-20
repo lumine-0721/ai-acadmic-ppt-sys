@@ -1,0 +1,256 @@
+[
+ {
+  "scorer": "fastembed",
+  "n_all": 65,
+  "n_noise_total": 28,
+  "structural": {
+   "removed": 8,
+   "noise_removed": 8,
+   "relevant_lost": 0,
+   "items": [
+    [
+     "海绵宝宝角色列表",
+     true,
+     "list_page"
+    ],
+    [
+     "INTRODUCTION:",
+     true,
+     "junk_title"
+    ],
+    [
+     "韩国的咖啡",
+     true,
+     "too_short"
+    ],
+    [
+     "Chapter Sixteen",
+     true,
+     "junk_title"
+    ],
+    [
+     "Inhalt",
+     true,
+     "junk_title"
+    ],
+    [
+     "[Illustration]",
+     true,
+     "junk_title"
+    ],
+    [
+     "Figure 3: MediaPipe Hand Landm",
+     true,
+     "junk_title"
+    ],
+    [
+     "In Memoriam",
+     true,
+     "junk_title"
+    ]
+   ]
+  },
+  "survivors": 57,
+  "auc_on_survivors": 0.781,
+  "ms_per_doc": 11.0,
+  "sweep": [
+   {
+    "thr": 0.2,
+    "scorer_removed": 11,
+    "scorer_noise_removed": 10,
+    "scorer_precision": 0.909,
+    "combined_removed": 19,
+    "combined_precision": 0.947,
+    "combined_noise_recall": 0.643,
+    "relevant_lost": 1
+   },
+   {
+    "thr": 0.25,
+    "scorer_removed": 11,
+    "scorer_noise_removed": 10,
+    "scorer_precision": 0.909,
+    "combined_removed": 19,
+    "combined_precision": 0.947,
+    "combined_noise_recall": 0.643,
+    "relevant_lost": 1
+   },
+   {
+    "thr": 0.3,
+    "scorer_removed": 11,
+    "scorer_noise_removed": 10,
+    "scorer_precision": 0.909,
+    "combined_removed": 19,
+    "combined_precision": 0.947,
+    "combined_noise_recall": 0.643,
+    "relevant_lost": 1
+   },
+   {
+    "thr": 0.35,
+    "scorer_removed": 13,
+    "scorer_noise_removed": 11,
+    "scorer_precision": 0.846,
+    "combined_removed": 21,
+    "combined_precision": 0.905,
+    "combined_noise_recall": 0.679,
+    "relevant_lost": 2
+   },
+   {
+    "thr": 0.4,
+    "scorer_removed": 17,
+    "scorer_noise_removed": 12,
+    "scorer_precision": 0.706,
+    "combined_removed": 25,
+    "combined_precision": 0.8,
+    "combined_noise_recall": 0.714,
+    "relevant_lost": 5
+   },
+   {
+    "thr": 0.45,
+    "scorer_removed": 22,
+    "scorer_noise_removed": 15,
+    "scorer_precision": 0.682,
+    "combined_removed": 30,
+    "combined_precision": 0.767,
+    "combined_noise_recall": 0.821,
+    "relevant_lost": 7
+   },
+   {
+    "thr": 0.5,
+    "scorer_removed": 29,
+    "scorer_noise_removed": 15,
+    "scorer_precision": 0.517,
+    "combined_removed": 37,
+    "combined_precision": 0.622,
+    "combined_noise_recall": 0.821,
+    "relevant_lost": 14
+   }
+  ]
+ },
+ {
+  "scorer": "bge-reranker",
+  "n_all": 65,
+  "n_noise_total": 28,
+  "structural": {
+   "removed": 8,
+   "noise_removed": 8,
+   "relevant_lost": 0,
+   "items": [
+    [
+     "海绵宝宝角色列表",
+     true,
+     "list_page"
+    ],
+    [
+     "INTRODUCTION:",
+     true,
+     "junk_title"
+    ],
+    [
+     "韩国的咖啡",
+     true,
+     "too_short"
+    ],
+    [
+     "Chapter Sixteen",
+     true,
+     "junk_title"
+    ],
+    [
+     "Inhalt",
+     true,
+     "junk_title"
+    ],
+    [
+     "[Illustration]",
+     true,
+     "junk_title"
+    ],
+    [
+     "Figure 3: MediaPipe Hand Landm",
+     true,
+     "junk_title"
+    ],
+    [
+     "In Memoriam",
+     true,
+     "junk_title"
+    ]
+   ]
+  },
+  "survivors": 57,
+  "auc_on_survivors": 0.768,
+  "ms_per_doc": 101.4,
+  "sweep": [
+   {
+    "thr": 0.005,
+    "scorer_removed": 27,
+    "scorer_noise_removed": 16,
+    "scorer_precision": 0.593,
+    "combined_removed": 35,
+    "combined_precision": 0.686,
+    "combined_noise_recall": 0.857,
+    "relevant_lost": 11
+   },
+   {
+    "thr": 0.01,
+    "scorer_removed": 28,
+    "scorer_noise_removed": 17,
+    "scorer_precision": 0.607,
+    "combined_removed": 36,
+    "combined_precision": 0.694,
+    "combined_noise_recall": 0.893,
+    "relevant_lost": 11
+   },
+   {
+    "thr": 0.02,
+    "scorer_removed": 34,
+    "scorer_noise_removed": 19,
+    "scorer_precision": 0.559,
+    "combined_removed": 42,
+    "combined_precision": 0.643,
+    "combined_noise_recall": 0.964,
+    "relevant_lost": 15
+   },
+   {
+    "thr": 0.05,
+    "scorer_removed": 38,
+    "scorer_noise_removed": 19,
+    "scorer_precision": 0.5,
+    "combined_removed": 46,
+    "combined_precision": 0.587,
+    "combined_noise_recall": 0.964,
+    "relevant_lost": 19
+   },
+   {
+    "thr": 0.1,
+    "scorer_removed": 42,
+    "scorer_noise_removed": 19,
+    "scorer_precision": 0.452,
+    "combined_removed": 50,
+    "combined_precision": 0.54,
+    "combined_noise_recall": 0.964,
+    "relevant_lost": 23
+   },
+   {
+    "thr": 0.2,
+    "scorer_removed": 43,
+    "scorer_noise_removed": 19,
+    "scorer_precision": 0.442,
+    "combined_removed": 51,
+    "combined_precision": 0.529,
+    "combined_noise_recall": 0.964,
+    "relevant_lost": 24
+   },
+   {
+    "thr": 0.4,
+    "scorer_removed": 50,
+    "scorer_noise_removed": 19,
+    "scorer_precision": 0.38,
+    "combined_removed": 58,
+    "combined_precision": 0.466,
+    "combined_noise_recall": 0.964,
+    "relevant_lost": 31
+   }
+  ]
+ }
+]

@@ -77,7 +77,7 @@ def code_version() -> tuple[str, bool | None]:
 def _research_summary(rec: ResearchRecord) -> dict[str, Any]:
     return {
         "provider": rec.provider, "status": rec.status.value, "notes": len(rec.notes),
-        "queries": len(rec.queries), "query_errors": sum(q.status.value == "error" for q in rec.queries),
+        "filtered": len(rec.filtered), "queries": len(rec.queries), "query_errors": sum(q.status.value == "error" for q in rec.queries),
         "sources": [{"id": n.note_id, "title": n.title, "url": n.source_url,
                      "retrieved_at": n.retrieved_at.isoformat()} for n in rec.notes],
         "summary": rec.summary,

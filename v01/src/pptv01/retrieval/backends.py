@@ -35,6 +35,7 @@ class SearchHit:
     source_name: str
     license_or_terms: str
     retrieved_at: datetime
+    doc_type: str = ""
 
 
 class SearchBackend(Protocol):
@@ -156,7 +157,7 @@ class CrossrefBackend:
                 title=titles[0], text=text, url=it.get("URL") or f"https://doi.org/{doi}",
                 kind="reference", source_name="Crossref",
                 license_or_terms="Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
-                retrieved_at=_now(),
+                retrieved_at=_now(), doc_type=str(it.get("type") or ""),
             ))
         return out
 

@@ -65,6 +65,7 @@ def _clean_env(monkeypatch):
         if k.startswith("PPTV01_"):
             monkeypatch.delenv(k)
     monkeypatch.setenv("PPTV01_RESEARCH", "none")
+    monkeypatch.setenv("PPTV01_RELEVANCE", "structural")   # never load an ML model in unit tests
 
 
 @pytest.fixture(autouse=True)

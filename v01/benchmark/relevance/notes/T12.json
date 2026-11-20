@@ -1,0 +1,362 @@
+{
+ "task": "T12",
+ "topic": "咖啡店创业计划",
+ "retrieval_topics": [
+  {
+   "topic": "咖啡店创业的商业模式",
+   "queries": [
+    "咖啡店",
+    "coffeehouse business model"
+   ]
+  },
+  {
+   "topic": "咖啡消费趋势",
+   "queries": [
+    "咖啡 消费",
+    "coffee consumption trends"
+   ]
+  },
+  {
+   "topic": "小微餐饮创业的风险",
+   "queries": [
+    "small cafe startup failure factors"
+   ]
+  }
+ ],
+ "queries": [
+  {
+   "backend": "wikipedia",
+   "topic": "咖啡店创业的商业模式",
+   "query": "咖啡店",
+   "lang": "zh",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:06.387037+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "咖啡店创业的商业模式",
+   "query": "coffeehouse business model",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:06.658604+08:00"
+  },
+  {
+   "backend": "crossref",
+   "topic": "咖啡店创业的商业模式",
+   "query": "coffeehouse business model",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:07.535158+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "咖啡消费趋势",
+   "query": "咖啡 消费",
+   "lang": "zh",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:07.941151+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "咖啡消费趋势",
+   "query": "coffee consumption trends",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:08.141183+08:00"
+  },
+  {
+   "backend": "crossref",
+   "topic": "咖啡消费趋势",
+   "query": "coffee consumption trends",
+   "lang": "en",
+   "status": "error",
+   "hits": 0,
+   "error": "HTTP 429 from api.crossref.org",
+   "requested_at": "2026-11-20T12:42:08.372673+08:00"
+  },
+  {
+   "backend": "wikipedia",
+   "topic": "小微餐饮创业的风险",
+   "query": "small cafe startup failure factors",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:08.459992+08:00"
+  },
+  {
+   "backend": "crossref",
+   "topic": "小微餐饮创业的风险",
+   "query": "small cafe startup failure factors",
+   "lang": "en",
+   "status": "ok",
+   "hits": 3,
+   "error": null,
+   "requested_at": "2026-11-20T12:42:08.729975+08:00"
+  }
+ ],
+ "notes": [
+  {
+   "note_id": "R001",
+   "kind": "encyclopedia",
+   "title": "咖啡店",
+   "text": "咖啡店（法语：café，英语：coffee shop 或 coffeehouse），是零售咖啡饮品的店铺。通常也会搭配销售不同种类的糕点及三明治，有些咖啡店也开始销售茶叶饮料。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%92%96%E5%95%A1%E5%BA%97",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "咖啡店",
+   "retrieved_at": "2026-11-20T12:42:06.658442+08:00"
+  },
+  {
+   "note_id": "R002",
+   "kind": "encyclopedia",
+   "title": "咖啡王子1號店",
+   "text": "《咖啡王子1号店》（韩语：커피프린스 1호점，英语：Coffee Prince）是韩国MBC于2007年7月2日起播放的月火迷你连续剧，改编自李善美的同名浪漫小说，由尹恩惠、孔刘、李善均、蔡贞安主演。拍摄地点在首尔弘益大学回音小剧场旁的咖啡店。 原本被安排在周末晚播映，但由于MBC另一套大型历史剧《太王四神记》的拍摄进度一再延误，该剧在7月初于星期一、二这个时段首播的目标未能达成，因此被MBC安排提早于7月的时段播出。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%92%96%E5%95%A1%E7%8E%8B%E5%AD%901%E8%99%9F%E5%BA%97",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "咖啡店",
+   "retrieved_at": "2026-11-20T12:42:06.658473+08:00"
+  },
+  {
+   "note_id": "R003",
+   "kind": "encyclopedia",
+   "title": "邻里咖啡店",
+   "text": "邻里咖啡店，马来西亚惯用“传统咖啡店”（马来语：Kopitiam），是一种结合传统早餐店和茶水摊的东南亚流行饮食文化，主要分布于马来西亚、新加坡及印度尼西亚的廖内群岛。 Kopitiam一词是结合马来语中的“咖啡”（kopi）和福建话中的“店”（白话字：tiàm）而成的混合词。其典型饮食组合通常被称为“南洋早餐三宝”，即：各种烹调方式的鸡蛋（通常为半生熟蛋）、涂抹咖吔和牛油的烘烤面包，搭配南洋咖啡（Kopi）、茶（Teh）或美禄（Milo）等饮料。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E9%82%BB%E9%87%8C%E5%92%96%E5%95%A1%E5%BA%97",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "咖啡店",
+   "retrieved_at": "2026-11-20T12:42:06.658482+08:00"
+  },
+  {
+   "note_id": "R004",
+   "kind": "encyclopedia",
+   "title": "Coffeehouse",
+   "text": "A coffeehouse, coffee shop, or café, is an establishment that serves various types of coffee drinks like espresso, latte, americano, and cappuccino, as well as other beverages. An espresso bar specializes in serving espresso and espresso-based drinks. Some coffeehouses may serve iced coffee among other cold drinks, as well as non-caffeinated drinks. A coffeehouse may also serve food, such as light snacks, sandwiches, muffins, cakes, breads, pastries, or doughnuts. Many doughnut shops in Canada and the US serve coffee to accompany doughnuts, so these can also be classified as coffee shops, although...",
+   "source_url": "https://en.wikipedia.org/wiki/Coffeehouse",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "coffeehouse business model",
+   "retrieved_at": "2026-11-20T12:42:07.534922+08:00"
+  },
+  {
+   "note_id": "R005",
+   "kind": "encyclopedia",
+   "title": "Ottoman coffeehouse",
+   "text": "The Ottoman coffeehouse (Ottoman Turkish: قهوه‌خانه, romanized: kahvehane), or Ottoman café, was a distinctive part of the culture of the Ottoman Empire. These coffeehouses, started in the mid-sixteenth century, brought together citizens across society for educational, social, and political activity as well as general information exchange. The popularity of these coffeehouses attracted government interest and were attended by government spies to gather public opinion. Ottoman coffeehouses also had religious and musical ties. Europeans adopted coffeehouses and other Ottoman leisure customs during...",
+   "source_url": "https://en.wikipedia.org/wiki/Ottoman_coffeehouse",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "coffeehouse business model",
+   "retrieved_at": "2026-11-20T12:42:07.534974+08:00"
+  },
+  {
+   "note_id": "R006",
+   "kind": "encyclopedia",
+   "title": "Utagoe coffeehouse",
+   "text": "An utagoe coffeehouse (歌声喫茶, utagoe kissa) was a type of coffeehouse that featured the customers joining in singing songs together, which was very popular in Japan c. 1955–1975. Utagoe coffeehouses were usually associated with the leftist movement at that time, called the Utagoe movement, supported by the labor unions, backed up by the socialist and communist parties. The songs that were sung, therefore, were mostly anti-establishment, anti-war songs that included many of Russian, Eastern European and Chinese origins. Most of the utagoe coffeehouses went out of business c. 1995–2005, giving way...",
+   "source_url": "https://en.wikipedia.org/wiki/Utagoe_coffeehouse",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "coffeehouse business model",
+   "retrieved_at": "2026-11-20T12:42:07.535000+08:00"
+  },
+  {
+   "note_id": "R007",
+   "kind": "reference",
+   "title": "COFFEEHOUSE",
+   "text": "COFFEEHOUSE — Encyclopaedia Iranica Online; DOI 10.1163/2330-4804_eiro_com_7776",
+   "source_url": "https://doi.org/10.1163/2330-4804_eiro_com_7776",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "coffeehouse business model",
+   "retrieved_at": "2026-11-20T12:42:07.941030+08:00"
+  },
+  {
+   "note_id": "R008",
+   "kind": "reference",
+   "title": "INTRODUCTION:",
+   "text": "INTRODUCTION: — Vienna Coffeehouse Wits, 1890-1938 (1989); DOI 10.2307/j.ctt6wq3s0.4",
+   "source_url": "https://doi.org/10.2307/j.ctt6wq3s0.4",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "coffeehouse business model",
+   "retrieved_at": "2026-11-20T12:42:07.941061+08:00"
+  },
+  {
+   "note_id": "R009",
+   "kind": "reference",
+   "title": "7. Policing the Coffeehouse",
+   "text": "7. Policing the Coffeehouse — The Social Life of Coffee (2017); DOI 10.12987/9780300133509-010",
+   "source_url": "https://doi.org/10.12987/9780300133509-010",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "coffeehouse business model",
+   "retrieved_at": "2026-11-20T12:42:07.941066+08:00"
+  },
+  {
+   "note_id": "R010",
+   "kind": "encyclopedia",
+   "title": "韩国的咖啡",
+   "text": "在韩国，咖啡一直是韩国文化的重要元素。 它起源于19世纪，已成为韩国市场的著名商品。这是该地区最受欢迎的饮料之一。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E9%9F%A9%E5%9B%BD%E7%9A%84%E5%92%96%E5%95%A1",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "咖啡 消费",
+   "retrieved_at": "2026-11-20T12:42:08.141047+08:00"
+  },
+  {
+   "note_id": "R011",
+   "kind": "encyclopedia",
+   "title": "咖啡文化",
+   "text": "咖啡文化是围绕咖啡消费的一系列传统和社会行为，特别是作为一种社会润滑剂。该术语还指咖啡作为一种广泛消费的兴奋剂的文化传播和采用。在20世纪后期，浓缩咖啡成为一种越来越占主导地位的饮料，为咖啡文化做出了贡献，尤其是在西方世界和全球其他城市化中心。 围绕咖啡和咖啡馆的文化可以追溯到16世纪的土耳其。西欧和东地中海地区的咖啡馆不仅是社交中心，也是艺术和知识交流的场所。 在17世纪末至18世纪，伦敦的咖啡馆成为艺术家、作家和社交名流的聚集地，同时也是政治和商业活动的中心。到了19世纪，维也纳发展出一种独特的咖啡馆文化——维也纳咖啡馆文化，并逐渐传播到整个中欧。巴黎的双叟咖啡馆如今是著名的旅游景点，曾与知识分子让-保罗·萨特和西蒙·德·波伏娃密切相关。 现代咖啡馆的元素包括悠闲的美食服务、创新的冲泡技术以及温馨宜人的装饰风格。 在美国，咖啡文化通常用来描述浓缩咖啡摊位和咖啡店在大都市地区的普及，以及星巴克等大型国际连锁品牌的扩张。许多咖啡馆为顾客提供免费无线网络，鼓励人们在此进行商务活动或个人工作。咖啡文化因国家、州和城市的不同而有所差异。 在世界各地的城市中心，常常可以看到多家浓缩咖啡店和摊位彼此相邻，甚至出现在同一个街区的对角位置。商业媒体也使用“咖啡文化”一词来描述咖啡店广泛渗透市场所带来的深远影响。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%92%96%E5%95%A1%E6%96%87%E5%8C%96",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "咖啡 消费",
+   "retrieved_at": "2026-11-20T12:42:08.141086+08:00"
+  },
+  {
+   "note_id": "R012",
+   "kind": "encyclopedia",
+   "title": "古斯塔夫三世的咖啡实验",
+   "text": "18世纪末期，当时的瑞典国王古斯塔夫三世为了研究咖啡对于人体健康的影响，组织了一场有趣的双生子研究实验。尽管时至今日该实验的可靠程度仍受质疑，但这项实验确实证明了人类早在18世纪，就发现咖啡事实上是一种无毒的饮料。",
+   "source_url": "https://zh.wikipedia.org/wiki/%E5%8F%A4%E6%96%AF%E5%A1%94%E5%A4%AB%E4%B8%89%E4%B8%96%E7%9A%84%E5%92%96%E5%95%A1%E5%AE%9E%E9%AA%8C",
+   "source_name": "Wikipedia (zh)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "咖啡 消费",
+   "retrieved_at": "2026-11-20T12:42:08.141091+08:00"
+  },
+  {
+   "note_id": "R013",
+   "kind": "encyclopedia",
+   "title": "Coffee",
+   "text": "Coffee is a beverage brewed from roasted, ground coffee beans. Dark-colored and bitter, coffee has a stimulating effect on humans due to its caffeine content; however decaffeinated coffee is also commercially available. There are also various coffee substitutes. Coffee production begins when the seeds from coffee cherries, the Coffea plant's fruits, are separated to produce unroasted green coffee beans. The \"beans\" are roasted and then ground into fine particles. Coffee is brewed from the ground roasted beans, which are typically steeped in hot water before being filtered out. It is usually served...",
+   "source_url": "https://en.wikipedia.org/wiki/Coffee",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "coffee consumption trends",
+   "retrieved_at": "2026-11-20T12:42:08.372535+08:00"
+  },
+  {
+   "note_id": "R014",
+   "kind": "encyclopedia",
+   "title": "Specialty coffee",
+   "text": "Specialty coffee is a term for the highest grade of coffee available, typically relating to the entire supply chain, using single-origin or single-estate coffee. The term was first used in 1974 by Erna Knutsen in an issue of Tea & Coffee Trade Journal. Knutsen used specialty coffee to describe beans of the best flavor which are produced in special micro-climates. Specialty coffee is related to the farmers and the brewer what is known as the third wave of coffee, especially throughout North America. This refers to a modern demand for exceptional quality coffee, both farmed and brewed to a significantly...",
+   "source_url": "https://en.wikipedia.org/wiki/Specialty_coffee",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "coffee consumption trends",
+   "retrieved_at": "2026-11-20T12:42:08.372575+08:00"
+  },
+  {
+   "note_id": "R015",
+   "kind": "encyclopedia",
+   "title": "History of coffee",
+   "text": "The history of coffee spans many centuries. Wild coffee plants originated in Ethiopia, while the beverage itself has its roots in Yemen, where it was harvested, roasted, and brewed; Sufi Muslims in the 15th century used it to aid concentration during night prayers. By the mid-15th century, Sufi monks in Yemen regularly made & drank coffee to help them stay awake during long night prayers and religious ceremonies. As traders and pilgrims traveled through the region, this practice quickly spread from Yemen to Mecca and other cities across the Middle East. From Yemen, coffee spread to Mecca and the...",
+   "source_url": "https://en.wikipedia.org/wiki/History_of_coffee",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "coffee consumption trends",
+   "retrieved_at": "2026-11-20T12:42:08.372592+08:00"
+  },
+  {
+   "note_id": "R016",
+   "kind": "encyclopedia",
+   "title": "BP",
+   "text": "BP p.l.c. is a British multinational oil and gas company headquartered in London, England. It is one of the oil and gas \"supermajors\" and one of the world's largest companies measured by revenues and profits. It is a vertically integrated company operating in all areas of the oil and gas industry, including exploration and extraction, refining, distribution and marketing, power generation, and trading. BP's origins date back to the founding of the Anglo-Persian Oil Company in 1909, established as a subsidiary of the Burmah Oil Company to exploit oil discoveries in Iran. In 1935, it became the Anglo...",
+   "source_url": "https://en.wikipedia.org/wiki/BP",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "small cafe startup failure factors",
+   "retrieved_at": "2026-11-20T12:42:08.729808+08:00"
+  },
+  {
+   "note_id": "R017",
+   "kind": "encyclopedia",
+   "title": "Israel",
+   "text": "Israel, officially the State of Israel, is a country in the Southern Levant region of West Asia. It is bordered by Lebanon to the north, Syria to the northeast, Jordan to the east, and Egypt to the southwest. Israel's western coast lies on the Mediterranean Sea, its southern tip reaches the Red Sea, and to the east is Earth's lowest point near the Dead Sea. Jerusalem is the government seat and proclaimed capital, while Tel Aviv is Israel's largest urban area and economic centre. Israel is located in a region known in Jewish tradition as the Land of Israel, synonymous with Canaan, Palestine, and...",
+   "source_url": "https://en.wikipedia.org/wiki/Israel",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "small cafe startup failure factors",
+   "retrieved_at": "2026-11-20T12:42:08.729866+08:00"
+  },
+  {
+   "note_id": "R018",
+   "kind": "encyclopedia",
+   "title": "Sky Dayton",
+   "text": "Sky Dylan Dayton (born August 8, 1971) is an American entrepreneur and investor. He is the founder of Internet service provider EarthLink, co-founder of eCompanies, the founder of Boingo, and co-founder of City Storage Systems and CloudKitchens.",
+   "source_url": "https://en.wikipedia.org/wiki/Sky_Dayton",
+   "source_name": "Wikipedia (en)",
+   "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+   "backend": "wikipedia",
+   "query": "small cafe startup failure factors",
+   "retrieved_at": "2026-11-20T12:42:08.729881+08:00"
+  },
+  {
+   "note_id": "R019",
+   "kind": "reference",
+   "title": "Cataract Surgery in the Dog — III Factors Responsible for Failure",
+   "text": "Cataract Surgery in the Dog — III Factors Responsible for Failure — Journal of Small Animal Practice (1967); DOI 10.1111/j.1748-5827.1967.tb04515.x",
+   "source_url": "https://doi.org/10.1111/j.1748-5827.1967.tb04515.x",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "small cafe startup failure factors",
+   "retrieved_at": "2026-11-20T12:42:08.885089+08:00"
+  },
+  {
+   "note_id": "R020",
+   "kind": "reference",
+   "title": "A Comparative Analysis of Startup Success Factors and Failure Causes: An Empirical Investigation",
+   "text": "A Comparative Analysis of Startup Success Factors and Failure Causes: An Empirical Investigation — Tobacco Regulatory Science (TRS) (2021); DOI 10.52783/trs.v7i5-1.1386",
+   "source_url": "https://doi.org/10.52783/trs.v7i5-1.1386",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "small cafe startup failure factors",
+   "retrieved_at": "2026-11-20T12:42:08.885112+08:00"
+  },
+  {
+   "note_id": "R021",
+   "kind": "reference",
+   "title": "Impact of Startup Motives and Success Factors on Small Scale Women Entrepreneurial Performance in Southern Province",
+   "text": "Impact of Startup Motives and Success Factors on Small Scale Women Entrepreneurial Performance in Southern Province; DOI 10.31357/fmscmst.2015.00297",
+   "source_url": "https://doi.org/10.31357/fmscmst.2015.00297",
+   "source_name": "Crossref",
+   "license_or_terms": "Crossref metadata (bibliographic record only; no abstract/full text retrieved)",
+   "backend": "crossref",
+   "query": "small cafe startup failure factors",
+   "retrieved_at": "2026-11-20T12:42:08.885116+08:00"
+  }
+ ]
+}

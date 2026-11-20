@@ -159,6 +159,46 @@ class ResearchNote(_Contract):
     backend: NonEmptyStr
     query: NonEmptyStr
     retrieved_at: datetime
+    doc_type: str = ""                 # e.g. Crossref work type; "" when the backend does not say
+    relevance: float | None = None     # score from the relevance filter's scorer (None = structural rules only)
+
+
+class FilterReason(str, Enum):
+    junk_title = "junk_title"
+    too_short = "too_short"
+    disambiguation = "disambiguation"
+    list_page = "list_page"
+    bad_type = "bad_type"
+    low_relevance = "low_relevance"
+
+
+class FilteredHit(_Contract):
+    """A retrieved hit that the relevance filter removed. Kept on record so the removal is auditable."""
+
+    title: NonEmptyStr
+    source_url: Annotated[str, StringConstraints(pattern=r"^https?://\S+$")]
+    kind: Literal["encyclopedia", "reference", "web"]
+    backend: NonEmptyStr
+    topic: NonEmptyStr
+    query: NonEmptyStr
+    doc_type: str = ""
+    reason: FilterReason
+    detail: str = ""
+    score: float | None = None
+
+
+class RelevanceInfo(_Contract):
+    """How the filter ran. ``scorer is None`` means structural rules only (and ``note`` says why)."""
+
+    mode: Literal["auto", "structural", "off"]
+    rules_version: str
+    scorer: str | None = None
+    model: str | None = None
+    threshold: float | None = None
+    n_candidates: int = Field(ge=0)
+    n_kept: int = Field(ge=0)
+    n_filtered: int = Field(ge=0)
+    note: str = ""
 
 
 class ResearchRecord(_RunFile):
@@ -168,10 +208,18 @@ class ResearchRecord(_RunFile):
     status: ResearchStatus
     queries: list[ResearchQueryRecord] = Field(default_factory=list)
     notes: list[ResearchNote] = Field(default_factory=list)
+    filtered: list[FilteredHit] = Field(default_factory=list)
+    relevance_filter: RelevanceInfo | None = None
     summary: str = ""
 
     @model_validator(mode="after")
     def _rules(self) -> "ResearchRecord":
+        rf = self.relevance_filter
+        if rf is not None and (rf.n_kept != len(self.notes) or rf.n_filtered != len(self.filtered)
+                               or rf.n_candidates != rf.n_kept + rf.n_filtered):
+            raise ValueError("relevance_filter counts do not match notes/filtered")
+        if self.filtered and rf is None:
+            raise ValueError("filtered hits require relevance_filter info")
         ids = [n.note_id for n in self.notes]
         if len(set(ids)) != len(ids):
             raise ValueError("duplicate note_id in research record")

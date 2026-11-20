@@ -1,0 +1,102 @@
+[
+ {
+  "scorer": "fastembed:paraphrase-multilingual-MiniLM-L12-v2",
+  "variant": "topic",
+  "latency_s_total": 0.71,
+  "ms_per_doc": 10.9,
+  "n_docs": 65,
+  "auc_per_task": {
+   "T02": 0.971,
+   "T12": 0.759,
+   "T26": 0.667
+  },
+  "auc_all": 0.727,
+  "in_sample": {
+   "thr": 0.3497,
+   "precision": 0.882,
+   "recall": 0.536,
+   "relevant_lost": 2
+  },
+  "loto": {
+   "precision": 0.432,
+   "recall": 0.571,
+   "relevant_lost": 21
+  },
+  "load_s": 1.8
+ },
+ {
+  "scorer": "fastembed:paraphrase-multilingual-MiniLM-L12-v2",
+  "variant": "topic+subtopic",
+  "latency_s_total": 0.76,
+  "ms_per_doc": 11.7,
+  "n_docs": 65,
+  "auc_per_task": {
+   "T02": 0.957,
+   "T12": 0.852,
+   "T26": 0.778
+  },
+  "auc_all": 0.76,
+  "in_sample": {
+   "thr": 0.4556,
+   "precision": 0.741,
+   "recall": 0.714,
+   "relevant_lost": 7
+  },
+  "loto": {
+   "precision": 0.488,
+   "recall": 0.75,
+   "relevant_lost": 22
+  },
+  "load_s": 1.8
+ },
+ {
+  "scorer": "CrossEncoder:BAAI/bge-reranker-v2-m3",
+  "variant": "topic",
+  "latency_s_total": 6.66,
+  "ms_per_doc": 102.5,
+  "n_docs": 65,
+  "auc_per_task": {
+   "T02": 0.714,
+   "T12": 0.611,
+   "T26": 0.747
+  },
+  "auc_all": 0.733,
+  "in_sample": {
+   "thr": 0.0349,
+   "precision": 0.585,
+   "recall": 0.857,
+   "relevant_lost": 17
+  },
+  "loto": {
+   "precision": 0.6,
+   "recall": 0.75,
+   "relevant_lost": 14
+  },
+  "load_s": 35.5
+ },
+ {
+  "scorer": "CrossEncoder:BAAI/bge-reranker-v2-m3",
+  "variant": "topic+subtopic",
+  "latency_s_total": 5.88,
+  "ms_per_doc": 90.5,
+  "n_docs": 65,
+  "auc_per_task": {
+   "T02": 0.629,
+   "T12": 0.676,
+   "T26": 0.858
+  },
+  "auc_all": 0.746,
+  "in_sample": {
+   "thr": 0.0205,
+   "precision": 0.625,
+   "recall": 0.893,
+   "relevant_lost": 15
+  },
+  "loto": {
+   "precision": 0.595,
+   "recall": 0.786,
+   "relevant_lost": 15
+  },
+  "load_s": 35.5
+ }
+]

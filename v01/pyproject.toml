@@ -16,6 +16,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# relevance filter scorer (optional; without it the filter runs structural-only and records that)
+rank = ["fastembed>=0.3"]
+# opt-in cross-encoder reranker (needs torch; ~2.2 GB model; NOT the default, see docs/relevance-benchmark.md)
+rerank = ["sentence-transformers>=3", "torch"]
 
 [project.scripts]
 pptv01 = "pptv01.cli:main"

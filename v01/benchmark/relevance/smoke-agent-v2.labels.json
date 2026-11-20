@@ -1,0 +1,6 @@
+{
+  "_doc": "Manual relevance labels for the notes in runs/smoke-agent-v2 (T02/T12/T26). Labeller: 宝特 (agent, manual; NOT independent of the system author, NOT an API model). noise = would not help a deck on the task topic. Borderline items are listed in 'borderline_kept' and counted as relevant. Replay copies of the notes live in benchmark/relevance/notes/.",
+  "T02": {"topic": "城市热岛效应", "noise": ["R005","R006","R010","R011","R012","R016","R017"], "borderline_kept": ["R003","R002","R013","R015"]},
+  "T12": {"topic": "咖啡店创业计划", "noise": ["R002","R005","R006","R007","R008","R009","R010","R012","R016","R017","R018","R019"], "borderline_kept": ["R015","R021"]},
+  "T26": {"topic": "世界著名建筑", "noise": ["R007","R009","R018","R021","R022","R024","R025","R026","R027"], "borderline_kept": ["R011","R017","R023"]}
+}

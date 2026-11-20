@@ -1,5 +1,93 @@
 {
   "$defs": {
+    "FilterReason": {
+      "enum": [
+        "junk_title",
+        "too_short",
+        "disambiguation",
+        "list_page",
+        "bad_type",
+        "low_relevance"
+      ],
+      "title": "FilterReason",
+      "type": "string"
+    },
+    "FilteredHit": {
+      "additionalProperties": false,
+      "description": "A retrieved hit that the relevance filter removed. Kept on record so the removal is auditable.",
+      "properties": {
+        "backend": {
+          "minLength": 1,
+          "title": "Backend",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "doc_type": {
+          "default": "",
+          "title": "Doc Type",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "encyclopedia",
+            "reference",
+            "web"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "query": {
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/FilterReason"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "source_url": {
+          "pattern": "^https?://\\S+$",
+          "title": "Source Url",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "topic": {
+          "minLength": 1,
+          "title": "Topic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "source_url",
+        "kind",
+        "backend",
+        "topic",
+        "query",
+        "reason"
+      ],
+      "title": "FilteredHit",
+      "type": "object"
+    },
     "QueryStatus": {
       "enum": [
         "ok",
@@ -9,12 +97,101 @@
       "title": "QueryStatus",
       "type": "string"
     },
+    "RelevanceInfo": {
+      "additionalProperties": false,
+      "description": "How the filter ran. ``scorer is None`` means structural rules only (and ``note`` says why).",
+      "properties": {
+        "mode": {
+          "enum": [
+            "auto",
+            "structural",
+            "off"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "n_candidates": {
+          "minimum": 0,
+          "title": "N Candidates",
+          "type": "integer"
+        },
+        "n_filtered": {
+          "minimum": 0,
+          "title": "N Filtered",
+          "type": "integer"
+        },
+        "n_kept": {
+          "minimum": 0,
+          "title": "N Kept",
+          "type": "integer"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "rules_version": {
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "scorer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scorer"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        }
+      },
+      "required": [
+        "mode",
+        "rules_version",
+        "n_candidates",
+        "n_kept",
+        "n_filtered"
+      ],
+      "title": "RelevanceInfo",
+      "type": "object"
+    },
     "ResearchNote": {
       "additionalProperties": false,
       "properties": {
         "backend": {
           "minLength": 1,
           "title": "Backend",
+          "type": "string"
+        },
+        "doc_type": {
+          "default": "",
+          "title": "Doc Type",
           "type": "string"
         },
         "kind": {
@@ -40,6 +217,18 @@
           "minLength": 1,
           "title": "Query",
           "type": "string"
+        },
+        "relevance": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relevance"
         },
         "retrieved_at": {
           "format": "date-time",
@@ -159,6 +348,13 @@
   "additionalProperties": false,
   "description": "Everything stage B retrieved, or the honest record that nothing was.",
   "properties": {
+    "filtered": {
+      "items": {
+        "$ref": "#/$defs/FilteredHit"
+      },
+      "title": "Filtered",
+      "type": "array"
+    },
     "notes": {
       "items": {
         "$ref": "#/$defs/ResearchNote"
@@ -177,6 +373,17 @@
       },
       "title": "Queries",
       "type": "array"
+    },
+    "relevance_filter": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RelevanceInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "run_id": {
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",

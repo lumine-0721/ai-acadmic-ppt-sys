@@ -15,14 +15,19 @@ import httpx
 
 from pptv01.contracts import (
     SCHEMA_VERSION,
+    FilteredHit,
+    FilterReason,
     ProductionPlan,
     QueryStatus,
+    RelevanceInfo,
     ResearchNote,
     ResearchQueryRecord,
     ResearchRecord,
     ResearchStatus,
 )
 
+from .relevance import RULES_VERSION as RELEVANCE_RULES_VERSION
+from .relevance import Candidate, RelevanceFilter, filter_from_env
 from .backends import (
     DEFAULT_CONTACT,
     BackendError,
@@ -65,17 +70,19 @@ class DisabledResearch:
 
 class LiveResearch:
     def __init__(self, backends: Sequence[SearchBackend], *, max_hits: int = 3, max_queries: int = 12,
-                 provider_name: str | None = None):
+                 provider_name: str | None = None, relevance: RelevanceFilter | None = None):
         if not backends:
             raise ValueError("LiveResearch needs at least one backend")
         self.backends = list(backends)
         self.max_hits = max_hits
         self.max_queries = max_queries
         self.provider_name = provider_name or "+".join(b.name for b in self.backends)
+        # None = explicit "no filter" (unit tests of the raw backends); env path always passes a filter
+        self.relevance = relevance if relevance is not None else RelevanceFilter(None, None, mode="off")
 
     def research(self, plan: ProductionPlan) -> ResearchRecord:
         queries: list[ResearchQueryRecord] = []
-        notes: list[ResearchNote] = []
+        cands: list[Candidate] = []
         seen_urls: set[str] = set()
         n_run = 0
         for topic in plan.retrieval_brief:
@@ -101,10 +108,9 @@ class LiveResearch:
                         hits=len(hits), requested_at=t0))
                     for h in fresh:
                         seen_urls.add(h.url)
-                        notes.append(ResearchNote(
-                            note_id=f"R{len(notes) + 1:03d}", kind=h.kind, title=h.title, text=h.text,
-                            source_url=h.url, source_name=h.source_name, license_or_terms=h.license_or_terms,
-                            backend=be.name, query=q.text, retrieved_at=h.retrieved_at))
+                        cands.append(Candidate(title=h.title, text=h.text, kind=h.kind, backend=be.name,
+                                               topic=topic.topic, query=q.text, doc_type=h.doc_type, payload=h))
+        notes, filtered, info = self._filter(plan, cands)
         n_err = sum(q.status is QueryStatus.error for q in queries)
         if not queries:
             status, summary = ResearchStatus.no_results, "no query could be issued (no backend supports the brief's languages)"
@@ -112,13 +118,37 @@ class LiveResearch:
             status = ResearchStatus.failed
             summary = f"all {n_err} queries failed (network unavailable or backend error); nothing retrieved"
         elif not notes:
-            status, summary = ResearchStatus.no_results, f"{len(queries)} queries answered, no results"
-        elif n_err:
-            status, summary = ResearchStatus.partial, f"{len(notes)} notes; {n_err}/{len(queries)} queries failed"
+            status = ResearchStatus.no_results
+            summary = f"{len(queries)} queries answered, no usable results" + (
+                f" ({len(filtered)} hits removed by the relevance filter)" if filtered else "")
         else:
-            status, summary = ResearchStatus.ok, f"{len(notes)} notes from {len(queries)} queries"
+            extra = f"; {len(filtered)} hits filtered as irrelevant" if filtered else ""
+            if n_err:
+                status, summary = ResearchStatus.partial, f"{len(notes)} notes; {n_err}/{len(queries)} queries failed{extra}"
+            else:
+                status, summary = ResearchStatus.ok, f"{len(notes)} notes from {len(queries)} queries{extra}"
         return ResearchRecord(run_id=plan.run_id, provider=self.provider_name, status=status,
-                              queries=queries, notes=notes, summary=summary)
+                              queries=queries, notes=notes, filtered=filtered, relevance_filter=info, summary=summary)
+
+    def _filter(self, plan: ProductionPlan, cands: list[Candidate]):
+        outcome = self.relevance.apply(cands, plan.topic)
+        notes: list[ResearchNote] = []
+        for c, score in outcome.kept:
+            h = c.payload
+            notes.append(ResearchNote(
+                note_id=f"R{len(notes) + 1:03d}", kind=h.kind, title=h.title, text=h.text,
+                source_url=h.url, source_name=h.source_name, license_or_terms=h.license_or_terms,
+                backend=c.backend, query=c.query, retrieved_at=h.retrieved_at, doc_type=c.doc_type,
+                relevance=None if score is None else round(score, 4)))
+        filtered = [FilteredHit(
+            title=c.title, source_url=c.payload.url, kind=c.kind, backend=c.backend, topic=c.topic,
+            query=c.query, doc_type=c.doc_type, reason=FilterReason(v.reason), detail=v.detail,
+            score=None if v.score is None else round(v.score, 4)) for c, v in outcome.dropped]
+        info = RelevanceInfo(
+            mode=outcome.mode, rules_version=RELEVANCE_RULES_VERSION, scorer=outcome.scorer, model=outcome.model,
+            threshold=outcome.threshold, n_candidates=len(cands), n_kept=len(notes), n_filtered=len(filtered),
+            note=outcome.note)
+        return notes, filtered, info
 
 
 def research_from_env(env: Mapping[str, str] | None = None,
@@ -152,4 +182,4 @@ def research_from_env(env: Mapping[str, str] | None = None,
             backends.append(SearxngBackend(http, url))
         else:
             raise LLMConfigError(f"unknown research backend {n!r}; use wikipedia, crossref, searxng, auto or none")
-    return LiveResearch(backends, max_hits=max_hits, max_queries=max_queries)
+    return LiveResearch(backends, max_hits=max_hits, max_queries=max_queries, relevance=filter_from_env(env))
