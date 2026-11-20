@@ -40,7 +40,7 @@ def validate_slide_plan(plan: SlidePlan, production: ProductionPlan, *, has_rese
         for pr in textcheck.ungrounded_counts(text, utter):
             problems.append(f"{where}: {pr}")
         if not has_research:
-            for pr in textcheck.unsourced_claims(text):
+            for pr in textcheck.unsourced_claims(text, utter):
                 problems.append(f"{where}: {pr}; no research brief exists, so this cannot be stated as fact")
 
     titles = [p.title for p in plan.pages]

@@ -50,10 +50,10 @@ def validate_plan(plan: ProductionPlan) -> list[str]:
             problems.append(f"{where}: {p}")
         for p in textcheck.structure_locks(text, utter):
             problems.append(f"{where}: {p}")
-    for p in textcheck.unsourced_claims(plan.content_direction):
+    for p in textcheck.unsourced_claims(plan.content_direction, utter):
         problems.append(f"content_direction: {p}; stage A may only give directions, not conclusions")
     for i, q in enumerate(plan.open_questions):
-        for p in textcheck.unsourced_claims(q):
+        for p in textcheck.unsourced_claims(q, utter):
             problems.append(f"open_questions[{i}]: {p}")
 
     for i, d in enumerate(plan.defaults_applied):
