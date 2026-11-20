@@ -32,7 +32,7 @@ from pptv01.retrieval.relevance import RULES_VERSION, Candidate, RelevanceFilter
 
 from .license import check_license, needs_attribution, plain
 from .sources import (
-    IMAGE_MIMES, MIN_RASTER_WIDTH, CommonsClient, CommonsFile, CrossrefVerifier, OpenAlexClient, WdEntity,
+    IMAGE_MIMES, MAX_ASPECT, MIN_RASTER_WIDTH, NON_SUBJECT_CLASSES, CommonsClient, CommonsFile, CrossrefVerifier, OpenAlexClient, WdEntity,
     WikidataClient, Work, bare_doi, download_image, now, similar, verify_image,
 )
 
@@ -104,6 +104,7 @@ class _Ctx:
         self.n_cand = self.n_kept = self.n_filtered = 0
         self.scorer_info: tuple[str | None, str | None, float | None] = (None, None, None)
         self.note = ""
+        self.wd_rejected: dict[str, list[str]] = {}      # target name -> Wikidata candidates dropped by class (P31)
 
     def call(self, backend: str, purpose: str, query: str, fn, *, count=len):
         """Run one API call, log it (ok / no_results / error). Returns result or None on error."""
@@ -170,8 +171,27 @@ def _resolve_entity(ctx: _Ctx, rq: AssetRequirement, name: str, etype: str) -> t
             break
     if not found:
         return None
+    # drop items that are papers/lists/disambiguation pages (P31): a scholarly article *about* a temple is not the temple
+    rejected: list[str] = []
+    types = ctx.call("wikidata", "entity classes (P31)", ",".join(e.qid for e in found),
+                     lambda: wd.instance_of([e.qid for e in found]), count=len) or {}
+    kept: list[WdEntity] = []
+    for e in found:
+        bad = sorted(NON_SUBJECT_CLASSES[t] for t in types.get(e.qid, set()) if t in NON_SUBJECT_CLASSES)
+        if bad:
+            rejected.append(f"{e.qid} {e.label[:60]} - rejected: instance of {', '.join(bad)}")
+        else:
+            kept.append(e)
+    ctx.wd_rejected[name] = rejected
+    if not kept:
+        return None
+    found = kept
+    exact = [e for e in found if e.match_text and e.match_text.casefold() == name.casefold()]
     if len(found) == 1:
         pick, how = found[0], "only_candidate"
+    elif exact:
+        # the search matched the requested name exactly on a label/alias: keep Wikidata's own ranking among those
+        pick, how = exact[0], "exact_label_match"
     else:
         cands = [Candidate(f"{e.label}", f"{e.label}。{e.description}", "web", "wikidata", f"{name} {rq.purpose}", name,
                            payload=e) for e in found]
@@ -186,7 +206,7 @@ def _resolve_entity(ctx: _Ctx, rq: AssetRequirement, name: str, etype: str) -> t
         return None
     ref = EntityRef(name=name, qid=pick.qid, label=ent.label, description=ent.description or pick.description,
                     url=ent.url, chosen_by=how,
-                    alternatives=[f"{e.qid} {e.label} - {e.description}"[:160] for e in found if e.qid != pick.qid])
+                    alternatives=[f"{e.qid} {e.label} - {e.description}"[:160] for e in found if e.qid != pick.qid] + rejected)
     return ref, ent
 
 
@@ -230,12 +250,20 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         if not accepted:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=why))
+        elif needs_attribution(f.license_short) and not (f.artist or f.credit):
+            cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
+                                            decision="rejected",
+                                            reason="licence requires attribution but Commons gives no author/credit"))
         elif f.mime not in IMAGE_MIMES:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=f"format {f.mime or 'unknown'} not supported in V0.1"))
         elif f.width < MIN_RASTER_WIDTH:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=f"too small ({f.width}px wide < {MIN_RASTER_WIDTH})"))
+        elif f.width and f.height and max(f.width, f.height) / min(f.width, f.height) > MAX_ASPECT:
+            cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
+                                            decision="rejected",
+                                            reason=f"extreme aspect ratio {f.width}x{f.height} (> {MAX_ASPECT:g}:1, not usable as a slide picture)"))
         else:
             ok.append(f)
     # 2) relevance: P18 is Wikidata's own representative image of the (disambiguated) entity -> trusted;
@@ -302,11 +330,12 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     rel = f"assets/{rq.asset_id}.{ext}"
     (ctx.run_dir / "assets").mkdir(exist_ok=True)
     (ctx.run_dir / rel).write_bytes(data)
-    artist = f.artist[:200] or None
+    artist = (f.artist or f.credit)[:200] or None
     credit = f"{artist or 'unknown author'}, {f.license_short}, via Wikimedia Commons ({f.page_url})"
     cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                     decision="selected", reason=how, score=score))
     notes = [f"target {primary.name!r} ({primary.verification.value})"]
+    notes += [f"Wikidata candidate {r}" for r in ctx.wd_rejected.get(primary.name, [])[:3]]
     if primary.verification.value == "to_verify":
         notes.append("target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content")
     if uncovered:

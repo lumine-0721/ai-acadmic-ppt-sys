@@ -418,7 +418,7 @@ class EntityRef(_Contract):
     label: NonEmptyStr
     description: str = ""
     url: Annotated[str, StringConstraints(pattern=r"^https?://\S+$")]
-    chosen_by: Literal["only_candidate", "search_rank", "relevance_score"]
+    chosen_by: Literal["only_candidate", "exact_label_match", "search_rank", "relevance_score"]
     alternatives: list[str] = Field(default_factory=list)       # "Qid label - description"
 
 

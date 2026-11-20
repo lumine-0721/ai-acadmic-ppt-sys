@@ -1,0 +1,123 @@
+{
+ "searchinfo": {
+  "search": "佛光寺东大殿"
+ },
+ "search": [
+  {
+   "id": "Q121353103",
+   "title": "Q121353103",
+   "pageid": 115766623,
+   "concepturi": "http://www.wikidata.org/entity/Q121353103",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q121353103",
+   "display": {
+    "label": {
+     "value": "佛光寺东大殿造像组合及相关问题探讨",
+     "language": "zh"
+    },
+    "description": {
+     "value": "scholarly article in Journal of Nanjing Arts Institute (Fine Arts & Design), no. 2, 2020",
+     "language": "en"
+    }
+   },
+   "label": "佛光寺东大殿造像组合及相关问题探讨",
+   "description": "scholarly article in Journal of Nanjing Arts Institute (Fine Arts & Design), no. 2, 2020",
+   "match": {
+    "type": "label",
+    "language": "zh",
+    "text": "佛光寺东大殿造像组合及相关问题探讨"
+   }
+  },
+  {
+   "id": "Q119476769",
+   "title": "Q119476769",
+   "pageid": 113963086,
+   "concepturi": "http://www.wikidata.org/entity/Q119476769",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q119476769",
+   "display": {
+    "label": {
+     "value": "佛光寺东大殿尺度规律探讨",
+     "language": "zh"
+    }
+   },
+   "label": "佛光寺东大殿尺度规律探讨",
+   "match": {
+    "type": "label",
+    "language": "zh",
+    "text": "佛光寺东大殿尺度规律探讨"
+   }
+  },
+  {
+   "id": "Q119477242",
+   "title": "Q119477242",
+   "pageid": 113963550,
+   "concepturi": "http://www.wikidata.org/entity/Q119477242",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q119477242",
+   "display": {
+    "label": {
+     "value": "佛光寺东大殿结构特征——《中国古代木结构建筑技术（战国—北宋）》相关内容再议",
+     "language": "zh"
+    }
+   },
+   "label": "佛光寺东大殿结构特征——《中国古代木结构建筑技术（战国—北宋）》相关内容再议",
+   "match": {
+    "type": "label",
+    "language": "zh",
+    "text": "佛光寺东大殿结构特征——《中国古代木结构建筑技术（战国—北宋）》相关内容再议"
+   }
+  },
+  {
+   "id": "Q65020392",
+   "title": "Q65020392",
+   "pageid": 64662786,
+   "concepturi": "http://www.wikidata.org/entity/Q65020392",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q65020392",
+   "display": {
+    "label": {
+     "value": "佛光寺东大殿实测数据解读",
+     "language": "zh"
+    },
+    "description": {
+     "value": "article published in 2007",
+     "language": "en"
+    }
+   },
+   "label": "佛光寺东大殿实测数据解读",
+   "description": "article published in 2007",
+   "match": {
+    "type": "label",
+    "language": "zh",
+    "text": "佛光寺东大殿实测数据解读"
+   }
+  },
+  {
+   "id": "Q63501318",
+   "title": "Q63501318",
+   "pageid": 63227016,
+   "concepturi": "http://www.wikidata.org/entity/Q63501318",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q63501318",
+   "display": {
+    "label": {
+     "value": "佛光寺东大殿的建筑彩画",
+     "language": "zh"
+    },
+    "description": {
+     "value": "2015年学术文章",
+     "language": "zh"
+    }
+   },
+   "label": "佛光寺东大殿的建筑彩画",
+   "description": "2015年学术文章",
+   "match": {
+    "type": "label",
+    "language": "zh",
+    "text": "佛光寺东大殿的建筑彩画"
+   }
+  }
+ ],
+ "success": 1
+}

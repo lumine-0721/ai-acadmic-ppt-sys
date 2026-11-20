@@ -34,10 +34,11 @@ class Net:
     """Routes the four APIs + image downloads to replays. Records every request URL."""
 
     def __init__(self, *, wd_search="wikidata_search_parthenon_zh.json", p18=True, commons_search="commons_search_parthenon.json",
-                 image=None, download_status=200, crossref_status=200, crossref_title=None):
+                 image=None, download_status=200, crossref_status=200, crossref_title=None, wd_p31=None):
         self.log, self.image, self.download_status = [], image if image is not None else jpeg(), download_status
         self.wd_search, self.p18, self.commons_search = wd_search, p18, commons_search
         self.crossref_status, self.crossref_title = crossref_status, crossref_title
+        self.wd_p31 = wd_p31
 
     def __call__(self, req: httpx.Request) -> httpx.Response:
         self.log.append(str(req.url))
@@ -45,6 +46,8 @@ class Net:
         if host == "www.wikidata.org":
             if q["action"] == "wbsearchentities":
                 return httpx.Response(200, json=rp(self.wd_search) if self.wd_search else {"search": []})
+            if q.get("props") == "claims" and self.wd_p31:
+                return httpx.Response(200, json=rp(self.wd_p31))
             ent = rp("wikidata_entity_Q10288.json")
             if not self.p18:
                 ent["entities"]["Q10288"]["claims"] = {}
@@ -110,8 +113,8 @@ def test_named_target_uses_wikidata_p18_with_license_author_and_source_page(tmp_
     reg, net, rq = run(tmp_path, [req("A001", "image", [PARTHENON])], scorer=Scorer())
     a = reg.assets[0]
     assert a.status is AssetStatus.acquired and a.type.value == "image"
-    assert a.entity.qid == "Q10288" and a.entity.chosen_by in ("relevance_score", "only_candidate", "search_rank")
-    assert any("Q3753726" in alt for alt in a.entity.alternatives) or a.entity.chosen_by == "only_candidate"
+    assert a.entity.qid == "Q10288" and a.entity.chosen_by == "exact_label_match"
+    assert any("Q3753726" in alt for alt in a.entity.alternatives)
     assert a.identifier == "File:The Parthenon in Athens.jpg" and a.source_name == "Wikimedia Commons"
     assert a.source_url.startswith("https://commons.wikimedia.org/wiki/File:") and a.license_or_terms.startswith("CC BY 2.0")
     assert a.author and "flickr" not in a.author.lower().split()[0:0] and "CC BY 2.0" in a.attribution and a.attribution.endswith(")")
@@ -124,6 +127,48 @@ def test_named_target_uses_wikidata_p18_with_license_author_and_source_page(tmp_
     assert arkansas and all(c.decision == "rejected" for c in arkansas)
     load_contract(AssetRegistry, tmp_path / "asset_registry.json")          # written + valid
     assert {c.backend for c in reg.sources} >= {"wikidata", "commons"}
+
+
+def test_exact_label_match_beats_embedding_score_for_the_entity(tmp_path):
+    """Real finding: the embedding scorer once preferred 'Pediments of the Parthenon' (a sculpture) over the temple."""
+    class PrefersSculpture(Scorer):
+        def score(self, query, docs):
+            return [0.9 if "sculpture" in d else 0.4 for d in docs]
+    reg, _, _ = run(tmp_path, [req("A001", "image", [PARTHENON])], scorer=PrefersSculpture(bad=()))
+    assert reg.assets[0].entity.qid == "Q10288"
+
+
+def test_wikidata_papers_about_the_target_are_not_taken_as_the_target(tmp_path):
+    """Real recorded answers: every hit for 佛光寺东大殿 is a scholarly article (P31 Q13442814)."""
+    net = Net(wd_search="wikidata_search_foguang_zh.json", wd_p31="wikidata_p31_foguang.json")
+    reg, _, _ = run(tmp_path, [req("A001", "image", [("佛光寺东大殿", "building", "to_verify")], hints=("Parthenon",))],
+                    net=net, scorer=Scorer())
+    a = reg.assets[0]
+    assert a.entity is None                                       # no paper is recorded as "the temple"
+    assert "rejected: instance of scholarly article" in a.notes
+    assert any(c.backend == "wikidata" and "P31" in c.purpose for c in reg.sources)
+
+
+def test_extreme_aspect_ratio_is_rejected_with_reason(tmp_path):
+    pages = [_file("File:Parthenon pano.jpg", "CC0", w=2000, h=300), _file("File:Parthenon ok.jpg", "CC0", w=1200, h=800)]
+    net = Net(wd_search=None, commons_search={"query": {"pages": pages}})
+    reg, _, _ = run(tmp_path, [req("A001", "image", [("Parthenon", "building", "verified")], hints=("Parthenon",))], net=net)
+    a = reg.assets[0]
+    reasons = {c.title: c.reason for c in a.candidates}
+    assert "extreme aspect ratio" in reasons["File:Parthenon pano.jpg"]
+    assert a.status is AssetStatus.acquired and a.identifier == "File:Parthenon ok.jpg"
+
+
+def test_cc_by_file_without_any_author_is_rejected_not_crashing_the_stage(tmp_path):
+    """Real finding (T02 live run): a CC BY Commons file with no Artist field crashed D via the contract validator."""
+    pages = [_file("File:Parthenon noauthor.jpg", "CC BY 2.0", artist="", credit=""),
+             _file("File:Parthenon credit.jpg", "CC BY 2.0", artist="", credit="Own work by someone")]
+    net = Net(wd_search=None, commons_search={"query": {"pages": pages}})
+    reg, _, _ = run(tmp_path, [req("A001", "image", [("Parthenon", "building", "verified")], hints=("Parthenon",))], net=net)
+    a = reg.assets[0]
+    reasons = {c.title: c.reason for c in a.candidates}
+    assert "no author/credit" in reasons["File:Parthenon noauthor.jpg"]
+    assert a.status is AssetStatus.acquired and a.identifier == "File:Parthenon credit.jpg" and a.author == "Own work by someone"
 
 
 def test_no_entity_falls_back_to_search_and_relevance_filter_removes_arkansas(tmp_path):
@@ -148,11 +193,11 @@ def test_without_a_scorer_lexical_overlap_is_required_and_said_so(tmp_path):
     assert reg.assets[0].status is AssetStatus.missing
 
 
-def _file(title, lic, mime="image/jpeg", w=2000, restrictions=""):
+def _file(title, lic, mime="image/jpeg", w=2000, restrictions="", h=1000, artist="<a href='x'>Some Author</a>", credit=""):
     return {"index": 1, "title": title, "imageinfo": [{
         "url": "https://upload.wikimedia.org/x.jpg", "thumburl": "https://upload.wikimedia.org/t.jpg", "mime": mime, "width": w,
-        "height": 1000, "size": 1, "descriptionurl": "https://commons.wikimedia.org/wiki/" + title,
-        "extmetadata": {"LicenseShortName": {"value": lic}, "Artist": {"value": "<a href='x'>Some Author</a>"},
+        "height": h, "size": 1, "descriptionurl": "https://commons.wikimedia.org/wiki/" + title,
+        "extmetadata": {"LicenseShortName": {"value": lic}, "Artist": {"value": artist}, "Credit": {"value": credit},
                         "Restrictions": {"value": restrictions}, "ImageDescription": {"value": "Parthenon view"}}}]}
 
 

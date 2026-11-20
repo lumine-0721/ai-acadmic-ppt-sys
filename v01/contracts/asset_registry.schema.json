@@ -362,6 +362,7 @@
         "chosen_by": {
           "enum": [
             "only_candidate",
+            "exact_label_match",
             "search_rank",
             "relevance_score"
           ],

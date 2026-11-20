@@ -38,3 +38,12 @@ pyalex.config.email = "https://github.com/lumine-0721/ai-acadmic-ppt-sys"
 from pptv01.d_retrieve.sources import SELECT  # noqa: E402
 save("openalex_uhi.json", list(Works().search("urban heat island intensity").select(SELECT).get(per_page=4)))
 save("crossref_work_uhi.json", get("https://api.crossref.org/works/10.1038/s41467-020-16461-9"))
+
+# --- entity-class (P31) replays: real Wikidata answers for "佛光寺东大殿" (papers about the hall must not be picked)
+srch = get("https://www.wikidata.org/w/api.php", action="wbsearchentities", search="佛光寺东大殿", language="zh", uselang="zh", type="item", limit=5, format="json")
+save("wikidata_search_foguang_zh.json", srch)
+ids = [x["id"] for x in srch["search"]]
+cl = get("https://www.wikidata.org/w/api.php", action="wbgetentities", ids="|".join(ids), props="claims", format="json")
+for e in cl["entities"].values():
+    e["claims"] = {"P31": e.get("claims", {}).get("P31", [])}          # keep only what the client reads
+save("wikidata_p31_foguang.json", cl)

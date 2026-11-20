@@ -31,6 +31,7 @@ CROSSREF_WORKS = "https://api.crossref.org/works"
 MAX_DOWNLOAD_BYTES = 12 * 1024 * 1024
 IMAGE_MIMES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}   # raster only in V0.1 (Pillow-verifiable)
 MIN_RASTER_WIDTH = 600
+MAX_ASPECT = 3.0              # long side / short side; panoramas and banners are not usable as slide pictures
 
 
 def now() -> datetime:
@@ -46,6 +47,7 @@ class WdEntity:
     label_en: str = ""
     label_zh: str = ""
     p18: list[str] = field(default_factory=list)       # Commons file names (no "File:" prefix)
+    match_text: str = ""                               # text of the label/alias that matched the search (wbsearchentities)
 
     @property
     def url(self) -> str:
@@ -61,8 +63,22 @@ class WikidataClient:
                                                 "uselang": lang, "type": "item", "limit": limit, "format": "json"})
         if "error" in d:
             raise BackendError(f"wikidata error: {str(d['error'])[:120]}")
-        return [WdEntity(x["id"], x.get("label") or x["id"], x.get("description") or "") for x in d.get("search", [])
-                if x.get("id")]
+        return [WdEntity(x["id"], x.get("label") or x["id"], x.get("description") or "",
+                         match_text=(x.get("match") or {}).get("text", ""))
+                for x in d.get("search", []) if x.get("id")]
+
+    def instance_of(self, qids: list[str]) -> dict[str, set[str]]:
+        """P31 (instance of) per entity, one batched call. Entities missing from the answer are simply absent."""
+        d = _get_json(self.http, WIKIDATA_API, {"action": "wbgetentities", "ids": "|".join(qids), "props": "claims",
+                                                "format": "json"})
+        out: dict[str, set[str]] = {}
+        for qid, e in (d.get("entities") or {}).items():
+            if not isinstance(e, dict) or "missing" in e:
+                continue
+            out[qid] = {(c.get("mainsnak", {}).get("datavalue") or {}).get("value", {}).get("id", "")
+                        for c in (e.get("claims") or {}).get("P31", [])
+                        if isinstance(((c.get("mainsnak") or {}).get("datavalue") or {}).get("value"), dict)} - {""}
+        return out
 
     def entity(self, qid: str) -> WdEntity:
         d = _get_json(self.http, WIKIDATA_API, {"action": "wbgetentities", "ids": qid, "props": "claims|labels|descriptions",
@@ -79,6 +95,15 @@ class WikidataClient:
                 files.append(v)
         return WdEntity(qid, en or zh or qid, desc.get("en", {}).get("value") or desc.get("zh", {}).get("value", ""),
                         en, zh, files)
+
+
+# Wikidata classes that are never the *subject* of an image (papers about it, list/disambiguation pages, ...).
+NON_SUBJECT_CLASSES = {
+    "Q13442814": "scholarly article", "Q18918145": "academic journal article", "Q191067": "article",
+    "Q7318358": "review article", "Q1266946": "thesis", "Q187685": "doctoral thesis", "Q1348305": "doctoral dissertation",
+    "Q3331189": "version, edition or translation", "Q4167410": "Wikimedia disambiguation page",
+    "Q13406463": "Wikimedia list article", "Q4167836": "Wikimedia category", "Q11266439": "Wikimedia template",
+}
 
 
 # ------------------------------------------------------------------------------------------ Commons
