@@ -26,6 +26,62 @@
       ],
       "title": "DefaultApplied",
       "type": "object"
+    },
+    "RetrievalQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "lang": {
+          "enum": [
+            "zh",
+            "en"
+          ],
+          "title": "Lang",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "lang"
+      ],
+      "title": "RetrievalQuery",
+      "type": "object"
+    },
+    "RetrievalTopic": {
+      "additionalProperties": false,
+      "description": "One thing stage B should look up: a neutral question, not a conclusion.",
+      "properties": {
+        "queries": {
+          "items": {
+            "$ref": "#/$defs/RetrievalQuery"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Queries",
+          "type": "array"
+        },
+        "topic": {
+          "minLength": 1,
+          "title": "Topic",
+          "type": "string"
+        },
+        "why": {
+          "minLength": 1,
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "topic",
+        "why",
+        "queries"
+      ],
+      "title": "RetrievalTopic",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -73,6 +129,15 @@
       "title": "Purpose",
       "type": "string"
     },
+    "retrieval_brief": {
+      "items": {
+        "$ref": "#/$defs/RetrievalTopic"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "title": "Retrieval Brief",
+      "type": "array"
+    },
     "run_id": {
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
       "title": "Run Id",
@@ -108,7 +173,8 @@
     "audience",
     "language",
     "style",
-    "content_direction"
+    "content_direction",
+    "retrieval_brief"
   ],
   "title": "ProductionPlan",
   "type": "object"

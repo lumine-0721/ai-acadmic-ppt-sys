@@ -75,4 +75,25 @@ def test_cli_validate_and_export(tmp_path, capsys):
     assert cli.main(["validate", "production_plan", str(fx)]) == 0
     assert cli.main(["validate", "slide_plan", str(fx)]) == 1
     assert cli.main(["export-schemas", "--out", str(tmp_path)]) == 0
-    assert len(list(tmp_path.glob("*.schema.json"))) == 8
+    assert len(list(tmp_path.glob("*.schema.json"))) == 9
+
+
+def test_runner_records_research_outcome_and_fails_honestly(tmp_path):
+    import httpx
+    from pptv01.retrieval import CrossrefBackend, LiveResearch, WikipediaBackend
+    from pptv01.retrieval.backends import make_http
+    http = make_http(5, "x", httpx.MockTransport(lambda r: httpx.Response(503)))
+    dead = LiveResearch([WikipediaBackend(http), CrossrefBackend(http)])
+    client = FakeClient([GOOD_A, GOOD_B])
+    report, run_dir = run_pipeline(U, tmp_path, client, run_id="t-net", research=dead)
+    st = {s.stage: s for s in report.stages}
+    assert report.overall.value == "failed" and st["B"].status is StageStatus.failed
+    assert "research failed" in report.failure_reason and "research_brief.json" in st["B"].output_files
+    assert report.tool_config["research"]["status"] == "failed"
+    assert not (run_dir / "slide_plan.json").exists()
+
+
+def test_runner_research_disabled_is_recorded(tmp_path):
+    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B]), run_id="t-off")
+    assert report.tool_config["research"]["status"] == "disabled"     # env PPTV01_RESEARCH=none from conftest
+    assert (run_dir / "research_brief.json").is_file()

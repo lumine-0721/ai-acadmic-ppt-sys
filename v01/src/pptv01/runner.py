@@ -18,16 +18,19 @@ from typing import Any, Callable
 
 from pptv01 import __version__
 from pptv01.a_plan import ARTIFACT as A_FILE, run_stage_a
-from pptv01.b_slide_plan import ARTIFACT as B_FILE, ResearchProvider, run_stage_b
+from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchFailed, run_stage_b
 from pptv01.contracts import (
     ProductionPlan,
+    ResearchRecord,
     RunOverall,
     RunReport,
     StageRecord,
     StageStatus,
+    load_contract,
     write_contract,
 )
 from pptv01.llm import ChatClient, LLMError
+from pptv01.retrieval import ResearchProvider, research_from_env
 
 STAGE_NAMES = {
     "A": "production_plan",
@@ -67,6 +70,16 @@ def code_version() -> tuple[str, bool | None]:
         return commit, dirty
     except (OSError, subprocess.SubprocessError):
         return "unknown", None
+
+
+def _research_summary(rec: ResearchRecord) -> dict[str, Any]:
+    return {
+        "provider": rec.provider, "status": rec.status.value, "notes": len(rec.notes),
+        "queries": len(rec.queries), "query_errors": sum(q.status.value == "error" for q in rec.queries),
+        "sources": [{"id": n.note_id, "title": n.title, "url": n.source_url,
+                     "retrieved_at": n.retrieved_at.isoformat()} for n in rec.notes],
+        "summary": rec.summary,
+    }
 
 
 def _write_trace(run_dir: Path, stage: str, attempts: list[dict[str, Any]], model_id: str) -> str:
@@ -129,16 +142,28 @@ def run_pipeline(
         failure = f"stage A failed: {type(e).__name__}: {str(e)[:500]}"
         record("A", StageStatus.failed, t0, files, failure)
 
-    # ---- Stage B
+    # ---- Stage B (research per A's retrieval_brief, then provisional slide plan)
+    research_summary: dict[str, Any] = {}
     if plan is not None:
         t0 = clock()
         client.set_stage("B")
         try:
-            _, attempts = run_stage_b(plan, client, run_dir, research)
-            record("B", StageStatus.done, t0, [B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
+            provider = research if research is not None else research_from_env()
+            _, attempts, rec = run_stage_b(plan, client, run_dir, provider)
+            research_summary = _research_summary(rec)
+            record("B", StageStatus.done, t0,
+                   [RESEARCH_ARTIFACT, B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
+        except ResearchFailed as e:
+            research_summary = _research_summary(e.record)
+            failure = f"stage B failed: {e}"[:600]
+            record("B", StageStatus.failed, t0, [RESEARCH_ARTIFACT], failure)
         except (LLMError, ValueError) as e:
             trace = getattr(e, "attempts", None)
-            files = [_write_trace(run_dir, "B", trace, client.model_id)] if trace else []
+            files = [RESEARCH_ARTIFACT] if (run_dir / RESEARCH_ARTIFACT).exists() else []
+            if (run_dir / RESEARCH_ARTIFACT).exists():
+                research_summary = _research_summary(load_contract(ResearchRecord, run_dir / RESEARCH_ARTIFACT))
+            if trace:
+                files.append(_write_trace(run_dir, "B", trace, client.model_id))
             failure = f"stage B failed: {type(e).__name__}: {str(e)[:500]}"
             record("B", StageStatus.failed, t0, files, failure)
     else:
@@ -172,7 +197,7 @@ def run_pipeline(
             "python": platform.python_version(),
             "llm": client.describe(),
             "implemented_stages": list(IMPLEMENTED_STAGES),
-            "research": type(research).__name__ if research else "NullResearch(stub)",
+            "research": research_summary or {"status": "not_run"},
         },
         stages=stages,
         defaults_summary=defaults_summary,

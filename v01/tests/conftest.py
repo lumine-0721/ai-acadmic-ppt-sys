@@ -22,6 +22,10 @@ GOOD_A = {
     ],
     "content_direction": "从现象、成因、影响和应对几条线索展开。",
     "open_questions": ["如何度量城市热岛强度？"],
+    "retrieval_brief": [
+        {"topic": "城市热岛的定义与度量", "why": "为概念页提供出处",
+         "queries": [{"text": "城市热岛", "lang": "zh"}, {"text": "urban heat island intensity", "lang": "en"}]},
+    ],
 }
 
 GOOD_B = {
@@ -33,3 +37,13 @@ GOOD_B = {
          "content_summary": "逐个成因讲机制。", "visual_intent": "成因机制图", "asset_needs": [{"type": "diagram", "description": "画出三类成因如何抬高城区气温", "targets": []}]},
     ],
 }
+
+
+@pytest.fixture(autouse=True)
+def _clean_env(monkeypatch):
+    """Unit tests never touch the network or a real LLM: scrub PPTV01_* and disable research."""
+    import os
+    for k in list(os.environ):
+        if k.startswith("PPTV01_"):
+            monkeypatch.delenv(k)
+    monkeypatch.setenv("PPTV01_RESEARCH", "none")

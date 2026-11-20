@@ -30,6 +30,11 @@ def _free_text(plan: ProductionPlan) -> dict[str, str]:
         "audience": plan.audience,
         "style": plan.style,
     }
+    for i, t in enumerate(plan.retrieval_brief):
+        out[f"retrieval_brief[{i}].topic"] = t.topic
+        out[f"retrieval_brief[{i}].why"] = t.why
+        for j, q in enumerate(t.queries):
+            out[f"retrieval_brief[{i}].queries[{j}]"] = q.text
     for i, c in enumerate(plan.constraints):
         out[f"constraints[{i}]"] = c
     for i, q in enumerate(plan.open_questions):
@@ -55,6 +60,14 @@ def validate_plan(plan: ProductionPlan) -> list[str]:
     for i, q in enumerate(plan.open_questions):
         for p in textcheck.unsourced_claims(q, utter):
             problems.append(f"open_questions[{i}]: {p}")
+    for i, t in enumerate(plan.retrieval_brief):
+        for where, text in [(f"retrieval_brief[{i}].topic", t.topic), (f"retrieval_brief[{i}].why", t.why),
+                            *((f"retrieval_brief[{i}].queries[{j}]", q.text) for j, q in enumerate(t.queries))]:
+            for p in textcheck.unsourced_claims(text, utter):
+                problems.append(f"{where}: {p}; a retrieval query must be a neutral question, not a claim")
+        qs = [(q.lang, q.text.strip().lower()) for q in t.queries]
+        if len(set(qs)) != len(qs):
+            problems.append(f"retrieval_brief[{i}]: duplicate queries")
 
     for i, d in enumerate(plan.defaults_applied):
         if d.field.strip().lower() in FORBIDDEN_DEFAULT_FIELDS:

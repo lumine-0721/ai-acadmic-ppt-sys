@@ -36,6 +36,7 @@ PageId = Annotated[str, StringConstraints(pattern=PAGE_ID_RE)]
 AssetId = Annotated[str, StringConstraints(pattern=ASSET_ID_RE)]
 ElementId = Annotated[str, StringConstraints(pattern=ELEMENT_ID_RE)]
 RunId = Annotated[str, StringConstraints(pattern=RUN_ID_RE)]
+SourceRef = Annotated[str, StringConstraints(pattern=r"^R\d{3,}$")]  # research note id (stage B retrieval)
 # Controlled-vocabulary style token (snake_case); the original wording is kept elsewhere.
 Token = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]{0,63}$")]
 LangTag = Annotated[str, StringConstraints(pattern=r"^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$")]
@@ -70,6 +71,19 @@ class DefaultApplied(_Contract):
     rationale: NonEmptyStr
 
 
+class RetrievalQuery(_Contract):
+    text: NonEmptyStr
+    lang: Literal["zh", "en"]
+
+
+class RetrievalTopic(_Contract):
+    """One thing stage B should look up: a neutral question, not a conclusion."""
+
+    topic: NonEmptyStr
+    why: NonEmptyStr
+    queries: list[RetrievalQuery] = Field(min_length=1, max_length=4)
+
+
 class ProductionPlan(_RunFile):
     source_utterance: NonEmptyStr
     topic: NonEmptyStr
@@ -81,6 +95,7 @@ class ProductionPlan(_RunFile):
     defaults_applied: list[DefaultApplied] = Field(default_factory=list)
     content_direction: NonEmptyStr
     open_questions: list[NonEmptyStr] = Field(default_factory=list)
+    retrieval_brief: list[RetrievalTopic] = Field(min_length=1, max_length=8)
 
     @model_validator(mode="after")
     def _defaults_consistent(self) -> "ProductionPlan":
@@ -98,13 +113,81 @@ class ProductionPlan(_RunFile):
         return self
 
 
+# ------------------------------------------------------- B: research record
+class QueryStatus(str, Enum):
+    ok = "ok"
+    no_results = "no_results"
+    error = "error"
+
+
+class ResearchStatus(str, Enum):
+    ok = "ok"                  # every query answered, notes found
+    partial = "partial"        # some queries failed
+    no_results = "no_results"  # backends answered, nothing relevant found
+    failed = "failed"          # every query failed (e.g. no network)
+    disabled = "disabled"      # research explicitly switched off; nothing was retrieved
+
+
+class ResearchQueryRecord(_Contract):
+    backend: NonEmptyStr
+    topic: NonEmptyStr
+    query: NonEmptyStr
+    lang: Literal["zh", "en"]
+    status: QueryStatus
+    hits: int = Field(ge=0)
+    error: str | None = None
+    requested_at: datetime
+
+    @model_validator(mode="after")
+    def _rules(self) -> "ResearchQueryRecord":
+        if self.status is QueryStatus.error and not self.error:
+            raise ValueError("an errored query must record its error")
+        if self.status is not QueryStatus.ok and self.hits:
+            raise ValueError("only ok queries can have hits")
+        return self
+
+
+class ResearchNote(_Contract):
+    note_id: SourceRef
+    kind: Literal["encyclopedia", "reference", "web"]
+    title: NonEmptyStr
+    text: str = ""            # extract/abstract as returned by the source (may be empty)
+    source_url: Annotated[str, StringConstraints(pattern=r"^https?://\S+$")]
+    source_name: NonEmptyStr
+    license_or_terms: str = ""
+    backend: NonEmptyStr
+    query: NonEmptyStr
+    retrieved_at: datetime
+
+
+class ResearchRecord(_RunFile):
+    """Everything stage B retrieved, or the honest record that nothing was."""
+
+    provider: NonEmptyStr
+    status: ResearchStatus
+    queries: list[ResearchQueryRecord] = Field(default_factory=list)
+    notes: list[ResearchNote] = Field(default_factory=list)
+    summary: str = ""
+
+    @model_validator(mode="after")
+    def _rules(self) -> "ResearchRecord":
+        ids = [n.note_id for n in self.notes]
+        if len(set(ids)) != len(ids):
+            raise ValueError("duplicate note_id in research record")
+        if self.status is ResearchStatus.disabled and (self.queries or self.notes):
+            raise ValueError("a disabled research record cannot contain queries or notes")
+        if self.status is ResearchStatus.failed:
+            if self.notes or any(q.status is not QueryStatus.error for q in self.queries) or not self.queries:
+                raise ValueError("status=failed requires queries that all errored and no notes")
+        if self.status is ResearchStatus.ok and not self.notes:
+            raise ValueError("status=ok requires at least one note")
+        return self
+
+
 # --------------------------------------------------------------------- 3.2 B
 class SlideStatus(str, Enum):
     provisional = "provisional"
     revised = "revised"
-
-
-SourceRef = Annotated[str, StringConstraints(pattern=r"^R\d{3,}$")]  # research note id (stage B retrieval)
 
 
 class AssetType(str, Enum):
@@ -175,6 +258,7 @@ class SlidePage(_Contract):
     content_summary: NonEmptyStr
     visual_intent: NonEmptyStr
     asset_needs: list[AssetNeed] = Field(default_factory=list)
+    source_refs: list[SourceRef] = Field(default_factory=list)   # research notes this page relies on
     status: SlideStatus = SlideStatus.provisional
 
 
@@ -532,6 +616,7 @@ class RunReport(_RunFile):
 # ------------------------------------------------------------------ file names
 CONTRACT_FILES: dict[str, type[_RunFile]] = {
     "production_plan": ProductionPlan,
+    "research_brief": ResearchRecord,
     "slide_plan": SlidePlan,
     "asset_requirements": AssetRequirements,
     "asset_registry": AssetRegistry,

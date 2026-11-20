@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from pptv01.contracts import (
     SCHEMA_VERSION,
@@ -11,6 +11,7 @@ from pptv01.contracts import (
     LangTag,
     NonEmptyStr,
     ProductionPlan,
+    RetrievalTopic,
     Token,
     write_contract,
 )
@@ -35,6 +36,7 @@ class DraftPlan(BaseModel):
     defaults_applied: list[DefaultApplied] = []
     content_direction: NonEmptyStr
     open_questions: list[NonEmptyStr] = []
+    retrieval_brief: list[RetrievalTopic] = Field(min_length=1, max_length=8)
 
 
 def build_plan(raw: Any, *, run_id: str, utterance: str) -> ProductionPlan:

@@ -1,5 +1,6 @@
-"""Stage B: ProductionPlan -> provisional slide_plan.json (never final)."""
+"""Stage B: research (from A's retrieval_brief) -> provisional slide_plan.json (never final)."""
 
-from .research import NullResearch, ResearchBrief, ResearchProvider  # noqa: F401
-from .stage import ARTIFACT, run_stage_b  # noqa: F401
+from pptv01.retrieval import DisabledResearch, ResearchProvider  # noqa: F401
+
+from .stage import ARTIFACT, RESEARCH_ARTIFACT, ResearchFailed, run_stage_b  # noqa: F401
 from .validate import SlidePlanRuleError, validate_slide_plan  # noqa: F401

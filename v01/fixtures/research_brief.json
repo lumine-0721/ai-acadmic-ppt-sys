@@ -1,0 +1,43 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "provider": "wikipedia+crossref",
+  "status": "ok",
+  "queries": [
+    {
+      "backend": "wikipedia",
+      "topic": "城市热岛的定义与度量",
+      "query": "城市热岛",
+      "lang": "zh",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "requested_at": "2026-11-20T11:30:00+09:00"
+    },
+    {
+      "backend": "crossref",
+      "topic": "城市热岛的定义与度量",
+      "query": "urban heat island intensity measurement",
+      "lang": "en",
+      "status": "error",
+      "hits": 0,
+      "error": "HTTP 503 from api.crossref.org",
+      "requested_at": "2026-11-20T11:30:02+09:00"
+    }
+  ],
+  "notes": [
+    {
+      "note_id": "R001",
+      "kind": "encyclopedia",
+      "title": "城市热岛",
+      "text": "（示例文本，仅供合同测试）",
+      "source_url": "https://zh.wikipedia.org/wiki/example",
+      "source_name": "Wikipedia (zh)",
+      "license_or_terms": "CC BY-SA 4.0 (Wikipedia text)",
+      "backend": "wikipedia",
+      "query": "城市热岛",
+      "retrieved_at": "2026-11-20T11:30:01+09:00"
+    }
+  ],
+  "summary": "fixture for contract tests only; not a real retrieval"
+}

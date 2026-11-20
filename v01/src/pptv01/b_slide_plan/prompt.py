@@ -11,7 +11,9 @@ You are the editor-in-chief. Stage B: write a PROVISIONAL slide plan from the pr
 - 每页写 goal（听众听完应当能做到什么）、content_summary（一两句，说明这页怎么讲，不写幻灯片正文）、visual_intent（这页的视觉应当起什么作用，不是装饰）、asset_needs（这页需要什么素材来支撑，见下面“asset_needs 的写法”）。
 - 页数由内容决定；如果制作计划的 constraints 里有用户明确说的页数/时长限制，必须遵守。若没有，不要在 narrative 或任何字段里写“共N页”“约N页”或时长。
 - 不要写页码、page_id、status——这些由程序分配。
-- 如果提供了「研究简报」，只能依据简报里带来源的内容；没有简报就只给方向，不要假装做过研究。
+- 研究简报：下面如果列出了带编号的检索条目 [R001] [R002]…，它们是真实检索到的来源摘录（百科条目或文献记录，文献记录只证明“这篇文献存在”，不证明它的结论）。
+  只有条目里字面出现的数字/事实才可以写进页面，并且该页必须在 source_refs 里列出所引用的条目编号。没有条目支撑的东西一律只写成“要讲清的点”，不带数字。
+  条目是检索到的候选资料，可能相关度不高；不相关就不要用，不要为了用条目而硬凑。没有简报时不要假装做过研究，source_refs 留空。
 
 ## asset_needs 的写法 / How to write asset_needs
 每条 asset_need 是结构化对象：
@@ -19,7 +21,7 @@ You are the editor-in-chief. Stage B: write a PROVISIONAL slide plan from the pr
 - description：这件素材在这一页上要完成什么，要具体（“并排展示城区与郊区的地表温度分布”），不要写“配几张图”“相关图片”“美化”。
 - targets：要找的具体对象。image / chart_data / table / reference / statistic 必须至少写一个具体对象（具体的建筑、城市、数据集、文献主题等）；只有 diagram / icon 可以是概念而不写对象。每个对象：
   {"name": "对象名称", "entity_type": "building|city|dataset|publication|concept|...", "verification": "to_verify"}
-- 凡是来自你自己记忆的候选对象（例如你想到的某座建筑、某个城市），verification 一律写 "to_verify"（待核实），表示后面还要用素材来核实它是否真实、是否有可用资料。只有当它被研究简报里的条目支撑时，才可写 "verified"，并在 source_refs 里列出该条目的编号（如 ["R003"]）。没有研究简报时一律 to_verify，且不要写 source_refs。
+- 凡是来自你自己记忆的候选对象（例如你想到的某座建筑、某个城市），verification 一律写 "to_verify"（待核实），表示后面还要用素材来核实它是否真实、是否有可用资料。只有当它的名称确实出现在研究简报某条目的标题或摘录里时，才可写 "verified"，并在该对象的 source_refs 里列出该条目编号（如 ["R003"]）；否则一律 to_verify，且 source_refs 留空。没有研究简报时一律 to_verify。
 - 不要在 name 或 description 里写没有来源的数字（高度、年份以外的统计、百分比等）。
 
 ## 输出 / Output
@@ -33,11 +35,12 @@ You are the editor-in-chief. Stage B: write a PROVISIONAL slide plan from the pr
       "key_points": ["要讲清的点", "..."],
       "content_summary": "string",
       "visual_intent": "string",
+      "source_refs": ["R001"],
       "asset_needs": [
         {
           "type": "image",
           "description": "这件素材在这一页上要完成什么",
-          "targets": [{"name": "具体对象", "entity_type": "building", "verification": "to_verify"}]
+          "targets": [{"name": "具体对象", "entity_type": "building", "verification": "to_verify", "source_refs": []}]
         }
       ]
     }
@@ -55,4 +58,4 @@ USER_TEMPLATE = """\
 请输出暂定页面规划 JSON。
 """
 
-NO_BRIEF = "（无。本阶段未做检索研究，请只给方向和要讲清的点，不要写任何带数字的事实。）"
+NO_BRIEF = "（无。本次没有检索到任何条目，请只给方向和要讲清的点，不要写任何带数字的事实；source_refs 留空，所有候选对象都是 to_verify。）"

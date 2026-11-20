@@ -40,6 +40,10 @@ Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx (pytest for dev).
 | `PPTV01_LLM_MODEL` | yes | model id; recorded in `run_report.json` |
 | `PPTV01_LLM_TIMEOUT_S` | no | default 120 |
 | `PPTV01_LLM_TEMPERATURE` | no | default 0.3 |
+| `PPTV01_RESEARCH` | no | stage-B research: `auto` (default = wikipedia + crossref, no key needed) / `none` (explicitly off, recorded as `disabled`) / comma list `wikipedia,crossref,searxng` |
+| `PPTV01_RESEARCH_SEARXNG_URL` | with `searxng` | base URL of a SearXNG instance with the JSON API |
+| `PPTV01_RESEARCH_CONTACT` | no | e-mail/URL put in the User-Agent (Wikimedia/Crossref etiquette); Crossref `mailto` if it contains `@` |
+| `PPTV01_RESEARCH_MAX_HITS` / `_MAX_QUERIES` / `_TIMEOUT_S` | no | per query per backend (3) / queries per run (12) / HTTP timeout (20 s) |
 | `PPTV01_LLM_JSON_MODE` | no | `1` to send `response_format=json_object` (only if your provider supports it) |
 
 ### Agent backend (no API key; a human/agent acts as the model)

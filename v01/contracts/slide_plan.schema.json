@@ -156,6 +156,14 @@
           "title": "Page Id",
           "type": "string"
         },
+        "source_refs": {
+          "items": {
+            "pattern": "^R\\d{3,}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
         "status": {
           "$ref": "#/$defs/SlideStatus",
           "default": "provisional"

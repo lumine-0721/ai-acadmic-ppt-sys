@@ -151,15 +151,16 @@ def structure_locks(candidate: str, utterance: str) -> list[str]:
     ]
 
 
-def unsourced_claims(candidate: str, utterance: str = "") -> list[str]:
+def unsourced_claims(candidate: str, utterance: str = "", sourced_text: str = "") -> list[str]:
     """Numbers/quantities/conclusion phrases that no source backs. Text the user
-    wrote themselves (``utterance``) is not flagged."""
+    wrote themselves (``utterance``) is not flagged; numbers that literally occur in
+    ``sourced_text`` (retrieved notes the item cites) are allowed, conclusion phrases are not."""
     problems: list[str] = []
     seen: set[str] = set()
     for kind, rx in _STAT_PATTERNS:
         for m in rx.finditer(candidate):
             t = m.group(0).strip()
-            if t in seen or (utterance and t in utterance):
+            if t in seen or (utterance and t in utterance) or (sourced_text and t in sourced_text):
                 continue
             seen.add(t)
             problems.append(f"unsourced {kind} {t!r}")
