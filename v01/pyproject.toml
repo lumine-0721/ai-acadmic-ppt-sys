@@ -12,6 +12,7 @@ dependencies = [
   "pydantic>=2.5,<3",
   "python-pptx>=1.0",
   "httpx>=0.27",
+  "cn2an>=0.5.22",     # Chinese numeral -> Arabic (MIT); wrapped with guards in pptv01.numerals
 ]
 
 [project.optional-dependencies]

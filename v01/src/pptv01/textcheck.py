@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import re
 
+from pptv01.numerals import canonical, normalize_numerals, run_value
+
 _CN_DIGIT = {"零": 0, "〇": 0, "一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5,
              "六": 6, "七": 7, "八": 8, "九": 9}
 
@@ -19,8 +21,11 @@ def parse_number(s: str) -> float | None:
     s = s.strip()
     if re.fullmatch(r"\d+(?:\.\d+)?", s):
         return float(s)
-    if not s or not all(c in _CN_DIGIT or c in "十百" for c in s):
+    if not s:
         return None
+    if not all(c in _CN_DIGIT or c in "十百" for c in s):
+        # 千/万/亿/点: let cn2an do the numeric semantics (guards for 两三 etc. live in pptv01.numerals)
+        return run_value(s) if all(c in "零〇一二两三四五六七八九十百千万亿点" for c in s) else None
     total, cur = 0, 0
     if "百" in s:
         h, _, rest = s.partition("百")
@@ -65,7 +70,7 @@ _LOCK_RE = re.compile(
 )
 
 # ---- unsourced numbers / quantities
-_NUMV = r"(?:\d+(?:[.,]\d+)?|[零〇一二两三四五六七八九十百千万]+)"
+_NUMV = r"(?:\d+(?:[.,]\d+)?[万亿]?|[零〇一二两三四五六七八九十百千万亿]+)"
 _STAT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("percentage", re.compile(r"\d+(?:\.\d+)?\s*(?:%|％|个百分点|percent\b|per cent\b)", re.I)),
     ("percentage", re.compile(rf"百分之\s*{_NUMV}")),
@@ -91,6 +96,7 @@ _CLAIM_PHRASES = (
 
 
 def page_mentions(text: str) -> set[float]:
+    text = normalize_numerals(text)        # cn2an pre-step: 一百二十页 -> 120页, 二点五 -> 2.5 (raw regex misreads "二点五" as 五)
     out: set[float] = set()
     for m in _PAGE_RE.finditer(text):
         first = parse_number(m.group(1)) if m.group(1) else None
@@ -113,6 +119,7 @@ def vague_page_counts(text: str) -> list[str]:
 
 def duration_mentions(text: str) -> set[float]:
     """Total durations normalised to minutes (per-page / per-point paces are ignored)."""
+    text = normalize_numerals(text)
     out: set[float] = set()
     for rx, mult in ((_DUR_MIN_RE, 1), (_DUR_HOUR_RE, 60)):
         for m in rx.finditer(text):
@@ -157,13 +164,18 @@ def unsourced_claims(candidate: str, utterance: str = "", sourced_text: str = ""
     ``sourced_text`` (retrieved notes the item cites) are allowed, conclusion phrases are not."""
     problems: list[str] = []
     seen: set[str] = set()
-    for kind, rx in _STAT_PATTERNS:
-        for m in rx.finditer(candidate):
-            t = m.group(0).strip()
-            if t in seen or (utterance and t in utterance) or (sourced_text and t in sourced_text):
-                continue
-            seen.add(t)
-            problems.append(f"unsourced {kind} {t!r}")
+    u_can, s_can = canonical(utterance), canonical(sourced_text)
+    for text in (normalize_numerals(candidate),):     # cn2an pre-step; reported strings are the normalised form
+        for kind, rx in _STAT_PATTERNS:
+            for m in rx.finditer(text):
+                t = m.group(0).strip()
+                key = canonical(t)
+                if key in seen or (utterance and (t in utterance or key in u_can)) \
+                        or (sourced_text and (t in sourced_text or key in s_can)):
+                    seen.add(key)
+                    continue
+                seen.add(key)
+                problems.append(f"unsourced {kind} {t!r}")
     low = candidate.lower()
     for p in _CLAIM_PHRASES:
         if p in low and not (utterance and p in utterance.lower()):
