@@ -8,19 +8,36 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 from pptv01.contracts import CONTRACT_FILES, RunOverall, UserInputRequests, export_schemas, load_contract
+from pptv01.doctor import format_doctor_report, run_doctor
 from pptv01.llm import AwaitingAgentResponse, LLMConfigError, LLMError, client_from_env
 from pptv01.runner import run_pipeline
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, provide_user_input
 
 
+def _resolve_renderer(args: argparse.Namespace):
+    """Resolve DeckRenderer & compile_only from CLI flags / PPTV01_RENDERER (no silent fallback)."""
+    compile_only = bool(getattr(args, "compile_only", False))
+    choice = (getattr(args, "renderer", None) or os.environ.get("PPTV01_RENDERER", "") or "legacy").strip().lower()
+    if choice == "compile-only":
+        return None, True
+    if choice == "powerpoint-com":
+        from pptv01.renderers.powerpoint_com import PowerPointComRenderer
+        return PowerPointComRenderer(), compile_only
+    if choice == "legacy":
+        return None, compile_only
+    raise ValueError(f"unsupported renderer {choice!r}: choose powerpoint-com, compile-only, or legacy")
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     try:
         client = client_from_env()
-    except LLMConfigError as e:
+        deck_renderer, compile_only = _resolve_renderer(args)
+    except (LLMConfigError, ValueError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
     try:
@@ -31,6 +48,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
             run_id=args.run_id,
             resume=args.resume,
             on_missing=args.on_missing,
+            renderer=deck_renderer,
+            compile_only=compile_only,
             cross_render=getattr(args, "cross_render", False),
         )
     except AwaitingAgentResponse as e:
@@ -159,6 +178,12 @@ def _cmd_provide(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_doctor(args: argparse.Namespace) -> int:
+    rep = run_doctor()
+    print(format_doctor_report(rep, as_json=bool(getattr(args, "json", False))))
+    return 0 if rep.ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="pptv01", description="AI PPT Sys V0.1")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -169,9 +194,16 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--resume", action="store_true", help="re-enter an existing run dir (agent backend: replays answered prompts)")
     r.add_argument("--on-missing", choices=["placeholder", "wait"], default="placeholder",
                    help="wait: pause after D (exit 4) when assets are missing; placeholder: mark explicit placeholders")
+    r.add_argument("--renderer", choices=["powerpoint-com", "compile-only", "legacy"], default=None,
+                   help="Stage G/H renderer (or set PPTV01_RENDERER; powerpoint-com never falls back to python-pptx)")
+    r.add_argument("--compile-only", action="store_true",
+                   help="compile deck_ops.json only without launching PowerPoint COM (marks render_pptx=not_run)")
     r.add_argument("--cross-render", action="store_true",
                    help="also run secondary LibreOffice cross-render check in render_cross_check/ (never primary)")
     r.set_defaults(fn=_cmd_run)
+    doc = sub.add_parser("doctor", help="check Windows PowerPoint/Excel COM, pywin32, CJK fonts, and optional tools")
+    doc.add_argument("--json", action="store_true", help="output machine-readable JSON")
+    doc.set_defaults(fn=_cmd_doctor)
     e = sub.add_parser("export-schemas", help="write JSON Schemas from the Pydantic contracts")
     e.add_argument("--out", default="contracts")
     e.set_defaults(fn=_cmd_export)
