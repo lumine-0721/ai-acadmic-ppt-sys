@@ -7,4 +7,9 @@
 - **cn2an** (runtime dependency, MIT) <https://github.com/Ailln/cn2an>
 - **hugohe3/ppt-master** (`slot_capacity.py` CJK/Latin glyph-advance capacity estimation idea adapted in `src/pptv01/f_layout/capacity.py`),
   MIT License, Copyright (c) 2025-2026 Hugo He, <https://github.com/hugohe3/ppt-master>.
-- Optional: **fastembed** (Apache-2.0), **sentence-transformers** (Apache-2.0), **BAAI/bge-reranker-v2-m3** (MIT), **pyalex** (MIT).
+- **thomas-villani/pptlive** (commit `4b33e69217ba`, MIT License, Copyright (c) 2026 Tom Villani, <https://github.com/thomas-villani/pptlive>):
+  chart workbook `SetSourceData` / `_safe_close` pattern, table/snapshot helpers, geometry linting rules, and pure-Python `fake_powerpoint` test fixture pattern adapted in `src/pptv01/renderers/powerpoint_com/` and `tests/fake_com.py`.
+- **ykuwai/ppt-mcp** (commit `2155ecc9050e`, MIT License, Copyright (c) 2026 ykuwai, <https://github.com/ykuwai/ppt-mcp>):
+  `charts.py` (`CHART_TYPE_MAP` and `finally: wb.Close(False)` Excel leak guard), `connectors.py` (`CONNECTOR_TYPE_MAP`/`ARROW_STYLE_MAP`), `layout_check.py` (pure-arithmetic geometry separation), and `export.py` patterns adapted in `src/pptv01/renderers/powerpoint_com/` and `src/pptv01/h_qa/`.
+- **Internal reuse**: PowerPoint COM PNG export and `TextFrame2.TextRange.BoundHeight` measurement adapted from `aprd/academic-presentation-reference-design/scripts/aprd_engine/reconstructor_verifier.py:468` (read-only copy/adaptation; frozen `aprd/` untouched).
+- Optional: **pywin32** (PSF License, <https://github.com/mhammond/pywin32>, `[windows]` extra), **fastembed** (Apache-2.0), **sentence-transformers** (Apache-2.0), **BAAI/bge-reranker-v2-m3** (MIT), **pyalex** (MIT).

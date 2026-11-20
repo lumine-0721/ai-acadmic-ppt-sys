@@ -19,6 +19,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# Windows PowerPoint COM automation dependency (PSF license)
+windows = ["pywin32>=306; sys_platform == 'win32'"]
+# Read-only PPTX verifier for independent hard gates and tests (never used to write PPTX in Office renderer)
+verify = ["python-pptx>=1.0"]
 # relevance filter scorer (optional; without it the filter runs structural-only and records that)
 rank = ["fastembed>=0.3"]
 # opt-in cross-encoder reranker (needs torch; ~2.2 GB model; NOT the default, see docs/relevance-benchmark.md)
@@ -37,3 +41,6 @@ pptv01 = ["grading/ppteval_prompts/*"]
 testpaths = ["tests"]
 addopts = "-q"
 pythonpath = ["src", "tests"]
+markers = [
+  "windows_com: tests requiring real Microsoft PowerPoint COM on Windows",
+]

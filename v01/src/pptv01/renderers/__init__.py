@@ -1,5 +1,6 @@
 """Deck renderers (protocol + real Office COM implementations; never mocks)."""
 
+from .powerpoint_com import PowerPointComRenderer
 from .protocol import (
     RENDERER_UNAVAILABLE_EXIT_CODE,
     BuildResult,
@@ -21,6 +22,7 @@ __all__ = [
     "DeckRenderer",
     "ExportResult",
     "MeasureResult",
+    "PowerPointComRenderer",
     "RENDERER_UNAVAILABLE_EXIT_CODE",
     "RenderExecutionError",
     "RendererInfo",

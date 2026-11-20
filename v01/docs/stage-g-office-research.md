@@ -27,7 +27,9 @@
   2. 当 `Presentations.Add(WithWindow=-1)`（带窗口 `msoTrue`，同时设置 `app.WindowState = 2` 最小化、不抢前台、结束时仅关闭自己创建的 `Presentation`）时：`AddChart2` → `ChartData.Activate()` → 写入 `Workbook.Worksheets(1)` 单元格 → `chart.SetSourceData("Sheet1!$A$1:$B$3")` → `finally: wb.Close(False)` → `pres.SaveAs()` → 关闭并用只读 `python-pptx` 重新打开，**全部成功**（`reopened slides=1, has_chart=True`）。
   3. **工程决策**：
      - 纯读取/导出/测量（`export`、`measure`）继续使用 `Presentations.Open(path, ReadOnly=-1, Untitled=0, WithWindow=0)`，全程无窗口；
-     - 构建含 `add_chart` 的文稿时，若无窗口 `AddChart2` 不可用（Office 2021 已实测证实），对含图表的构建会话自动以 `WithWindow=-1` + 最小化窗口创建该 `Presentation`（仍严格只操作和关闭自己创建的 `Presentation`，绝不触碰用户打开的其它文稿）；若环境中 Excel 缺失导致 `AddChart2` 失败，则显式报错，绝不静默画假图。
+     - 构建含 `add_chart` 的文稿时，若无窗口 `AddChart2` 不可用（Office 2021 已实测证实），对含图表的构建会话自动以 `WithWindow=-1` + 最小化窗口创建该 `Presentation`（仍严格只操作和关闭自己创建的 `Presentation`，绝不触碰用户打开的其它文稿）；若环境中 Excel 缺失导致 `AddChart2` 失败，则显式报错，绝不静默画假图；
+     - **PDF 导出实测**：Office 2021 + `pywin32` 延迟绑定调用 2 参数 `ExportAsFixedFormat(path, 2)` 会因可选 `PrintRange` 封送报 `The Python instance can not be converted to a COM object`，改用 `Presentation.SaveAs(pdf_path, 32)`（`ppSaveAsPDF = 32`）实测稳定产出有效 PDF；
+     - **COM 生命周期实测**：关闭最后一个带窗口文稿可能触发 `POWERPNT.EXE` 自动退出，故读回 `deck_dump.json` 使用独立只读会话；同时 Windows 同一线程反复 `CoInitialize`/`CoUninitialize` 交替调用 PowerPoint 与 Excel 会破坏 Office 16.0 RPC 代理（`RPC_S_UNKNOWN_IF / -2147023179`），改用线程局部一次性 `CoInitialize()` + 退出时等待自启 PID 结束，彻底消除跨会话断连。
 
 ## 3. R1 融合架构与契约设计
 
