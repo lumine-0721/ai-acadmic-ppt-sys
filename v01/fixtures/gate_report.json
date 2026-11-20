@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "results": [
+    {"gate": "contract:production_plan", "status": "pass", "detail": ""},
+    {"gate": "contract:qa_report", "status": "not_run", "detail": "file absent (stage not run or not implemented)"},
+    {"gate": "page_constraint", "status": "pass", "detail": "user stated no page limit"},
+    {"gate": "pptx_opens", "status": "not_run", "detail": "stages G/H not implemented in V0.1 so far"}
+  ],
+  "overall": "incomplete"
+}

@@ -680,6 +680,108 @@ class RunReport(_RunFile):
         return self
 
 
+# ------------------------------------------------------- grading (benchmark)
+class RubricInfo(_Contract):
+    """Where the rubric comes from (MIT-licensed PPTEval) and how we deviate from it."""
+
+    name: Literal["PPTEval"] = "PPTEval"
+    source_url: NonEmptyStr
+    source_ref: NonEmptyStr
+    license: NonEmptyStr
+    copyright: NonEmptyStr
+    paper_url: NonEmptyStr
+    deviations: list[NonEmptyStr] = Field(default_factory=list)
+
+
+class GraderIdentity(_Contract):
+    """Who scored. ``agent`` = 宝特 acting by hand: honest label, NOT an API model."""
+
+    kind: Literal["api", "agent"]
+    label: NonEmptyStr
+    model: str = ""
+    vision_model: str = ""
+
+    @model_validator(mode="after")
+    def _label(self) -> "GraderIdentity":
+        if self.kind == "agent" and "manual, not an API model" not in self.label:
+            raise ValueError("an agent grader must be labelled 'manual, not an API model'")
+        if self.kind == "api" and not self.model:
+            raise ValueError("an api grader must record its model")
+        return self
+
+
+class DimScore(_Contract):
+    score: Annotated[int, Field(ge=1, le=5)]
+    reason: NonEmptyStr
+
+
+class SlideGrade(_Contract):
+    index: Annotated[int, Field(ge=1)]
+    page_id: PageId | None = None
+    content: DimScore | None = None
+    design: DimScore | None = None
+    design_status: Literal["scored", "not_assessable"]
+    content_descr: str = ""
+    style_descr: str = ""
+
+
+class GradeSummary(_Contract):
+    content_mean: float | None = None
+    design_mean: float | None = None
+    coherence: int | None = None
+    rule: NonEmptyStr = "pass iff every assessed dimension >= 3 (content mean, design mean, coherence)"
+    not_assessed: list[Literal["content", "design", "coherence"]] = Field(default_factory=list)
+    failing: list[Literal["content", "design", "coherence"]] = Field(default_factory=list)
+    passed: bool | None = None            # None = undetermined (a dimension could not be assessed)
+
+
+class GradeReport(_RunFile):
+    """PPTEval-style quality grade. Deterministic hard gates are reported separately (gate_report.json)."""
+
+    graded_task: str = ""
+    evidence_level: Literal["pptx_render", "plan_text_proxy"]
+    rubric: RubricInfo
+    grader: GraderIdentity
+    graded_at: datetime
+    slides: list[SlideGrade] = Field(min_length=1)
+    coherence: DimScore | None = None
+    background_extracted: dict[str, Any] = Field(default_factory=dict)
+    summary: GradeSummary
+
+    @model_validator(mode="after")
+    def _consistent(self) -> "GradeReport":
+        if self.evidence_level == "plan_text_proxy":
+            if any(sl.design_status != "not_assessable" or sl.design for sl in self.slides):
+                raise ValueError("plan-level proxy cannot score Design (no rendered slides)")
+            if "design" not in self.summary.not_assessed or self.summary.passed is True:
+                raise ValueError("plan-level proxy must list design as not_assessed and can never be 'passed' (False or undetermined only)")
+        idx = [sl.index for sl in self.slides]
+        if idx != sorted(set(idx)):
+            raise ValueError("slide indexes must be unique and ascending")
+        return self
+
+
+class GateResult(_Contract):
+    gate: NonEmptyStr
+    status: Literal["pass", "fail", "not_run"]
+    detail: str = ""
+
+
+class GateReport(_RunFile):
+    """Deterministic hard gates (benchmark spec 6.1). Independent of any model score."""
+
+    results: list[GateResult] = Field(min_length=1)
+    overall: Literal["pass", "fail", "incomplete"]
+
+    @model_validator(mode="after")
+    def _overall(self) -> "GateReport":
+        st = {r.status for r in self.results}
+        want = "fail" if "fail" in st else ("incomplete" if "not_run" in st else "pass")
+        if self.overall != want:
+            raise ValueError(f"overall must be {want!r} given the results")
+        return self
+
+
 # ------------------------------------------------------------------ file names
 CONTRACT_FILES: dict[str, type[_RunFile]] = {
     "production_plan": ProductionPlan,
@@ -691,6 +793,8 @@ CONTRACT_FILES: dict[str, type[_RunFile]] = {
     "page_design": PageDesign,
     "qa_report": QAReport,
     "run_report": RunReport,
+    "grade_report": GradeReport,
+    "gate_report": GateReport,
 }
 
 T = TypeVar("T", bound=_RunFile)

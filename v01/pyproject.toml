@@ -28,6 +28,9 @@ pptv01 = "pptv01.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+pptv01 = ["grading/ppteval_prompts/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

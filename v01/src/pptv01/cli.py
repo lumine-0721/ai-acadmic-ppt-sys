@@ -42,6 +42,59 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_gates(args: argparse.Namespace) -> int:
+    from pptv01.grading.gates import check_gates
+    from pptv01.contracts import write_contract
+    rep = check_gates(Path(args.run_dir))
+    write_contract(rep, Path(args.run_dir) / "gate_report.json")
+    for r in rep.results:
+        print(f"  {r.status:<8} {r.gate}  {r.detail}")
+    print(f"overall: {rep.overall}")
+    return 0 if rep.overall != "fail" else 1
+
+
+def _cmd_grade(args: argparse.Namespace) -> int:
+    """PPTEval grade. --slides-dir DIR grades rendered slide_*.png|jpg (pptx_render); default is the plan-text proxy."""
+    from pptv01.contracts import SlidePlan, write_contract
+    from pptv01.grading.ppteval import (GraderConfigError, SlideEvidence, grade_deck, grader_from_env,
+                                        slide_text_from_plan)
+    run_dir = Path(args.run_dir)
+    try:
+        grader = grader_from_env()
+    except GraderConfigError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    try:
+        plan = load_contract(SlidePlan, run_dir / "slide_plan.json")
+        ev = slide_text_from_plan(plan)
+        level = "plan_text_proxy"
+        if args.slides_dir:
+            imgs = sorted(Path(args.slides_dir).glob("slide_*.*"))
+            if len(imgs) != len(ev):
+                print(f"error: {len(imgs)} images but {len(ev)} planned slides", file=sys.stderr)
+                return 2
+            for e, im in zip(ev, imgs):
+                e.image = im
+            level = "pptx_render"
+        rep, trace = grade_deck(ev, grader, run_id=plan.run_id, task=args.task or run_dir.name, level=level)
+    except AwaitingAgentResponse as e:
+        print(str(e), file=sys.stderr)
+        return 3
+    except (ValueError, FileNotFoundError, LLMError) as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    finally:
+        grader.close()
+    write_contract(rep, run_dir / "grade_report.json")
+    (run_dir / "llm_trace").mkdir(exist_ok=True)
+    import json
+    (run_dir / "llm_trace" / "grade.json").write_text(json.dumps({"grader": rep.grader.model_dump(), "trace": trace}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    sm = rep.summary
+    print(f"grader: {rep.grader.label}   evidence: {rep.evidence_level}")
+    print(f"content_mean={sm.content_mean} design_mean={sm.design_mean} coherence={sm.coherence} passed={sm.passed} not_assessed={sm.not_assessed}")
+    return 0
+
+
 def _cmd_export(args: argparse.Namespace) -> int:
     for p in export_schemas(Path(args.out)):
         print(p)
@@ -74,6 +127,14 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("kind", choices=sorted(CONTRACT_FILES))
     v.add_argument("file")
     v.set_defaults(fn=_cmd_validate)
+    g = sub.add_parser("grade", help="PPTEval-style quality grade of a run (env PPTV01_GRADER_*)")
+    g.add_argument("run_dir")
+    g.add_argument("--slides-dir", default=None, help="rendered slide_*.png|jpg; omit for the plan-text proxy (Design not assessable)")
+    g.add_argument("--task", default=None)
+    g.set_defaults(fn=_cmd_grade)
+    gt = sub.add_parser("gates", help="deterministic hard gates for a run dir (no model involved)")
+    gt.add_argument("run_dir")
+    gt.set_defaults(fn=_cmd_gates)
     args = ap.parse_args(argv)
     return args.fn(args)
 

@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "graded_task": "FIXTURE (schema example only, not a real grade)",
+  "evidence_level": "plan_text_proxy",
+  "rubric": {
+    "name": "PPTEval",
+    "source_url": "https://github.com/icip-cas/PPTAgent",
+    "source_ref": "v1.1.38 (2e68c095a86bdbb91635dc4d91dad4662aba163c)",
+    "license": "MIT",
+    "copyright": "Copyright (c) 2025 ICIP-CAS",
+    "paper_url": "https://arxiv.org/abs/2501.03936",
+    "deviations": ["prompts verbatim; placeholders filled by str.replace"]
+  },
+  "grader": {"kind": "agent", "label": "agent:宝特 (manual, not an API model)", "model": "", "vision_model": ""},
+  "graded_at": "2026-11-20T12:00:00+08:00",
+  "slides": [
+    {"index": 1, "page_id": "S001", "content": {"score": 4, "reason": "clear and complete"}, "design": null, "design_status": "not_assessable"}
+  ],
+  "coherence": {"score": 3, "reason": "clear structure, no background information"},
+  "background_extracted": {},
+  "summary": {
+    "content_mean": 4.0, "design_mean": null, "coherence": 3,
+    "rule": "pass iff every assessed dimension >= 3 (content mean, design mean, coherence)",
+    "not_assessed": ["design"], "failing": [], "passed": null
+  }
+}

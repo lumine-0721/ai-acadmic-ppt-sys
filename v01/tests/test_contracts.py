@@ -15,6 +15,7 @@ FIX = {
     "asset_requirements": "asset_requirements", "asset_registry": "asset_registry",
     "slide_asset_mapping": "slide_asset_mapping", "page_design": "page_design",
     "qa_report": "qa_report", "run_report": "run_report", "research_brief": "research_brief",
+    "grade_report": "grade_report", "gate_report": "gate_report",
 }
 
 

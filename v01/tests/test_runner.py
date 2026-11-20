@@ -75,7 +75,7 @@ def test_cli_validate_and_export(tmp_path, capsys):
     assert cli.main(["validate", "production_plan", str(fx)]) == 0
     assert cli.main(["validate", "slide_plan", str(fx)]) == 1
     assert cli.main(["export-schemas", "--out", str(tmp_path)]) == 0
-    assert len(list(tmp_path.glob("*.schema.json"))) == 9
+    assert len(list(tmp_path.glob("*.schema.json"))) == 11
 
 
 def test_runner_records_research_outcome_and_fails_honestly(tmp_path):
