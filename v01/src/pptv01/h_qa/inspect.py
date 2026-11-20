@@ -5,6 +5,7 @@ NOTE: python-pptx is used here strictly READ-ONLY (never writes PPTX files).
 
 from __future__ import annotations
 
+import hashlib
 import io
 import re
 from pathlib import Path
@@ -138,11 +139,19 @@ def inspect_deck(
         if reg
         else set()
     )
+    asset_sha_by_id: dict[str, str] = (
+        {a.asset_id: a.sha256 for a in reg.assets if a.sha256}
+        if reg
+        else {}
+    )
     valid_inputs: set[str] = set()
+    input_sha_by_id: dict[str, str] = {}
     if uir:
         for r in uir.requests:
             if r.status is UserRequestStatus.provided:
                 valid_inputs.add(r.request_id)
+                if r.provided and r.provided.sha256:
+                    input_sha_by_id[r.request_id] = r.provided.sha256
                 if r.asset_id:
                     valid_assets.add(r.asset_id)
 
@@ -300,14 +309,29 @@ def inspect_deck(
                             element_id=eid,
                             description=f"image {eid} is unbound or references an unacquired asset",
                         ))
-                elif (pid, bound_id) in irrelevant_pairs:
-                    issues.append(QAIssue(
-                        page_id=pid,
-                        kind=QAIssueKind.content_asset_mismatch,
-                        severity=Severity.major,
-                        element_id=eid,
-                        description=f"asset {bound_id} was marked irrelevant to {pid}",
-                    ))
+                else:
+                    expected_sha = asset_sha_by_id.get(bound_id) if m_a else input_sha_by_id.get(bound_id)
+                    if expected_sha:
+                        try:
+                            actual_sha = hashlib.sha256(sh.image.blob).hexdigest()
+                        except Exception:
+                            actual_sha = ""
+                        if actual_sha and actual_sha != expected_sha:
+                            issues.append(QAIssue(
+                                page_id=pid,
+                                kind=QAIssueKind.content_asset_mismatch,
+                                severity=Severity.blocker,
+                                element_id=eid,
+                                description=f"image {eid} blob sha256 mismatch against {bound_id} (spoofed or modified image)",
+                            ))
+                    if (pid, bound_id) in irrelevant_pairs:
+                        issues.append(QAIssue(
+                            page_id=pid,
+                            kind=QAIssueKind.content_asset_mismatch,
+                            severity=Severity.major,
+                            element_id=eid,
+                            description=f"asset {bound_id} was marked irrelevant to {pid}",
+                        ))
 
             if not is_bg and not is_conn:
                 fg_boxes.append((eid, (x, y, w, h)))

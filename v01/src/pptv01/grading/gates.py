@@ -1,11 +1,13 @@
 """Deterministic hard gates (benchmark spec 6.1). No model, no score: files exist, contracts validate, constraints hold.
 
+NOTE: python-pptx is used here strictly READ-ONLY (never writes PPTX files).
 Gates for stages that do not exist yet are reported ``not_run`` (so the overall result is ``incomplete``),
 never silently passed.
 """
 
 from __future__ import annotations
 
+import hashlib
 import re
 from pathlib import Path
 
@@ -27,6 +29,7 @@ from pptv01.contracts import (
     load_contract,
 )
 from pptv01.d_retrieve.license import needs_attribution
+from pptv01.renderers.protocol import DeckDump
 
 STAGE_FILES = [
     "production_plan",
@@ -42,6 +45,15 @@ STAGE_FILES = [
 
 _ASSET_BIND_RE = re.compile(r"^(?:ASSET|CHART|TABLE|DIAGRAM|ICON)_(A\d{3,})(?:__|$)")
 _INPUT_BIND_RE = re.compile(r"^(?:INPUT|CHART_INPUT|TABLE_INPUT|DIAGRAM_INPUT)_(U\d{3,})(?:__|$)")
+_PLACEHOLDER_NAME_RE = re.compile(r"^PLACEHOLDER_(U\d{3,})(?:__|$)")
+_ALLOWED_STRUCTURAL_RE = re.compile(
+    r"^(?:bg_[A-Za-z0-9_]+|card_[A-Za-z0-9_]+|accent_[A-Za-z0-9_]+|title|bullets|summary|footer|caption(?:_[A-Za-z0-9_]+)?|cap_[A-Za-z0-9_]+)$",
+    re.I,
+)
+
+
+def _blob_sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def _check_pptx_visual_gates(
@@ -72,43 +84,88 @@ def _check_pptx_visual_gates(
         ]
 
     valid_assets: set[str] = set()
+    asset_sha_by_id: dict[str, str] = {}
+    sha_to_asset_ids: dict[str, list[str]] = {}
     if reg is not None:
-        valid_assets = {
-            a.asset_id
-            for a in reg.assets
-            if a.status in (AssetStatus.acquired, AssetStatus.drawn, AssetStatus.substituted)
-        }
+        for a in reg.assets:
+            if a.status in (AssetStatus.acquired, AssetStatus.drawn, AssetStatus.substituted):
+                valid_assets.add(a.asset_id)
+                sha = a.sha256
+                if not sha and a.file_path and (run_dir / a.file_path).is_file():
+                    sha = _blob_sha256((run_dir / a.file_path).read_bytes())
+                if sha:
+                    asset_sha_by_id[a.asset_id] = sha
+                    sha_to_asset_ids.setdefault(sha, []).append(a.asset_id)
+
     valid_inputs: set[str] = set()
+    input_sha_by_id: dict[str, str] = {}
+    all_request_ids: set[str] = set()
     if uir is not None:
         for r in uir.requests:
+            all_request_ids.add(r.request_id)
             if r.status is UserRequestStatus.provided and r.provided and (run_dir / r.provided.file).is_file():
                 valid_inputs.add(r.request_id)
+                input_sha_by_id[r.request_id] = r.provided.sha256
                 if r.asset_id:
                     valid_assets.add(r.asset_id)
+                    asset_sha_by_id.setdefault(r.asset_id, r.provided.sha256)
 
     unbound: list[str] = []
     for idx, slide in enumerate(prs.slides, 1):
         for sh in slide.shapes:
-            is_visual = (
-                sh.shape_type is MSO_SHAPE_TYPE.PICTURE
-                or getattr(sh, "has_chart", False)
-                or getattr(sh, "has_table", False)
-            )
-            if not is_visual:
-                continue
-            name = sh.name or ""
+            name = (sh.name or "").strip()
+            is_pic = sh.shape_type is MSO_SHAPE_TYPE.PICTURE
+            is_visual = is_pic or getattr(sh, "has_chart", False) or getattr(sh, "has_table", False)
             m_a = _ASSET_BIND_RE.match(name)
             m_u = _INPUT_BIND_RE.match(name)
+            m_ph = _PLACEHOLDER_NAME_RE.match(name)
+
+            if is_visual:
+                if m_a and m_a.group(1) in valid_assets:
+                    aid = m_a.group(1)
+                    if is_pic and aid in asset_sha_by_id:
+                        try:
+                            bsha = _blob_sha256(sh.image.blob)
+                        except Exception:
+                            bsha = ""
+                        if bsha != asset_sha_by_id[aid]:
+                            unbound.append(
+                                f"slide {idx}: {name} sha256 mismatch (blob={bsha[:10]} != {aid}:{asset_sha_by_id[aid][:10]})"
+                            )
+                    continue
+                if m_u and m_u.group(1) in valid_inputs:
+                    uid = m_u.group(1)
+                    if is_pic and uid in input_sha_by_id:
+                        try:
+                            bsha = _blob_sha256(sh.image.blob)
+                        except Exception:
+                            bsha = ""
+                        if bsha != input_sha_by_id[uid]:
+                            unbound.append(
+                                f"slide {idx}: {name} sha256 mismatch (blob={bsha[:10]} != {uid}:{input_sha_by_id[uid][:10]})"
+                            )
+                    continue
+                unbound.append(f"slide {idx}: {name or sh.shape_type.name}")
+                continue
+
+            # Non-PICTURE/chart/table shapes MUST pass the strict name whitelist (blocks hand-drawn diagrams)
+            if _ALLOWED_STRUCTURAL_RE.match(name):
+                continue
+            if m_ph:
+                if not all_request_ids or m_ph.group(1) in all_request_ids:
+                    continue
+                unbound.append(f"slide {idx}: unknown placeholder {name}")
+                continue
             if m_a and m_a.group(1) in valid_assets:
                 continue
             if m_u and m_u.group(1) in valid_inputs:
                 continue
-            unbound.append(f"slide {idx}: {name or sh.shape_type.name}")
+            unbound.append(f"slide {idx}: unknown element {name or sh.shape_type.name} ({sh.shape_type.name})")
 
     fab_res = GateResult(
         gate="no_fabricated_visuals",
         status="fail" if unbound else "pass",
-        detail=f"unbound visual shape(s): {', '.join(unbound[:6])}" if unbound else "all visual elements bound to verified assets/inputs",
+        detail=f"unbound/unknown visual element(s): {', '.join(unbound[:6])}" if unbound else "all visual elements sha256-verified and shapes whitelisted",
     )
 
     # placeholders_marked
@@ -221,23 +278,49 @@ def _check_pptx_visual_gates(
                 notes_text = slide.notes_slide.notes_text_frame.text
             combined = f"{slide_text}\n{notes_text}"
             for sh in slide.shapes:
+                candidate_aids: set[str] = set()
                 m_a = _ASSET_BIND_RE.match(sh.name or "")
-                if not m_a:
-                    continue
-                aid = m_a.group(1)
-                a = reg_by_id.get(aid)
-                if a and needs_attribution(a.license_or_terms or ""):
-                    credit_ok = bool(
-                        (a.attribution and a.attribution in combined)
-                        or (a.author and a.author in combined)
-                    )
-                    if not credit_ok:
-                        missing_attr.append(f"slide {idx}:{aid}")
+                if m_a:
+                    candidate_aids.add(m_a.group(1))
+                # Also identify asset by picture blob sha256 so renaming cannot bypass attribution check
+                if sh.shape_type is MSO_SHAPE_TYPE.PICTURE:
+                    try:
+                        bsha = _blob_sha256(sh.image.blob)
+                        candidate_aids.update(sha_to_asset_ids.get(bsha, ()))
+                    except Exception:
+                        pass
+                for aid in sorted(candidate_aids):
+                    a = reg_by_id.get(aid)
+                    if a and needs_attribution(a.license_or_terms or ""):
+                        credit_ok = bool(
+                            (a.attribution and a.attribution in combined)
+                            or (a.author and a.author in combined)
+                        )
+                        if not credit_ok and f"slide {idx}:{aid}" not in missing_attr:
+                            missing_attr.append(f"slide {idx}:{aid}")
         attr_res = GateResult(
             gate="attribution_present",
             status="fail" if missing_attr else "pass",
             detail=f"missing attribution on slide/notes for: {missing_attr}" if missing_attr else "all attribution-required assets credited",
         )
+
+    # Cross-check deck_dump.json when present (COM read-back second evidence)
+    dump_path = run_dir / "deck_dump.json"
+    if dump_path.is_file() and opens_res.status == "pass":
+        try:
+            dump = DeckDump.model_validate_json(dump_path.read_text(encoding="utf-8"))
+            if len(dump.slides) != n_slides:
+                opens_res = GateResult(
+                    gate="pptx_opens",
+                    status="fail",
+                    detail=f"deck_dump.json has {len(dump.slides)} slides != deck.pptx {n_slides}",
+                )
+        except Exception as e:
+            opens_res = GateResult(
+                gate="pptx_opens",
+                status="fail",
+                detail=f"deck_dump.json invalid: {type(e).__name__}: {str(e)[:120]}",
+            )
 
     return [fab_res, ph_res, opens_res, native_res, attr_res]
 
