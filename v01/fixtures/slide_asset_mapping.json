@@ -1,0 +1,13 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "mappings": [
+    {
+      "page_id": "S001",
+      "asset_id": "A001",
+      "usage": "作为 S001 的对比示意图",
+      "accepted": true
+    }
+  ],
+  "unused_assets": []
+}

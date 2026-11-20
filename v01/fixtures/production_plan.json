@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "source_utterance": "帮我做一个城市热岛效应的 PPT。",
+  "topic": "城市热岛效应",
+  "purpose": "general_presentation",
+  "audience": "general",
+  "language": "zh-CN",
+  "style": "clear_educational",
+  "constraints": [],
+  "defaults_applied": [
+    {
+      "field": "audience",
+      "value": "general",
+      "rationale": "用户未指定受众，按通用讲解处理"
+    },
+    {
+      "field": "purpose",
+      "value": "general_presentation",
+      "rationale": "用户未说明场合，按一般讲解处理"
+    },
+    {
+      "field": "style",
+      "value": "clear_educational",
+      "rationale": "用户未指定风格，按清晰的科普讲解处理"
+    },
+    {
+      "field": "language",
+      "value": "zh-CN",
+      "rationale": "用户用中文提问，输出中文"
+    }
+  ],
+  "content_direction": "从现象、成因、影响和应对几条线索展开，避免过早给出单一城市的定论。",
+  "open_questions": [
+    "常用的城市热岛强度度量方法有哪些？",
+    "哪些成因有公开可查的观测支撑？"
+  ]
+}

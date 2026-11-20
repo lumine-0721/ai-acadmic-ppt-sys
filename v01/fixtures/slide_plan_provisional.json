@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "status": "provisional",
+  "narrative": "先建立概念，再讲可观察的成因与影响，最后讨论应对，不预设结论性口号。",
+  "pages": [
+    {
+      "page_id": "S001",
+      "title": "什么是城市热岛",
+      "goal": "让听众能把城市热岛和一般热浪区分开",
+      "key_points": [
+        "城区相对周边更热",
+        "与短期热浪不是同一现象"
+      ],
+      "content_summary": "用定义和对比说明现象本身。",
+      "visual_intent": "一张对比示意，而不是装饰图",
+      "asset_needs": [
+        "需要一张可解释的对比图或简明数据"
+      ],
+      "status": "provisional"
+    },
+    {
+      "page_id": "S002",
+      "title": "热岛从哪里来",
+      "goal": "让听众说出两三个主要成因及其机制",
+      "key_points": [
+        "地表材料与植被的差异",
+        "人为排热",
+        "城市形态对通风的影响"
+      ],
+      "content_summary": "逐个成因讲机制，并说明哪些需要数据佐证。",
+      "visual_intent": "成因关系示意图",
+      "asset_needs": [
+        "一张成因机制示意图"
+      ],
+      "status": "provisional"
+    }
+  ],
+  "revision_log": []
+}

@@ -1,0 +1,539 @@
+{
+  "suite_id": "ai-ppt-sys-benchmark",
+  "version": "1.0",
+  "frozen": true,
+  "frozen_at": "2026-11-20 00:16 HKT",
+  "language": "zh-CN",
+  "policy": "本题集一经冻结，不得为单次测试临时改题。若必须改题，应发布新的版本号，并保留 1.0 以便对照。",
+  "substitutions_at_freeze": [
+    {
+      "id": "T03",
+      "original": "做份新能源方面的演示文稿。",
+      "reason": "新能源在原卷中过密，补上金融入门。"
+    },
+    {
+      "id": "T05",
+      "original": "帮我做一个关于未来城市的PPT。",
+      "reason": "与热岛、低碳城市重叠，改为高铁发展，覆盖基础设施与沿革。"
+    },
+    {
+      "id": "T11",
+      "original": "做一份新能源汽车行业分析PPT。",
+      "reason": "与 T32 电动汽车趋势重复，改为劳动合同讲座，覆盖法律与特定受众。"
+    }
+  ],
+  "task_count": 40,
+  "tasks": [
+    {
+      "id": "T01",
+      "prompt": "做一个关于人工智能的PPT。",
+      "specificity": "vague",
+      "domain": "ai",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "general"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T02",
+      "prompt": "帮我介绍一下城市热岛效应。",
+      "specificity": "medium",
+      "domain": "climate_science",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "diagram",
+        "reference"
+      ],
+      "constraints": [],
+      "notes": "任务书官方端到端验收题的近义表述，必须进入 Smoke。"
+    },
+    {
+      "id": "T03",
+      "prompt": "做一份给新手的基金投资入门分享。",
+      "specificity": "medium",
+      "domain": "finance",
+      "occasion": "sharing",
+      "audience": "beginner",
+      "asset_stress": [
+        "chart_data"
+      ],
+      "constraints": [],
+      "substituted_from": "做份新能源方面的演示文稿。"
+    },
+    {
+      "id": "T04",
+      "prompt": "我想讲讲咖啡。",
+      "specificity": "vague",
+      "domain": "lifestyle",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T05",
+      "prompt": "介绍一下中国高铁是如何发展起来的。",
+      "specificity": "medium",
+      "domain": "infrastructure",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image",
+        "chart_data"
+      ],
+      "constraints": [],
+      "substituted_from": "帮我做一个关于未来城市的PPT。"
+    },
+    {
+      "id": "T06",
+      "prompt": "做一个关于锂离子电池工作原理的课堂汇报。",
+      "specificity": "specific",
+      "domain": "energy_science",
+      "occasion": "classroom",
+      "audience": "university_or_class",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T07",
+      "prompt": "介绍一下CRISPR基因编辑技术。",
+      "specificity": "specific",
+      "domain": "biotech",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "diagram",
+        "reference"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T08",
+      "prompt": "做一份关于微塑料污染的学术报告。",
+      "specificity": "specific",
+      "domain": "environment",
+      "occasion": "academic_report",
+      "audience": "academic",
+      "asset_stress": [
+        "reference",
+        "chart_data"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T09",
+      "prompt": "帮我讲解一下荧光探针的基本原理。",
+      "specificity": "specific",
+      "domain": "chemistry",
+      "occasion": "lecture",
+      "audience": "unspecified",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T10",
+      "prompt": "做一份关于量子计算发展现状的PPT。",
+      "specificity": "specific",
+      "domain": "cs",
+      "occasion": "survey",
+      "audience": "unspecified",
+      "asset_stress": [
+        "diagram",
+        "reference"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T11",
+      "prompt": "做一份给应届毕业生的劳动合同注意事项讲座。",
+      "specificity": "specific",
+      "domain": "law",
+      "occasion": "lecture",
+      "audience": "graduates",
+      "asset_stress": [
+        "table"
+      ],
+      "constraints": [],
+      "substituted_from": "做一份新能源汽车行业分析PPT。"
+    },
+    {
+      "id": "T12",
+      "prompt": "帮我准备一个咖啡店创业计划展示。",
+      "specificity": "specific",
+      "domain": "business",
+      "occasion": "pitch",
+      "audience": "business",
+      "asset_stress": [
+        "chart_data",
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T13",
+      "prompt": "做一份关于企业数字化转型的汇报。",
+      "specificity": "medium",
+      "domain": "business",
+      "occasion": "formal_report",
+      "audience": "business",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T14",
+      "prompt": "帮我介绍一个智能家居产品。",
+      "specificity": "medium",
+      "domain": "product",
+      "occasion": "product_intro",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": [],
+      "notes": "题目要求系统自己选定具体产品，并在 defaults_applied 中写明。"
+    },
+    {
+      "id": "T15",
+      "prompt": "做一份电商平台用户增长策略PPT。",
+      "specificity": "specific",
+      "domain": "business",
+      "occasion": "strategy",
+      "audience": "business",
+      "asset_stress": [
+        "chart_data"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T16",
+      "prompt": "给小学生讲一讲太阳系。",
+      "specificity": "specific",
+      "domain": "astronomy",
+      "occasion": "teaching",
+      "audience": "elementary",
+      "asset_stress": [
+        "image",
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T17",
+      "prompt": "帮高中生理解温室效应。",
+      "specificity": "specific",
+      "domain": "climate_science",
+      "occasion": "teaching",
+      "audience": "high_school",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T18",
+      "prompt": "做一份关于网络安全的科普PPT。",
+      "specificity": "medium",
+      "domain": "cs",
+      "occasion": "popular_science",
+      "audience": "general_public",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T19",
+      "prompt": "介绍一下人体免疫系统是怎样工作的。",
+      "specificity": "specific",
+      "domain": "biology",
+      "occasion": "lecture",
+      "audience": "unspecified",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T20",
+      "prompt": "给普通人讲清楚什么是大语言模型。",
+      "specificity": "specific",
+      "domain": "ai",
+      "occasion": "explain",
+      "audience": "general_public",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T21",
+      "prompt": "做一份介绍敦煌莫高窟的PPT。",
+      "specificity": "specific",
+      "domain": "culture",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T22",
+      "prompt": "讲讲工业革命如何改变人类生活。",
+      "specificity": "medium",
+      "domain": "history",
+      "occasion": "narrative",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T23",
+      "prompt": "介绍一下文艺复兴时期的艺术。",
+      "specificity": "specific",
+      "domain": "art_history",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T24",
+      "prompt": "做一份关于丝绸之路的展示。",
+      "specificity": "medium",
+      "domain": "history",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image",
+        "map"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T25",
+      "prompt": "讲讲中国古代四大发明。",
+      "specificity": "specific",
+      "domain": "history",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T26",
+      "prompt": "做一份介绍世界著名建筑的PPT。",
+      "specificity": "medium",
+      "domain": "architecture",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": [],
+      "notes": "系统须自选建筑并写明默认决策，素材必须真实对应。"
+    },
+    {
+      "id": "T27",
+      "prompt": "展示一下不同类型的云。",
+      "specificity": "specific",
+      "domain": "nature",
+      "occasion": "classification",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T28",
+      "prompt": "做一份关于深海生物的PPT。",
+      "specificity": "medium",
+      "domain": "nature",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T29",
+      "prompt": "介绍全球具有代表性的国家公园。",
+      "specificity": "medium",
+      "domain": "geography",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T30",
+      "prompt": "做一份关于现代汽车设计演变的PPT。",
+      "specificity": "specific",
+      "domain": "design",
+      "occasion": "survey",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T31",
+      "prompt": "比较太阳能、风能和核能的优缺点。",
+      "specificity": "specific",
+      "domain": "energy",
+      "occasion": "comparison",
+      "audience": "unspecified",
+      "asset_stress": [
+        "table",
+        "chart_data"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T32",
+      "prompt": "分析近十年全球电动汽车的发展趋势。",
+      "specificity": "specific",
+      "domain": "energy_market",
+      "occasion": "data_analysis",
+      "audience": "unspecified",
+      "asset_stress": [
+        "chart_data"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T33",
+      "prompt": "比较几种常见的储能技术。",
+      "specificity": "specific",
+      "domain": "energy",
+      "occasion": "comparison",
+      "audience": "unspecified",
+      "asset_stress": [
+        "table",
+        "diagram"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T34",
+      "prompt": "做一份关于世界人口变化的报告。",
+      "specificity": "specific",
+      "domain": "demography",
+      "occasion": "data_report",
+      "audience": "unspecified",
+      "asset_stress": [
+        "chart_data"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T35",
+      "prompt": "介绍全球主要温室气体排放来源。",
+      "specificity": "specific",
+      "domain": "climate",
+      "occasion": "data_report",
+      "audience": "unspecified",
+      "asset_stress": [
+        "chart_data"
+      ],
+      "constraints": []
+    },
+    {
+      "id": "T36",
+      "prompt": "做一份不超过5页的人工智能介绍，尽量少用文字。",
+      "specificity": "constrained",
+      "domain": "ai",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "image",
+        "diagram"
+      ],
+      "constraints": [
+        "max_5_pages",
+        "minimal_text"
+      ]
+    },
+    {
+      "id": "T37",
+      "prompt": "用故事的方式向初中生解释黑洞。",
+      "specificity": "constrained",
+      "domain": "astronomy",
+      "occasion": "teaching",
+      "audience": "middle_school",
+      "asset_stress": [
+        "image",
+        "diagram"
+      ],
+      "constraints": [
+        "story_form"
+      ]
+    },
+    {
+      "id": "T38",
+      "prompt": "做一份适合正式会议的低碳城市汇报。",
+      "specificity": "constrained",
+      "domain": "climate_policy",
+      "occasion": "formal_meeting",
+      "audience": "professional",
+      "asset_stress": [
+        "chart_data",
+        "image"
+      ],
+      "constraints": [
+        "formal_tone"
+      ]
+    },
+    {
+      "id": "T39",
+      "prompt": "我明天要讲10分钟的半导体芯片，帮我做PPT。",
+      "specificity": "constrained",
+      "domain": "semiconductor",
+      "occasion": "timed_talk",
+      "audience": "unspecified",
+      "asset_stress": [
+        "diagram"
+      ],
+      "constraints": [
+        "about_10_minutes"
+      ]
+    },
+    {
+      "id": "T40",
+      "prompt": "做一份关于食品安全的PPT，尽量使用真实案例。",
+      "specificity": "constrained",
+      "domain": "food_safety",
+      "occasion": "general",
+      "audience": "unspecified",
+      "asset_stress": [
+        "reference",
+        "image"
+      ],
+      "constraints": [
+        "real_cases"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "renderer": "libreoffice-headless",
+  "rendered_pages": [
+    "S001"
+  ],
+  "issues": [
+    {
+      "page_id": "S001",
+      "kind": "text_overflow",
+      "severity": "major",
+      "description": "要点文本框溢出",
+      "element_id": "b1",
+      "fix_applied": true,
+      "fix_note": "字号 24→20",
+      "recheck": "passed"
+    }
+  ],
+  "summary": "1 issue found, fixed and rechecked"
+}

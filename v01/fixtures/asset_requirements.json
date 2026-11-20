@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "requirements": [
+    {
+      "asset_id": "A001",
+      "page_ids": [
+        "S001"
+      ],
+      "type": "image",
+      "purpose": "并排展示城区与郊区的地表温度分布，说明‘城区相对周边更热’",
+      "query_hints": [
+        "urban heat island thermal map",
+        "city surface temperature"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与城市热岛直接相关",
+        "可合法使用且来源明确",
+        "清晰可读"
+      ]
+    },
+    {
+      "asset_id": "A002",
+      "page_ids": [
+        "S002"
+      ],
+      "type": "reference",
+      "purpose": "为成因页提供可核验的文献出处",
+      "query_hints": [
+        "urban heat island causes review"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "有 DOI",
+        "主题相关"
+      ]
+    }
+  ]
+}

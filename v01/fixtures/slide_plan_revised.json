@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "status": "revised",
+  "narrative": "先建立概念，再讲成因与影响。",
+  "pages": [
+    {
+      "page_id": "S001",
+      "title": "什么是城市热岛",
+      "goal": "区分城市热岛与一般热浪",
+      "key_points": [
+        "城区相对周边更热"
+      ],
+      "content_summary": "定义与对比。",
+      "visual_intent": "对比示意",
+      "asset_needs": [],
+      "status": "revised"
+    }
+  ],
+  "revision_log": [
+    {
+      "revision": 1,
+      "change": "删去 S002 中缺少素材支撑的表述并移除该页",
+      "page_ids": [
+        "S002"
+      ],
+      "reason": "关键素材缺失",
+      "evidence_asset_ids": [
+        "A002"
+      ]
+    }
+  ]
+}

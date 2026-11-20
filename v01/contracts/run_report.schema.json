@@ -1,0 +1,219 @@
+{
+  "$defs": {
+    "RunOverall": {
+      "enum": [
+        "complete",
+        "incomplete",
+        "failed"
+      ],
+      "title": "RunOverall",
+      "type": "string"
+    },
+    "StageRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "output_files": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Output Files",
+          "type": "array"
+        },
+        "stage": {
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "status": {
+          "$ref": "#/$defs/StageStatus"
+        }
+      },
+      "required": [
+        "stage",
+        "name",
+        "status"
+      ],
+      "title": "StageRecord",
+      "type": "object"
+    },
+    "StageStatus": {
+      "enum": [
+        "done",
+        "failed",
+        "skipped",
+        "not_implemented"
+      ],
+      "title": "StageStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "code_commit": {
+      "default": "unknown",
+      "title": "Code Commit",
+      "type": "string"
+    },
+    "code_dirty": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Dirty"
+    },
+    "defaults_summary": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Defaults Summary",
+      "type": "array"
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Failure Reason"
+    },
+    "finished_at": {
+      "format": "date-time",
+      "title": "Finished At",
+      "type": "string"
+    },
+    "missing_assets": {
+      "items": {
+        "pattern": "^A\\d{3,}$",
+        "type": "string"
+      },
+      "title": "Missing Assets",
+      "type": "array"
+    },
+    "model_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "overall": {
+      "$ref": "#/$defs/RunOverall"
+    },
+    "revision_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Revision Count",
+      "type": "integer"
+    },
+    "run_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1",
+      "default": "0.1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_utterance": {
+      "minLength": 1,
+      "title": "Source Utterance",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/StageRecord"
+      },
+      "title": "Stages",
+      "type": "array"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "tool_config": {
+      "additionalProperties": true,
+      "title": "Tool Config",
+      "type": "object"
+    }
+  },
+  "required": [
+    "run_id",
+    "source_utterance",
+    "overall",
+    "started_at",
+    "finished_at",
+    "stages"
+  ],
+  "title": "RunReport",
+  "type": "object"
+}

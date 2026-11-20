@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "assets": [
+    {
+      "asset_id": "A001",
+      "status": "acquired",
+      "file_path": "assets/A001.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Example.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY-SA 4.0",
+      "retrieved_at": "2026-11-20T11:30:00+09:00",
+      "notes": "",
+      "checks": {
+        "relevance": "ok",
+        "usability": "ok",
+        "format": "jpg",
+        "quality": "ok"
+      }
+    },
+    {
+      "asset_id": "A002",
+      "status": "missing",
+      "file_path": null,
+      "notes": "Crossref 查询无可核验的相关条目",
+      "checks": {}
+    }
+  ]
+}

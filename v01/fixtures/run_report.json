@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "source_utterance": "帮我做一个城市热岛效应的 PPT。",
+  "overall": "incomplete",
+  "started_at": "2026-11-20T11:20:00+09:00",
+  "finished_at": "2026-11-20T11:20:30+09:00",
+  "model_id": "example-model",
+  "code_commit": "unknown",
+  "code_dirty": null,
+  "tool_config": {},
+  "stages": [
+    {
+      "stage": "A",
+      "name": "production_plan",
+      "status": "done"
+    },
+    {
+      "stage": "B",
+      "name": "provisional_slide_plan",
+      "status": "done"
+    },
+    {
+      "stage": "C",
+      "name": "asset_requirements",
+      "status": "not_implemented"
+    },
+    {
+      "stage": "D",
+      "name": "asset_retrieval",
+      "status": "not_implemented"
+    },
+    {
+      "stage": "E",
+      "name": "slide_asset_mapping",
+      "status": "not_implemented"
+    },
+    {
+      "stage": "F",
+      "name": "page_layout_design",
+      "status": "not_implemented"
+    },
+    {
+      "stage": "G",
+      "name": "pptx_generation",
+      "status": "not_implemented"
+    },
+    {
+      "stage": "H",
+      "name": "render_qa_repair",
+      "status": "not_implemented"
+    }
+  ],
+  "defaults_summary": [
+    "audience=general"
+  ],
+  "missing_assets": [],
+  "revision_count": 0,
+  "failure_reason": null
+}

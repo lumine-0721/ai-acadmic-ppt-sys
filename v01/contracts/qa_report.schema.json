@@ -1,0 +1,136 @@
+{
+  "$defs": {
+    "QAIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "element_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "fix_applied": {
+          "default": false,
+          "title": "Fix Applied",
+          "type": "boolean"
+        },
+        "fix_note": {
+          "default": "",
+          "title": "Fix Note",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/QAIssueKind"
+        },
+        "page_id": {
+          "pattern": "^S\\d{3,}$",
+          "title": "Page Id",
+          "type": "string"
+        },
+        "recheck": {
+          "$ref": "#/$defs/Recheck",
+          "default": "not_rechecked"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        }
+      },
+      "required": [
+        "page_id",
+        "kind",
+        "severity",
+        "description"
+      ],
+      "title": "QAIssue",
+      "type": "object"
+    },
+    "QAIssueKind": {
+      "enum": [
+        "text_overflow",
+        "occlusion",
+        "missing_image",
+        "layout_anomaly",
+        "font_or_ratio",
+        "content_asset_mismatch"
+      ],
+      "title": "QAIssueKind",
+      "type": "string"
+    },
+    "Recheck": {
+      "enum": [
+        "passed",
+        "failed",
+        "not_rechecked"
+      ],
+      "title": "Recheck",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "blocker",
+        "major",
+        "minor"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/QAIssue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "rendered_pages": {
+      "items": {
+        "pattern": "^S\\d{3,}$",
+        "type": "string"
+      },
+      "title": "Rendered Pages",
+      "type": "array"
+    },
+    "renderer": {
+      "minLength": 1,
+      "title": "Renderer",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1",
+      "default": "0.1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "summary": {
+      "default": "",
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "renderer",
+    "rendered_pages"
+  ],
+  "title": "QAReport",
+  "type": "object"
+}
