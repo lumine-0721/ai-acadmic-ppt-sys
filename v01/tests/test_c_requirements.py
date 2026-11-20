@@ -170,8 +170,8 @@ def test_prompt_shows_need_refs_and_research_titles():
 def test_runner_runs_a_to_d_and_reports_e_to_h_not_implemented(tmp_path):
     report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-c")
     st = {s.stage: s.status for s in report.stages}
-    assert [st[x] for x in "ABCDE"] == [StageStatus.done] * 5
-    assert all(st[x] is StageStatus.not_implemented for x in "FGH")
+    assert [st[x] for x in "ABCDEF"] == [StageStatus.done] * 6
+    assert all(st[x] is StageStatus.not_implemented for x in "GH")
     assert (run_dir / "asset_requirements.json").is_file() and (run_dir / "llm_trace" / "C.json").is_file()
     assert report.overall.value == "incomplete"
     # conftest sets PPTV01_ASSETS=none: D records every requirement as missing, saying retrieval was disabled

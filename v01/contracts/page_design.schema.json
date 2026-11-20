@@ -40,10 +40,39 @@
           "default": null,
           "title": "Asset Path"
         },
+        "bold": {
+          "default": false,
+          "title": "Bold",
+          "type": "boolean"
+        },
+        "color_hex": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color Hex"
+        },
         "element_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
           "title": "Element Id",
           "type": "string"
+        },
+        "fill_hex": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Hex"
         },
         "font": {
           "anyOf": [
@@ -77,6 +106,36 @@
         },
         "kind": {
           "$ref": "#/$defs/ElementKind"
+        },
+        "line_hex": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Line Hex"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "pattern": "^U\\d{3,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
+          "type": "string"
         },
         "text": {
           "anyOf": [
@@ -129,6 +188,8 @@
         "image",
         "shape",
         "chart",
+        "table",
+        "placeholder",
         "caption",
         "footer"
       ],
@@ -155,6 +216,11 @@
           "minItems": 1,
           "title": "Elements",
           "type": "array"
+        },
+        "layout_name": {
+          "default": "",
+          "title": "Layout Name",
+          "type": "string"
         },
         "notes": {
           "default": "",

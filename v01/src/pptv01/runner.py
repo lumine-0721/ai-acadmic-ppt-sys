@@ -23,6 +23,7 @@ from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchF
 from pptv01.contracts import (
     AssetRegistry,
     AssetRequirements,
+    PageDesign,
     ProductionPlan,
     ResearchRecord,
     SlidePlan,
@@ -38,6 +39,7 @@ from pptv01.contracts import (
 )
 from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env
 from pptv01.e_mapping import ARTIFACT as E_FILE, run_stage_e
+from pptv01.f_layout import ARTIFACT as F_FILE, run_stage_f
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval import ResearchProvider, research_from_env
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, summarize_requests
@@ -52,7 +54,7 @@ STAGE_NAMES = {
     "G": "pptx_generation",
     "H": "render_qa_repair",
 }
-IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E")
+IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E", "F")
 
 
 def _now() -> datetime:
@@ -319,7 +321,40 @@ def run_pipeline(
             error="skipped: stage D did not produce an asset registry",
         )
 
-    for code in "FGH":
+    # ---- Stage F (page layout design + schematic previews)
+    design: PageDesign | None = None
+    if waiting_for_input:
+        records["F"] = StageRecord(
+            stage="F", name=STAGE_NAMES["F"], status=StageStatus.skipped,
+            error="skipped: waiting for user input (see user_input_requests.json)",
+        )
+    elif mapping is not None and reg is not None and slide_plan is not None and plan is not None and not failure:
+        t0 = clock()
+        if resume and (run_dir / F_FILE).is_file():
+            design = load_contract(PageDesign, run_dir / F_FILE)
+            f_files = [F_FILE] + sorted(
+                p.relative_to(run_dir).as_posix()
+                for p in (run_dir / "previews").glob("*.png") if p.is_file()
+            )
+            record("F", StageStatus.done, t0, f_files)
+        else:
+            try:
+                design = run_stage_f(plan, slide_plan, reg, uir, mapping, run_dir)
+                f_files = [F_FILE] + sorted(
+                    p.relative_to(run_dir).as_posix()
+                    for p in (run_dir / "previews").glob("*.png") if p.is_file()
+                )
+                record("F", StageStatus.done, t0, f_files)
+            except ValueError as e:
+                failure = f"stage F failed: {type(e).__name__}: {str(e)[:500]}"
+                record("F", StageStatus.failed, t0, [], failure)
+    else:
+        records["F"] = StageRecord(
+            stage="F", name=STAGE_NAMES["F"], status=StageStatus.skipped,
+            error="skipped: stage E did not produce a slide asset mapping",
+        )
+
+    for code in "GH":
         if waiting_for_input:
             records[code] = StageRecord(
                 stage=code, name=STAGE_NAMES[code], status=StageStatus.skipped,

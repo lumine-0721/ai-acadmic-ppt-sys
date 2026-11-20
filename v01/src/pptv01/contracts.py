@@ -577,11 +577,14 @@ class ElementKind(str, Enum):
     image = "image"
     shape = "shape"
     chart = "chart"
+    table = "table"
+    placeholder = "placeholder"
     caption = "caption"
     footer = "footer"
 
 
 TEXT_KINDS = {ElementKind.title, ElementKind.body, ElementKind.bullet, ElementKind.caption, ElementKind.footer}
+BOUND_VISUAL_KINDS = {ElementKind.image, ElementKind.chart, ElementKind.table}
 CANVAS_W_IN = 13.333
 CANVAS_H_IN = 7.5
 _EPS = 0.01
@@ -599,7 +602,13 @@ class DesignElement(_Contract):
     text: str | None = None
     font: str | None = None
     font_size_pt: float | None = Field(default=None, gt=0)
+    bold: bool = False
+    color_hex: str | None = None
+    fill_hex: str | None = None
+    line_hex: str | None = None
+    role: str = ""
     asset_id: AssetId | None = None
+    request_id: RequestId | None = None
     asset_path: RelPath | None = None
 
     @field_validator("asset_path")
@@ -611,15 +620,32 @@ class DesignElement(_Contract):
     def _by_kind(self) -> "DesignElement":
         if self.kind in TEXT_KINDS and not (self.text and self.text.strip()):
             raise ValueError(f"{self.kind.value} element {self.element_id} requires text")
-        if self.kind is ElementKind.image and not (self.asset_id and self.asset_path):
-            raise ValueError(f"image element {self.element_id} must reference a bound asset (asset_id + asset_path)")
+        if self.kind in BOUND_VISUAL_KINDS and not ((self.asset_id or self.request_id) and self.asset_path):
+            raise ValueError(
+                f"{self.kind.value} element {self.element_id} must reference a bound asset "
+                "(asset_id/request_id + asset_path)"
+            )
         if self.kind in TEXT_KINDS and self.font_size_pt is None:
             raise ValueError(f"text element {self.element_id} requires font_size_pt")
+        if self.kind is ElementKind.placeholder:
+            if not self.request_id:
+                raise ValueError(f"placeholder element {self.element_id} requires request_id")
+            if not self.element_id.startswith(f"PLACEHOLDER_{self.request_id}"):
+                raise ValueError(
+                    f"placeholder element {self.element_id} must start with PLACEHOLDER_{self.request_id}"
+                )
+            if not (self.text and "待补充：" in self.text and self.request_id in self.text):
+                raise ValueError(
+                    f"placeholder element {self.element_id} text must contain '待补充：' and {self.request_id}"
+                )
+            if self.font_size_pt is None:
+                raise ValueError(f"placeholder element {self.element_id} requires font_size_pt")
         return self
 
 
 class PageDesignEntry(_Contract):
     page_id: PageId
+    layout_name: str = ""
     canvas_width_in: float = CANVAS_W_IN
     canvas_height_in: float = CANVAS_H_IN
     elements: list[DesignElement] = Field(min_length=1)

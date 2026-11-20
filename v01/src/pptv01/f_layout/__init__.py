@@ -1,7 +1,20 @@
-"""Stage F (layout): NOT IMPLEMENTED in this batch.
+from .capacity import FitResult, SlotCapacity, estimate_slot_capacity, fit_text_to_box, wrap_mixed_text
+from .preview import WATERMARK_TEXT, render_schematic_preview
+from .stage import ARTIFACT, LayoutRuleError, run_stage_f
+from .validate import MIN_FONT_PT, validate_page_design, validate_page_geometry
 
-The runner reports this stage as not_implemented; nothing is faked.
-See docs/V0.1-技术方案.md section 2.3 / 6 for the contract and development order.
-"""
-
-IMPLEMENTED = False
+__all__ = [
+    "ARTIFACT",
+    "FitResult",
+    "LayoutRuleError",
+    "MIN_FONT_PT",
+    "SlotCapacity",
+    "WATERMARK_TEXT",
+    "estimate_slot_capacity",
+    "fit_text_to_box",
+    "render_schematic_preview",
+    "run_stage_f",
+    "validate_page_design",
+    "validate_page_geometry",
+    "wrap_mixed_text",
+]
