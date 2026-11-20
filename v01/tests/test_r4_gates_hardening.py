@@ -212,12 +212,79 @@ def test_b4_placeholder_missing_notes_and_missing_attribution_fail(tmp_path):
     assert by["attribution_present"].status == "fail"
 
 
+def test_n4_b9_card_fake_prefix_oval_and_freeform_and_unconnected_connector_blocked(tmp_path):
+    """N4 (B9 regression): hand-drawn shapes disguised with card_*/accent_* names or ovals/unconnected connectors fail."""
+    _setup_run(tmp_path)
+    # 1) Attack via card_fake_chart oval + accent_fake_poly freeform (previously bypassed _ALLOWED_STRUCTURAL_RE!)
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    sl = prs.slides.add_slide(prs.slide_layouts[6])
+    tb = sl.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(8), Inches(0.8))
+    tb.name = "title"
+    tb.text_frame.text = "热岛"
+
+    fake_oval = sl.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(2), Inches(2))
+    fake_oval.name = "card_fake_chart"
+    fb = sl.shapes.build_freeform(Inches(2), Inches(4.5))
+    fb.add_line_segments([(Inches(3.5), Inches(4.0)), (Inches(5.0), Inches(4.8))], close=False)
+    fake_poly = fb.convert_to_shape()
+    fake_poly.name = "accent_fake_line"
+
+    ph = sl.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(7), Inches(1.5), Inches(4), Inches(2))
+    ph.name = "PLACEHOLDER_U001"
+    ph.text_frame.text = "待补充：热岛示意图（U001）"
+    sl.notes_slide.notes_text_frame.text = "U001"
+    prs.save(str(tmp_path / "deck.pptx"))
+
+    rep = check_gates(tmp_path)
+    by = {r.gate: r for r in rep.results}
+    assert by["no_fabricated_visuals"].status == "fail"
+    assert "card_fake_chart" in by["no_fabricated_visuals"].detail
+    assert "accent_fake_line" in by["no_fabricated_visuals"].detail
+
+    # 2) Attack: oval disguised as an exact structural name ('card_main') MUST still be blocked by shape-type rule
+    prs2 = Presentation()
+    prs2.slide_width = Inches(13.333)
+    prs2.slide_height = Inches(7.5)
+    sl2 = prs2.slides.add_slide(prs2.slide_layouts[6])
+    tb2 = sl2.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(8), Inches(0.8))
+    tb2.name = "title"
+    tb2.text_frame.text = "热岛"
+    disguised = sl2.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(2), Inches(2))
+    disguised.name = "card_main"
+    prs2.save(str(tmp_path / "deck.pptx"))
+
+    rep2 = check_gates(tmp_path)
+    by2 = {r.gate: r for r in rep2.results}
+    assert by2["no_fabricated_visuals"].status == "fail"
+    assert "disallowed structural AutoShape type" in by2["no_fabricated_visuals"].detail
+
+    # 3) Attack: free-floating connector named DIAGRAM_A001__e1 whose ends are NOT bound to diagram nodes
+    prs3 = Presentation()
+    prs3.slide_width = Inches(13.333)
+    prs3.slide_height = Inches(7.5)
+    sl3 = prs3.slides.add_slide(prs3.slide_layouts[6])
+    tb3 = sl3.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(8), Inches(0.8))
+    tb3.name = "title"
+    tb3.text_frame.text = "热岛"
+    conn = sl3.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Inches(2), Inches(3), Inches(5), Inches(3))
+    conn.name = "DIAGRAM_A001__e1"
+    prs3.save(str(tmp_path / "deck.pptx"))
+
+    rep3 = check_gates(tmp_path)
+    by3 = {r.gate: r for r in rep3.results}
+    assert by3["no_fabricated_visuals"].status == "fail"
+    assert "not both connected to bound DIAGRAM_* nodes" in by3["no_fabricated_visuals"].detail
+
+
 @pytest.mark.windows_com
 def test_r4_hardened_gates_pass_on_real_powerpoint_com_deck(tmp_path):
     renderer = PowerPointComRenderer()
     renderer.preflight()
 
     ops = _make_full_ops(tmp_path)
+    write_contract(ops, tmp_path / "deck_ops.json")
     # Write contracts so check_gates validates everything end-to-end against real COM deck.pptx + deck_dump.json
     write_contract(ProductionPlan(run_id="fake-com-run", source_utterance="城市热岛效应", **GOOD_A), tmp_path / "production_plan.json")
     sp = SlidePlan.model_validate(

@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE
 from pydantic import ValidationError
 
 from pptv01 import textcheck
@@ -20,8 +20,12 @@ from pptv01.contracts import (
     AssetRegistry,
     AssetStatus,
     CONTRACT_FILES,
+    DeckOpKind,
+    DeckOps,
+    ElementKind,
     GateReport,
     GateResult,
+    PageDesign,
     ProductionPlan,
     SlidePlan,
     UserInputRequests,
@@ -45,11 +49,111 @@ STAGE_FILES = [
 
 _ASSET_BIND_RE = re.compile(r"^(?:ASSET|CHART|TABLE|DIAGRAM|ICON)_(A\d{3,})(?:__|$)")
 _INPUT_BIND_RE = re.compile(r"^(?:INPUT|CHART_INPUT|TABLE_INPUT|DIAGRAM_INPUT)_(U\d{3,})(?:__|$)")
+_DIAGRAM_BIND_RE = re.compile(r"^(?:DIAGRAM_(A\d{3,})|DIAGRAM_INPUT_(U\d{3,}))(?:__|$)")
 _PLACEHOLDER_NAME_RE = re.compile(r"^PLACEHOLDER_(U\d{3,})(?:__|$)")
-_ALLOWED_STRUCTURAL_RE = re.compile(
-    r"^(?:bg_[A-Za-z0-9_]+|card_[A-Za-z0-9_]+|accent_[A-Za-z0-9_]+|title|bullets|summary|footer|caption(?:_[A-Za-z0-9_]+)?|cap_[A-Za-z0-9_]+)$",
-    re.I,
-)
+# Strict exact fallback set used ONLY when neither deck_ops.json nor page_design.json exists in run_dir
+_FALLBACK_STRUCTURAL_EXACT = frozenset({
+    "bg_header",
+    "accent_bar",
+    "accent_rail",
+    "accent_divider",
+    "card_main",
+    "card_text",
+    "title",
+    "bullets",
+    "summary",
+    "footer",
+})
+_FALLBACK_CAPTION_RE = re.compile(r"^cap_\d+$")
+_ALLOWED_STRUCTURAL_AUTOSHAPES = frozenset({
+    MSO_SHAPE.RECTANGLE,
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+})
+
+
+def _load_declared_structural_names(run_dir: Path) -> dict[int, set[str]] | None:
+    """Build exact per-slide structural element name whitelist from deck_ops.json or page_design.json."""
+    ops_path = run_dir / "deck_ops.json"
+    if ops_path.is_file():
+        try:
+            ops = load_contract(DeckOps, ops_path)
+            page_to_idx = {pid: i for i, pid in enumerate(ops.page_ids, 1)}
+            per_slide: dict[int, set[str]] = {i: set() for i in range(1, len(ops.page_ids) + 1)}
+            for op in ops.ops:
+                s_idx = page_to_idx.get(op.page_id)
+                if s_idx is None:
+                    continue
+                if op.kind in (DeckOpKind.set_placeholder_text, DeckOpKind.add_textbox):
+                    sname = str(op.params.get("shape_name") or op.element_id or "").strip()
+                    if sname:
+                        per_slide[s_idx].add(sname)
+                elif op.kind is DeckOpKind.add_shape and not op.asset_id and not op.request_id:
+                    sname = str(op.params.get("shape_name") or op.element_id or "").strip()
+                    if sname:
+                        per_slide[s_idx].add(sname)
+            return per_slide
+        except Exception:
+            pass
+
+    design_path = run_dir / "page_design.json"
+    if design_path.is_file():
+        try:
+            design = load_contract(PageDesign, design_path)
+            per_slide = {}
+            for s_idx, page in enumerate(design.pages, 1):
+                names: set[str] = set()
+                for el in page.elements:
+                    if el.kind in (
+                        ElementKind.title,
+                        ElementKind.body,
+                        ElementKind.bullet,
+                        ElementKind.caption,
+                        ElementKind.footer,
+                    ):
+                        names.add(el.element_id)
+                    elif el.kind is ElementKind.shape and not el.asset_id and not el.request_id and el.role != "diagram_json":
+                        names.add(el.element_id)
+                per_slide[s_idx] = names
+            return per_slide
+        except Exception:
+            pass
+    return None
+
+
+def _connector_endpoint_ids(shape) -> tuple[int | None, int | None]:
+    """Extract OOXML <a:stCxn id=.../> and <a:endCxn id=.../> target shape IDs from a cxnSp connector."""
+    el = getattr(shape, "_element", None)
+    if el is None:
+        return None, None
+    st_id: int | None = None
+    end_id: int | None = None
+    for node in el.iter():
+        tag = str(node.tag)
+        if tag.endswith("}stCxn") or tag == "stCxn":
+            raw = node.get("id")
+            if raw and raw.isdigit():
+                st_id = int(raw)
+        elif tag.endswith("}endCxn") or tag == "endCxn":
+            raw = node.get("id")
+            if raw and raw.isdigit():
+                end_id = int(raw)
+    return st_id, end_id
+
+
+def _is_allowed_structural_shape_type(shape) -> tuple[bool, str]:
+    """Structural elements may only be textbox, placeholder, or rectangle/rounded-rectangle autoshape."""
+    st = shape.shape_type
+    if st in (MSO_SHAPE_TYPE.TEXT_BOX, MSO_SHAPE_TYPE.PLACEHOLDER):
+        return True, ""
+    if st is MSO_SHAPE_TYPE.AUTO_SHAPE:
+        try:
+            ast = shape.auto_shape_type
+        except Exception:
+            ast = None
+        if ast in _ALLOWED_STRUCTURAL_AUTOSHAPES:
+            return True, ""
+        return False, f"disallowed structural AutoShape type {ast}"
+    return False, f"disallowed structural shape type {st.name}"
 
 
 def _blob_sha256(data: bytes) -> str:
@@ -110,12 +214,30 @@ def _check_pptx_visual_gates(
                     valid_assets.add(r.asset_id)
                     asset_sha_by_id.setdefault(r.asset_id, r.provided.sha256)
 
+    declared_structural = _load_declared_structural_names(run_dir)
+
     unbound: list[str] = []
     for idx, slide in enumerate(prs.slides, 1):
+        # Collect valid bound DIAGRAM_* node shape_ids on this slide for connector endpoint verification
+        slide_diagram_node_ids: set[int] = set()
+        for sh in slide.shapes:
+            sname = (sh.name or "").strip()
+            is_conn_sh = sh.shape_type is MSO_SHAPE_TYPE.LINE or str(getattr(getattr(sh, "_element", None), "tag", "")).endswith("cxnSp")
+            if is_conn_sh:
+                continue
+            md = _DIAGRAM_BIND_RE.match(sname)
+            if md:
+                aid_d, uid_d = md.group(1), md.group(2)
+                if (aid_d and aid_d in valid_assets) or (uid_d and uid_d in valid_inputs):
+                    slide_diagram_node_ids.add(int(sh.shape_id))
+
+        allowed_names_for_slide = declared_structural.get(idx, set()) if declared_structural is not None else None
+
         for sh in slide.shapes:
             name = (sh.name or "").strip()
             is_pic = sh.shape_type is MSO_SHAPE_TYPE.PICTURE
             is_visual = is_pic or getattr(sh, "has_chart", False) or getattr(sh, "has_table", False)
+            is_conn = sh.shape_type is MSO_SHAPE_TYPE.LINE or str(getattr(getattr(sh, "_element", None), "tag", "")).endswith("cxnSp")
             m_a = _ASSET_BIND_RE.match(name)
             m_u = _INPUT_BIND_RE.match(name)
             m_ph = _PLACEHOLDER_NAME_RE.match(name)
@@ -148,9 +270,25 @@ def _check_pptx_visual_gates(
                 unbound.append(f"slide {idx}: {name or sh.shape_type.name}")
                 continue
 
-            # Non-PICTURE/chart/table shapes MUST pass the strict name whitelist (blocks hand-drawn diagrams)
-            if _ALLOWED_STRUCTURAL_RE.match(name):
+            # Connectors MUST be bound DIAGRAM_* AND connected at both ends to bound diagram nodes
+            if is_conn:
+                md = _DIAGRAM_BIND_RE.match(name)
+                valid_diag = bool(md and ((md.group(1) and md.group(1) in valid_assets) or (md.group(2) and md.group(2) in valid_inputs)))
+                if not valid_diag:
+                    unbound.append(f"slide {idx}: unbound connector {name or 'LINE'} (connectors must be bound DIAGRAM_*)")
+                    continue
+                st_id, end_id = _connector_endpoint_ids(sh)
+                if st_id is None or end_id is None or st_id not in slide_diagram_node_ids or end_id not in slide_diagram_node_ids:
+                    unbound.append(
+                        f"slide {idx}: connector {name} endpoints ({st_id}->{end_id}) are not both connected to bound DIAGRAM_* nodes"
+                    )
                 continue
+
+            # Freeform / Group shapes are never allowed as structural elements
+            if sh.shape_type in (MSO_SHAPE_TYPE.FREEFORM, MSO_SHAPE_TYPE.GROUP):
+                unbound.append(f"slide {idx}: disallowed {sh.shape_type.name} shape {name or sh.shape_type.name}")
+                continue
+
             if m_ph:
                 if not all_request_ids or m_ph.group(1) in all_request_ids:
                     continue
@@ -160,7 +298,21 @@ def _check_pptx_visual_gates(
                 continue
             if m_u and m_u.group(1) in valid_inputs:
                 continue
-            unbound.append(f"slide {idx}: unknown element {name or sh.shape_type.name} ({sh.shape_type.name})")
+
+            # Non-visual structural shapes: exact declared whitelist + strict shape-type restriction (B9 fix)
+            if allowed_names_for_slide is not None:
+                is_declared_name = name in allowed_names_for_slide
+            else:
+                is_declared_name = (name in _FALLBACK_STRUCTURAL_EXACT) or bool(_FALLBACK_CAPTION_RE.match(name))
+
+            if is_declared_name:
+                type_ok, type_why = _is_allowed_structural_shape_type(sh)
+                if type_ok:
+                    continue
+                unbound.append(f"slide {idx}: structural element {name} has {type_why}")
+                continue
+
+            unbound.append(f"slide {idx}: undeclared/unknown element {name or sh.shape_type.name} ({sh.shape_type.name})")
 
     fab_res = GateResult(
         gate="no_fabricated_visuals",
