@@ -117,8 +117,13 @@ def test_real_powerpoint_com_leaves_unrelated_open_presentation_untouched(tmp_pa
                 user_pres.Close()
             except Exception:
                 pass
-        if int(app.Presentations.Count) == 0:
+            user_pres = None
+        if app is not None:
             try:
-                app.Quit()
+                if int(app.Presentations.Count) == 0:
+                    app.Quit()
             except Exception:
                 pass
+            app = None
+        import gc
+        gc.collect()

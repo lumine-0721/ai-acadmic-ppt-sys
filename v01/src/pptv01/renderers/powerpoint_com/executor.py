@@ -395,6 +395,12 @@ def _dump_presentation(
     )
 
 
+def _is_transient_rpc_error(exc: BaseException) -> bool:
+    """Return True for transient Windows COM RPC disconnect errors (-2147023174 / -2147023179)."""
+    msg = str(exc)
+    return any(code in msg for code in ("-2147023174", "-2147023179", "-2147417848", "RPC"))
+
+
 def build_presentation(
     ops: DeckOps,
     run_dir: Path,
@@ -402,6 +408,30 @@ def build_presentation(
     app_factory: Callable[[], Any] | None = None,
 ) -> BuildResult:
     """Execute DeckOps via PowerPoint COM to produce deck.pptx and deck_dump.json."""
+    last_exc: Exception | None = None
+    max_attempts = 1 if app_factory is not None else 2
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return _build_presentation_once(ops, run_dir, app_factory=app_factory)
+        except (RenderExecutionError, FileNotFoundError, ValueError):
+            raise
+        except Exception as e:
+            if attempt < max_attempts and _is_transient_rpc_error(e):
+                last_exc = e
+                gc.collect()
+                time.sleep(0.8)
+                continue
+            raise
+    assert last_exc is not None  # pragma: no cover
+    raise last_exc
+
+
+def _build_presentation_once(
+    ops: DeckOps,
+    run_dir: Path,
+    *,
+    app_factory: Callable[[], Any] | None = None,
+) -> BuildResult:
     run_dir = Path(run_dir).resolve()
     run_dir.mkdir(parents=True, exist_ok=True)
     out_pptx = (run_dir / DECK_FILENAME).resolve()
@@ -411,7 +441,7 @@ def build_presentation(
     with_window = MSO_TRUE if needs_chart_window else MSO_FALSE
     build_notes: list[str] = []
     if needs_chart_window:
-        build_notes.append("opened presentation with minimized window (WithWindow=-1) for Office 2021 AddChart2 compatibility")
+        build_notes.append("opened presentation with minimized window (WithWindow=-1) for desktop PowerPoint 16.0 AddChart2 compatibility")
 
     with open_powerpoint_session(app_factory=app_factory) as sess:
         app = sess.app
