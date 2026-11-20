@@ -48,6 +48,8 @@ class WdEntity:
     label_zh: str = ""
     p18: list[str] = field(default_factory=list)       # Commons file names (no "File:" prefix)
     match_text: str = ""                               # text of the label/alias that matched the search (wbsearchentities)
+    aliases: list[str] = field(default_factory=list)   # en/zh aliases from Wikidata
+    country_qids: list[str] = field(default_factory=list)  # P17 (country) QIDs
 
     @property
     def url(self) -> str:
@@ -81,20 +83,32 @@ class WikidataClient:
         return out
 
     def entity(self, qid: str) -> WdEntity:
-        d = _get_json(self.http, WIKIDATA_API, {"action": "wbgetentities", "ids": qid, "props": "claims|labels|descriptions",
+        d = _get_json(self.http, WIKIDATA_API, {"action": "wbgetentities", "ids": qid, "props": "claims|labels|descriptions|aliases",
                                                 "languages": "zh|en", "format": "json"})
         e = (d.get("entities") or {}).get(qid)
         if not e or "missing" in e:
             raise BackendError(f"wikidata entity {qid} not found")
         labels, desc = e.get("labels", {}), e.get("descriptions", {})
         en, zh = labels.get("en", {}).get("value", ""), labels.get("zh", {}).get("value", "")
+        aliases: list[str] = []
+        for lang_list in (e.get("aliases") or {}).values():
+            for item in lang_list or []:
+                val = (item or {}).get("value", "").strip()
+                if val and val not in aliases:
+                    aliases.append(val)
         files = []
         for c in e.get("claims", {}).get("P18", []):
             v = (c.get("mainsnak", {}).get("datavalue") or {}).get("value")
             if isinstance(v, str) and c.get("rank") != "deprecated":
                 files.append(v)
+        country_qids: list[str] = []
+        for c in e.get("claims", {}).get("P17", []):
+            v = (c.get("mainsnak", {}).get("datavalue") or {}).get("value")
+            if isinstance(v, dict) and v.get("id") and c.get("rank") != "deprecated":
+                if v["id"] not in country_qids:
+                    country_qids.append(v["id"])
         return WdEntity(qid, en or zh or qid, desc.get("en", {}).get("value") or desc.get("zh", {}).get("value", ""),
-                        en, zh, files)
+                        en, zh, files, aliases=aliases, country_qids=country_qids)
 
 
 # Wikidata classes that are never the *subject* of an image (papers about it, list/disambiguation pages, ...).

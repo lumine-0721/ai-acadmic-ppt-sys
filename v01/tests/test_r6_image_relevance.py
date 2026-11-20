@@ -279,3 +279,130 @@ def test_r6_vision_client_in_stage_d_rejects_irrelevant_and_verifies_relevant(tm
     assert a.checks.relevance and a.checks.relevance.startswith("relevant")
     rej = [c for c in a.candidates if "interior" in c.title]
     assert rej and rej[0].decision == "rejected" and "vision check irrelevant" in rej[0].reason
+
+
+def test_n5_b14_no_hardcoded_smoke_homonyms_in_image_rules():
+    """Verify image_rules.py uses general rules without benchmark-specific hardcoding."""
+    import inspect
+    import re
+    import pptv01.d_retrieve.image_rules as ir
+
+    src = inspect.getsource(ir).lower()
+    for forbidden in ("_homonym_conflicts", "tazewell", "nashville", "centennial park"):
+        assert forbidden not in src, f"found smoke-fitted token {forbidden!r} in image_rules.py"
+    assert not re.search(r"\bpekin\b", src), "found hardcoded 'pekin' in image_rules.py"
+
+
+def test_n5_b15_beijing_never_falls_back_to_new_york_iss_photo(tmp_path):
+    """B15 regression: when Pekin is rejected and only an unrelated New York ISS photo remains,
+    Stage D must reject New York and honestly mark Beijing as missing (+ generate user input request).
+    """
+    from pptv01.contracts import UserInputRequests
+
+    img = _jpeg()
+    pekin = _commons_page(
+        "File:Pekin park 20231019 0017.jpg",
+        index=1,
+        desc="Park trees in Pekin, Illinois",
+        categories="Pekin, Illinois|Parks in Illinois",
+    )
+    nyc = _commons_page(
+        "File:ISS-39 New York City.jpg",
+        index=2,
+        desc="Satellite view of urban heat island and parks in New York City from the ISS",
+        categories="New York City from space|ISS Expedition 39",
+    )
+
+    class LenientScorer:
+        name, model = "fastembed", "fake"
+
+        def score(self, query, docs):
+            return [0.42 for _ in docs]
+
+    def handler(req_: httpx.Request) -> httpx.Response:
+        if req_.url.host == "www.wikidata.org":
+            return httpx.Response(200, json={"search": []})
+        if req_.url.host == "commons.wikimedia.org":
+            return httpx.Response(200, json={"query": {"pages": [pekin, nyc]}})
+        return httpx.Response(200, content=img, headers={"content-type": "image/jpeg"})
+
+    sv = services_from_env(
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        transport=httpx.MockTransport(handler),
+    )
+    sv.relevance = RelevanceFilter(LenientScorer(), 0.30, mode="auto")
+    plan, sp = _make_plan_and_sp("北京城市热岛效应")
+    reqs = AssetRequirements(
+        run_id=RID,
+        requirements=[_req("A009", "北京城市公园绿地", "展示北京公园绿地实景", ["Beijing urban park"])],
+    )
+    reg = run_stage_d(plan, sp, reqs, tmp_path, sv)
+    a = reg.assets[0]
+    assert a.status is AssetStatus.missing
+    assert all(c.decision == "rejected" for c in a.candidates)
+    uir = load_contract(UserInputRequests, tmp_path / "user_input_requests.json")
+    assert any(r.asset_id == "A009" and r.status.value == "open" for r in uir.requests)
+
+
+def test_n5_b14_three_unrelated_homonym_places_general_rules(tmp_path):
+    """Prove generality with 3 homonym places completely unrelated to Smoke 4:
+    1) Springfield, Illinois vs Springfield, Oregon (same-country US state conflict)
+    2) Paris, France vs Paris, Texas (country conflict)
+    3) Cambridge, UK vs Cambridge, Massachusetts (country conflict)
+    """
+    img = _jpeg()
+    cases = [
+        (
+            "springfield",
+            _req("A001", "Springfield, Illinois", "Show historic civic architecture in Springfield, Illinois", ["Springfield Illinois"]),
+            _commons_page("File:Springfield Oregon downtown.jpg", index=1, desc="Main Street in Springfield, Oregon", categories="Springfield, Oregon|Oregon"),
+            _commons_page("File:Old State Capitol Springfield Illinois.jpg", index=2, desc="Historic capitol in Springfield, Illinois", categories="Springfield, Illinois|Illinois"),
+            "File:Old State Capitol Springfield Illinois.jpg",
+        ),
+        (
+            "paris",
+            _req("A001", "Paris, France", "Show urban streetscape in Paris, France", ["Paris France"]),
+            _commons_page("File:Eiffel Tower replica Paris Texas.jpg", index=1, desc="Tower in Paris, Texas", categories="Paris, Texas|Texas"),
+            _commons_page("File:Seine and Eiffel Tower Paris France.jpg", index=2, desc="View of Paris, France", categories="Paris|France"),
+            "File:Seine and Eiffel Tower Paris France.jpg",
+        ),
+        (
+            "cambridge",
+            _req("A001", "Cambridge, England", "Show university colleges in Cambridge, UK", ["Cambridge England"]),
+            _commons_page("File:Harvard Square Cambridge Massachusetts.jpg", index=1, desc="Square in Cambridge, Massachusetts", categories="Cambridge, Massachusetts|Massachusetts"),
+            _commons_page("File:Kings College Chapel Cambridge England.jpg", index=2, desc="College in Cambridge, England", categories="Cambridge|England"),
+            "File:Kings College Chapel Cambridge England.jpg",
+        ),
+    ]
+
+    class WrongFirstScorer:
+        name, model = "fastembed", "fake"
+
+        def score(self, query, docs):
+            # Deliberately score the wrong homonym (index 0) higher than the right one (index 1)
+            return [0.91, 0.72]
+
+    for subdir, req_dict, wrong_page, right_page, expected_title in cases:
+        work = tmp_path / subdir
+        work.mkdir()
+
+        def handler(req_: httpx.Request, wp=wrong_page, rp=right_page) -> httpx.Response:
+            if req_.url.host == "www.wikidata.org":
+                return httpx.Response(200, json={"search": []})
+            if req_.url.host == "commons.wikimedia.org":
+                return httpx.Response(200, json={"query": {"pages": [wp, rp]}})
+            return httpx.Response(200, content=img, headers={"content-type": "image/jpeg"})
+
+        sv = services_from_env(
+            {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+            transport=httpx.MockTransport(handler),
+        )
+        sv.relevance = RelevanceFilter(WrongFirstScorer(), 0.30, mode="auto")
+        plan, sp = _make_plan_and_sp(f"Architecture of {subdir}")
+        reg = run_stage_d(plan, sp, AssetRequirements(run_id=RID, requirements=[req_dict]), work, sv)
+        a = reg.assets[0]
+        assert a.status is AssetStatus.acquired, f"{subdir}: expected acquired, got {a}"
+        assert a.identifier == expected_title, f"{subdir}: picked wrong homonym {a.identifier}"
+        wrong_c = next(c for c in a.candidates if c.title == wrong_page["title"])
+        assert wrong_c.decision == "rejected"
+        assert "geographic/entity conflict" in wrong_c.reason

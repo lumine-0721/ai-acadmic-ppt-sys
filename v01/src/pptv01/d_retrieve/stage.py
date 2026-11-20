@@ -34,6 +34,7 @@ from pptv01.retrieval.relevance import RULES_VERSION, Candidate, RelevanceFilter
 from .image_rules import (
     check_geographic_entity_conflict,
     check_non_photo_artwork,
+    check_target_entity_match,
     inspect_image_with_vision,
 )
 from .license import check_license, needs_attribution, plain
@@ -281,9 +282,8 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             ok.append(f)
     # 2) relevance: P18 is Wikidata's own representative image of the (disambiguated) entity -> trusted;
     #    search results go through the relevance filter (structural + scorer, else lexical overlap),
-    #    followed by deterministic R6/B7 artwork & geographic/homonym conflict rules.
-    ent_label = entity[0].label if entity else ""
-    ent_desc = entity[0].description if entity else ""
+    #    followed by deterministic R6/N5 artwork, geographic/subregion conflict, and target-entity grounding rules.
+    wd_ent = entity[1] if entity else None
     p18 = [f for f in ok if f.origin == "wikidata_p18"]
     search = [f for f in ok if f.origin != "wikidata_p18"]
     cands = [Candidate(f.name, f.description or f.name, "web", "commons", f"{primary.name} {rq.purpose}", f.title, payload=f)
@@ -291,7 +291,7 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     ordered: list[tuple[CommonsFile, float | None, str]] = []
     for f in p18:
         art_why = check_non_photo_artwork(f, rq)
-        geo_why = check_geographic_entity_conflict(f, rq, entity_label=ent_label, entity_desc=ent_desc)
+        geo_why = check_geographic_entity_conflict(f, rq, entity=wd_ent)
         if art_why or geo_why:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=art_why or geo_why or ""))
@@ -313,9 +313,13 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
                 if art_why:
                     keep, why = False, art_why
             if keep:
-                geo_why = check_geographic_entity_conflict(f, rq, entity_label=ent_label, entity_desc=ent_desc)
+                geo_why = check_geographic_entity_conflict(f, rq, entity=wd_ent)
                 if geo_why:
                     keep, why = False, geo_why
+            if keep:
+                tgt_why = check_target_entity_match(f, rq, entity=wd_ent)
+                if tgt_why:
+                    keep, why = False, tgt_why
             if not keep:
                 cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                                 decision="rejected", reason=why, score=score))
@@ -386,8 +390,11 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         for f, score, how in fresh[MAX_DOWNLOAD_TRIES:]:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason="not tried (download attempts exhausted)", score=score))
-        return _missing(rq, f"candidates found for {primary.name!r} but none passed licence/format/relevance/download "
-                            f"(see candidates)", entity=entity[0] if entity else None, candidates=cand_log,
+        miss_notes = [
+            f"candidates found for {primary.name!r} but none passed licence/format/relevance/download (see candidates)"
+        ]
+        miss_notes += [f"Wikidata candidate {r}" for r in ctx.wd_rejected.get(primary.name, [])[:3]]
+        return _missing(rq, "; ".join(miss_notes), entity=entity[0] if entity else None, candidates=cand_log,
                         uncovered_targets=uncovered)
     f, score, how, data, w, h, sha, shared_rec, vis_rel, vis_note = chosen
     tried = {c.title for c in cand_log}
