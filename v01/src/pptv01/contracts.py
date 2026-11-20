@@ -467,6 +467,7 @@ class AssetRecord(_Contract):
     height: int | None = Field(default=None, ge=1)
     retrieved_at: datetime | None = None
     notes: str = ""
+    shared_with: AssetId | None = None
     uncovered_targets: list[NonEmptyStr] = Field(default_factory=list)   # targets of a multi-target requirement NOT acquired
     candidates: list[CandidateRecord] = Field(default_factory=list)
     checks: AssetChecks = Field(default_factory=AssetChecks)
@@ -497,6 +498,11 @@ class AssetRecord(_Contract):
                 raise ValueError(f"CC BY(-SA) image {self.asset_id} requires author and attribution")
         if s is AssetStatus.acquired and self.type is AssetType.reference and not self.identifier:
             raise ValueError(f"acquired reference {self.asset_id} requires an identifier (DOI)")
+        if self.shared_with is not None:
+            if self.shared_with == self.asset_id:
+                raise ValueError(f"asset {self.asset_id} cannot set shared_with to itself")
+            if s is not AssetStatus.acquired:
+                raise ValueError(f"only acquired assets can set shared_with, got {s.value}")
         return self
 
 

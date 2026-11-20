@@ -105,6 +105,8 @@ class _Ctx:
         self.scorer_info: tuple[str | None, str | None, float | None] = (None, None, None)
         self.note = ""
         self.wd_rejected: dict[str, list[str]] = {}      # target name -> Wikidata candidates dropped by class (P31)
+        self.used_by_id: dict[str, AssetRecord] = {}     # Commons title -> first AssetRecord that acquired it
+        self.used_by_sha: dict[str, AssetRecord] = {}    # sha256 -> first AssetRecord that acquired it
 
     def call(self, backend: str, purpose: str, query: str, fn, *, count=len):
         """Run one API call, log it (ok / no_results / error). Returns result or None on error."""
@@ -294,9 +296,22 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         # best score first among search results (P18 stays first)
         head, tail = ordered[:len(p18)], sorted(ordered[len(p18):], key=lambda t: -(t[1] if t[1] is not None else -1))
         ordered = head + tail
-    # 3) download best, verify, fall through on failure
+    # 3) cross-requirement deduplication: demote candidates already selected by an earlier requirement
+    fresh: list[tuple[CommonsFile, float | None, str]] = []
+    demoted: list[tuple[CommonsFile, float | None, str]] = []
+    demoted_reasons: dict[str, str] = {}
+    for item in ordered:
+        f = item[0]
+        if f.title in ctx.used_by_id:
+            owner = ctx.used_by_id[f.title].asset_id
+            demoted_reasons[f.title] = f"demoted: already used by {owner}"
+            demoted.append(item)
+        else:
+            fresh.append(item)
+    # 4) download best unused candidate, verify, check sha256 dedupe, fall through on failure
     chosen = None
-    for f, score, how in ordered[:MAX_DOWNLOAD_TRIES]:
+    sha_fallback = None
+    for f, score, how in fresh[:MAX_DOWNLOAD_TRIES]:
         got = ctx.call("commons", "download image", f.file_url, lambda f=f: download_image(sv.http, f.file_url),
                        count=lambda r: 1)
         if got is None:
@@ -310,26 +325,46 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=str(e), score=score))
             continue
-        chosen = (f, score, how, data, w, h, sha)
+        if sha in ctx.used_by_sha:
+            owner_rec = ctx.used_by_sha[sha]
+            demoted_reasons[f.title] = f"demoted: same sha256 as {owner_rec.asset_id}"
+            if sha_fallback is None:
+                sha_fallback = (f, score, how, data, w, h, sha, owner_rec)
+            continue
+        chosen = (f, score, how, data, w, h, sha, None)
         break
+    if chosen is None and demoted:
+        f, score, how = demoted[0]
+        owner_rec = ctx.used_by_id[f.title]
+        chosen = (f, score, how, None, owner_rec.width, owner_rec.height, owner_rec.sha256, owner_rec)
+    if chosen is None and sha_fallback is not None:
+        chosen = sha_fallback
     if chosen is None:
-        for f, score, how in ordered[MAX_DOWNLOAD_TRIES:]:
+        for f, score, how in fresh[MAX_DOWNLOAD_TRIES:]:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason="not tried (download attempts exhausted)", score=score))
         return _missing(rq, f"candidates found for {primary.name!r} but none passed licence/format/relevance/download "
                             f"(see candidates)", entity=entity[0] if entity else None, candidates=cand_log,
                         uncovered_targets=uncovered)
-    f, score, how, data, w, h, sha = chosen
+    f, score, how, data, w, h, sha, shared_rec = chosen
     tried = {c.title for c in cand_log}
     for g, gscore, _ in ordered:
         if g.title != f.title and g.title not in tried:
+            reason = demoted_reasons.get(g.title, "passed the filters but ranked below the selected file")
             cand_log.append(CandidateRecord(title=g.title, url=g.page_url, license=g.license_short, origin=g.origin,
-                                            decision="rejected", reason="passed the filters but ranked below the selected file",
-                                            score=gscore))
-    ext = IMAGE_MIMES[f.mime]
-    rel = f"assets/{rq.asset_id}.{ext}"
-    (ctx.run_dir / "assets").mkdir(exist_ok=True)
-    (ctx.run_dir / rel).write_bytes(data)
+                                            decision="rejected", reason=reason, score=gscore))
+    if shared_rec is None:
+        ext = IMAGE_MIMES[f.mime]
+        rel = f"assets/{rq.asset_id}.{ext}"
+        (ctx.run_dir / "assets").mkdir(exist_ok=True)
+        (ctx.run_dir / rel).write_bytes(data)
+        size_bytes = len(data)
+        shared_with = None
+    else:
+        rel = shared_rec.file_path
+        size_bytes = (ctx.run_dir / rel).stat().st_size
+        shared_with = shared_rec.asset_id
+        how = f"{how}; reused from {shared_with} (no unused candidate available)"
     artist = (f.artist or f.credit)[:200] or None
     credit = f"{artist or 'unknown author'}, {f.license_short}, via Wikimedia Commons ({f.page_url})"
     cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
@@ -340,17 +375,23 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         notes.append("target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content")
     if uncovered:
         notes.append(f"multi-target requirement: only the first target was acquired; not covered: {uncovered} (split in C / revise)")
-    return AssetRecord(
+    if shared_with:
+        notes.append(f"shared with {shared_with} (no unused candidate available)")
+    rec = AssetRecord(
         asset_id=rq.asset_id, status=AssetStatus.acquired, type=AssetType.image, file_path=rel, source_url=f.page_url,
         source_name="Wikimedia Commons", license_or_terms=f"{f.license_short}" + (f" ({f.license_url})" if f.license_url else ""),
         author=artist, attribution=credit if (needs_attribution(f.license_short) or artist) else None,
         identifier=f.title, entity=entity[0] if entity else None, sha256=sha, mime=f.mime, width=w, height=h,
-        retrieved_at=now(), notes="; ".join(notes), uncovered_targets=uncovered, candidates=cand_log,
+        retrieved_at=now(), notes="; ".join(notes), shared_with=shared_with, uncovered_targets=uncovered, candidates=cand_log,
         checks=AssetChecks(
             relevance=f"{how}; image content NOT visually inspected",
             usability=f"licence {f.license_short}" + ("; attribution required" if needs_attribution(f.license_short) else ""),
-            format=f"{f.mime} {w}x{h}, {len(data)} bytes, opened with Pillow, sha256 recorded",
+            format=f"{f.mime} {w}x{h}, {size_bytes} bytes, opened with Pillow, sha256 recorded",
             quality="not assessed in D"))
+    if shared_rec is None:
+        ctx.used_by_id[f.title] = rec
+        ctx.used_by_sha[sha] = rec
+    return rec
 
 
 # ------------------------------------------------------------------------------------------ reference

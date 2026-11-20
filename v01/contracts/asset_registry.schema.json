@@ -200,6 +200,19 @@
           "default": null,
           "title": "Sha256"
         },
+        "shared_with": {
+          "anyOf": [
+            {
+              "pattern": "^A\\d{3,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shared With"
+        },
         "source_name": {
           "anyOf": [
             {

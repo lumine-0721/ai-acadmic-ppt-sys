@@ -395,3 +395,138 @@ def test_runner_integrates_stage_d_and_reports_missing_assets(tmp_path):
     assert st["D"].status.value == "done" and "asset_registry.json" in st["D"].output_files
     assert report.missing_assets and report.tool_config["assets"]["summary"]
     load_contract(AssetRegistry, run_dir / "asset_registry.json")
+
+
+# ---------------------------------------------------------------- cross-requirement deduplication
+def _jpeg_colored(rgb: tuple[int, int, int], w=1280, h=800) -> bytes:
+    b = io.BytesIO()
+    Image.new("RGB", (w, h), rgb).save(b, "JPEG")
+    return b.getvalue()
+
+
+def test_cross_requirement_dedupe_picks_next_candidate_without_extra_network_calls(tmp_path):
+    """Two requirements targeting the same entity pick distinct Commons files without extra API calls."""
+    single_dir = tmp_path / "single"
+    single_dir.mkdir()
+    _, single_net, _ = run(single_dir, [req("A001", "image", [PARTHENON])], scorer=Scorer())
+    single_calls = len(single_net.log)
+
+    class DistinctNet(Net):
+        def __call__(self, req_: httpx.Request) -> httpx.Response:
+            if req_.url.host in ("upload.wikimedia.org", "thumb.wikimedia.org"):
+                self.log.append(str(req_.url))
+                color = (10, 20, 30) if "The_Parthenon_in_Athens" in str(req_.url) else (40, 50, 60)
+                return httpx.Response(200, content=_jpeg_colored(color), headers={"content-type": "image/jpeg"})
+            return super().__call__(req_)
+
+    dup_dir = tmp_path / "dup"
+    dup_dir.mkdir()
+    net = DistinctNet()
+    reg, net, _ = run(dup_dir, [req("A001", "image", [PARTHENON]), req("A002", "image", [PARTHENON])],
+                      net=net, scorer=Scorer())
+    a1, a2 = reg.assets
+    assert a1.status is AssetStatus.acquired and a2.status is AssetStatus.acquired
+    assert a1.identifier == "File:The Parthenon in Athens.jpg"
+    assert a2.identifier != a1.identifier
+    assert a2.file_path != a1.file_path and a2.sha256 != a1.sha256 and a2.shared_with is None
+    demoted = [c for c in a2.candidates if c.title == a1.identifier]
+    assert demoted and demoted[0].decision == "rejected"
+    assert "demoted" in demoted[0].reason and "A001" in demoted[0].reason
+    assert len(net.log) == 2 * single_calls
+
+
+def test_cross_requirement_dedupe_reuses_with_shared_with_when_no_alternative(tmp_path):
+    """When only one passing candidate exists, the second requirement reuses it and records shared_with=A001."""
+    net = Net(commons_search={"query": {"pages": []}})
+    reg, net, _ = run(tmp_path, [req("A001", "image", [PARTHENON]), req("A002", "image", [PARTHENON])],
+                      net=net, scorer=Scorer())
+    a1, a2 = reg.assets
+    assert a1.status is AssetStatus.acquired and a2.status is AssetStatus.acquired
+    assert a1.shared_with is None and a2.shared_with == "A001"
+    assert a2.identifier == a1.identifier and a2.file_path == a1.file_path and a2.sha256 == a1.sha256
+    assert "shared with A001" in a2.notes
+    dl_calls = [u for u in net.log if "upload.wikimedia.org" in u or "thumb.wikimedia.org" in u]
+    assert len(dl_calls) == 1
+    load_contract(AssetRegistry, tmp_path / "asset_registry.json")
+
+
+def test_cross_requirement_dedupe_catches_sha256_collision_across_different_titles(tmp_path):
+    """Different Commons titles with identical image bytes trigger sha256 dedupe."""
+    img_a = _jpeg_colored((100, 100, 100))
+    img_b = _jpeg_colored((200, 200, 200))
+
+    def file_with_url(title: str, url: str):
+        p = _file(title, "CC0")
+        p["imageinfo"][0]["url"] = url
+        p["imageinfo"][0]["thumburl"] = url
+        return p
+
+    pages = [file_with_url("File:Parthenon dup.jpg", "https://upload.wikimedia.org/dup.jpg"),
+             file_with_url("File:Parthenon unique.jpg", "https://upload.wikimedia.org/unique.jpg")]
+
+    class ShaNet(Net):
+        def __call__(self, req_: httpx.Request) -> httpx.Response:
+            if req_.url.host in ("upload.wikimedia.org", "thumb.wikimedia.org"):
+                self.log.append(str(req_.url))
+                data = img_b if "unique" in str(req_.url) else img_a
+                return httpx.Response(200, content=data, headers={"content-type": "image/jpeg"})
+            return super().__call__(req_)
+
+    d2 = tmp_path / "search_sha"
+    d2.mkdir()
+    p_a1 = [file_with_url("File:Parthenon first.jpg", "https://upload.wikimedia.org/first.jpg")]
+    p_a2 = pages
+    call_idx = {"n": 0}
+
+    class MultiSearchNet(ShaNet):
+        def __call__(self, req_: httpx.Request) -> httpx.Response:
+            if req_.url.host == "commons.wikimedia.org" and "titles" not in dict(req_.url.params):
+                self.log.append(str(req_.url))
+                call_idx["n"] += 1
+                return httpx.Response(200, json={"query": {"pages": p_a1 if call_idx["n"] == 1 else p_a2}})
+            return super().__call__(req_)
+
+    reg, _, _ = run(d2, [
+        req("A001", "image", [("Parthenon", "building", "verified")], hints=("Parthenon",)),
+        req("A002", "image", [("Parthenon", "building", "verified")], hints=("Parthenon",)),
+    ], net=MultiSearchNet(wd_search=None))
+    a1, a2 = reg.assets
+    assert a1.identifier == "File:Parthenon first.jpg" and a2.identifier == "File:Parthenon unique.jpg"
+    assert a2.shared_with is None
+    dup_cand = [c for c in a2.candidates if c.title == "File:Parthenon dup.jpg"]
+    assert dup_cand and dup_cand[0].decision == "rejected" and "sha256" in dup_cand[0].reason and "A001" in dup_cand[0].reason
+
+    # If only the sha256-identical candidate exists, fall back to shared_with=A001
+    d3 = tmp_path / "sha_fallback"
+    d3.mkdir()
+    call_idx["n"] = 0
+    p_a2_only = [file_with_url("File:Parthenon dup.jpg", "https://upload.wikimedia.org/dup.jpg")]
+
+    class FallbackShaNet(ShaNet):
+        def __call__(self, req_: httpx.Request) -> httpx.Response:
+            if req_.url.host == "commons.wikimedia.org" and "titles" not in dict(req_.url.params):
+                self.log.append(str(req_.url))
+                call_idx["n"] += 1
+                return httpx.Response(200, json={"query": {"pages": p_a1 if call_idx["n"] == 1 else p_a2_only}})
+            return super().__call__(req_)
+
+    reg3, _, _ = run(d3, [
+        req("A001", "image", [("Parthenon", "building", "verified")], hints=("Parthenon",)),
+        req("A002", "image", [("Parthenon", "building", "verified")], hints=("Parthenon",)),
+    ], net=FallbackShaNet(wd_search=None))
+    assert reg3.assets[1].shared_with == "A001" and reg3.assets[1].file_path == reg3.assets[0].file_path
+
+
+def test_shared_with_contract_and_validator_rules(tmp_path):
+    with pytest.raises(ValueError, match="itself"):
+        AssetRecord(asset_id="A001", status="acquired", type="image", file_path="assets/A001.jpg",
+                    source_url="https://x/y", source_name="Wikimedia Commons", license_or_terms="CC0",
+                    retrieved_at="2026-01-01T00:00:00+08:00", sha256="a" * 64, mime="image/jpeg",
+                    width=10, height=10, shared_with="A001")
+    with pytest.raises(ValueError, match="only acquired"):
+        AssetRecord(asset_id="A002", status="missing", notes="none", shared_with="A001")
+    reg, _, rq = run(tmp_path, [req("A001", "image", [PARTHENON]), req("A002", "image", [PARTHENON])],
+                     net=Net(commons_search={"query": {"pages": []}}), scorer=Scorer())
+    reg.assets[1].shared_with = "A099"
+    with pytest.raises(ValueError, match="earlier acquired"):
+        validate_registry(reg, rq, tmp_path)
