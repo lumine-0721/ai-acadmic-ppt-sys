@@ -9,6 +9,14 @@ Configuration comes only from environment variables:
   PPTV01_LLM_TEMPERATURE default 0.3                       (optional)
   PPTV01_LLM_JSON_MODE  "1" to send response_format=json_object (optional, default off)
 
+Alternative backend (clearly labelled, NOT an API model):
+
+  PPTV01_LLM_BACKEND=agent  plus  PPTV01_AGENT_RESPONSES_DIR=<dir>
+  The client writes every prompt to <dir>/<stage>_request_<n>.json and reads the
+  answer from <dir>/<stage>_response_<n>.json (written by a human/agent acting
+  as the model). If the response file is missing it raises AwaitingAgentResponse.
+  The answer goes through exactly the same JSON parsing/validation/post-checks.
+
 There is deliberately NO mock/fallback here: when configuration is missing a
 real run fails with LLMConfigError. Test doubles live under tests/ only.
 """
@@ -19,6 +27,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Mapping, Protocol, TypeVar
 from urllib.parse import urlparse
 
@@ -44,6 +53,20 @@ class LLMRequestError(LLMError):
     """The HTTP call failed or the response was not a chat completion."""
 
 
+class AwaitingAgentResponse(Exception):
+    """Agent backend: the prompt was written, the response file does not exist yet.
+
+    Deliberately NOT an LLMError: it is not a failure, the run must be resumed."""
+
+    def __init__(self, request_path: Path, response_path: Path):
+        super().__init__(
+            f"awaiting agent response: read {request_path} and write the answer to {response_path}, "
+            "then re-run with --resume"
+        )
+        self.request_path = request_path
+        self.response_path = response_path
+
+
 class LLMOutputError(LLMError):
     """The model output could not be parsed/validated even after one repair retry."""
 
@@ -59,6 +82,8 @@ class ChatClient(Protocol):
     model_id: str
 
     def chat(self, messages: Messages) -> str: ...
+
+    def set_stage(self, stage: str) -> None: ...
 
     def describe(self) -> dict[str, Any]: ...
 
@@ -112,11 +137,15 @@ class OpenAICompatClient:
     def describe(self) -> dict[str, Any]:
         host = urlparse(self._cfg.base_url).hostname or "unknown"
         return {
+            "backend": "api",
             "provider_host": host,
             "model": self.model_id,
             "temperature": self._cfg.temperature,
             "json_mode": self._cfg.json_mode,
         }
+
+    def set_stage(self, stage: str) -> None:  # API backend does not care about stages
+        pass
 
     def chat(self, messages: Messages) -> str:
         body: dict[str, Any] = {
@@ -145,6 +174,61 @@ class OpenAICompatClient:
 
     def close(self) -> None:
         self._http.close()
+
+
+AGENT_MODEL_ID = "agent:宝特 (manual, not an API model)"
+ENV_BACKEND = "PPTV01_LLM_BACKEND"
+ENV_AGENT_DIR = "PPTV01_AGENT_RESPONSES_DIR"
+
+
+class AgentClient:
+    """File-exchange backend: a human/agent acts as the model.
+
+    *** This is a real answerer (not a mock) but NOT an API model; it is labelled
+    as such in run_report.json. Its output is validated like any other. ***
+    """
+
+    model_id = AGENT_MODEL_ID
+
+    def __init__(self, exchange_dir: Path):
+        self.dir = Path(exchange_dir)
+        self.dir.mkdir(parents=True, exist_ok=True)
+        self._stage = "X"
+        self._n: dict[str, int] = {}
+
+    def set_stage(self, stage: str) -> None:
+        self._stage = stage
+        self._n[stage] = 0
+
+    def describe(self) -> dict[str, Any]:
+        return {"backend": "agent", "model": self.model_id, "exchange_dir": self.dir.name}
+
+    def chat(self, messages: Messages) -> str:
+        stage = self._stage
+        n = self._n[stage] = self._n.get(stage, 0) + 1
+        req = self.dir / f"{stage}_request_{n}.json"
+        resp = self.dir / f"{stage}_response_{n}.json"
+        req.write_text(
+            json.dumps({"stage": stage, "n": n, "messages": messages}, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        if not resp.is_file():
+            raise AwaitingAgentResponse(req, resp)
+        return resp.read_text(encoding="utf-8")
+
+
+def client_from_env(env: Mapping[str, str] | None = None) -> ChatClient:
+    """Build the configured client. Backend 'api' (default) or 'agent'."""
+    env = os.environ if env is None else env
+    backend = env.get(ENV_BACKEND, "api").strip().lower() or "api"
+    if backend == "api":
+        return OpenAICompatClient.from_env(env)
+    if backend == "agent":
+        d = env.get(ENV_AGENT_DIR, "").strip()
+        if not d:
+            raise LLMConfigError(f"{ENV_BACKEND}=agent requires {ENV_AGENT_DIR}")
+        return AgentClient(Path(d))
+    raise LLMConfigError(f"unknown {ENV_BACKEND}={backend!r}; use 'api' or 'agent'")
 
 
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.S | re.I)

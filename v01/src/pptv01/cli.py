@@ -12,23 +12,26 @@ import sys
 from pathlib import Path
 
 from pptv01.contracts import CONTRACT_FILES, export_schemas, load_contract
-from pptv01.llm import LLMConfigError, LLMError, OpenAICompatClient
+from pptv01.llm import AwaitingAgentResponse, LLMConfigError, LLMError, client_from_env
 from pptv01.runner import run_pipeline
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
     try:
-        client = OpenAICompatClient.from_env()
+        client = client_from_env()
     except LLMConfigError as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
     try:
-        report, run_dir = run_pipeline(args.utterance, Path(args.out), client, run_id=args.run_id)
+        report, run_dir = run_pipeline(args.utterance, Path(args.out), client, run_id=args.run_id, resume=args.resume)
+    except AwaitingAgentResponse as e:
+        print(f"awaiting agent response: {e}", file=sys.stderr)
+        return 3
     except (ValueError, FileExistsError, LLMError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
     finally:
-        client.close()
+        getattr(client, "close", lambda: None)()
     print(f"run_dir: {run_dir}")
     print(f"overall: {report.overall.value}   model: {report.model_id}   commit: {report.code_commit}")
     for s in report.stages:
@@ -62,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("utterance")
     r.add_argument("--out", default="runs", help="root dir; creates <out>/<run_id>/")
     r.add_argument("--run-id", default=None)
+    r.add_argument("--resume", action="store_true", help="re-enter an existing run dir (agent backend: replays answered prompts)")
     r.set_defaults(fn=_cmd_run)
     e = sub.add_parser("export-schemas", help="write JSON Schemas from the Pydantic contracts")
     e.add_argument("--out", default="contracts")

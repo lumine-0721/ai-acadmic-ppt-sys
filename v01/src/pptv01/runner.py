@@ -86,6 +86,7 @@ def run_pipeline(
     client: ChatClient,
     *,
     run_id: str | None = None,
+    resume: bool = False,
     research: ResearchProvider | None = None,
     clock: Callable[[], datetime] = _now,
 ) -> tuple[RunReport, Path]:
@@ -99,9 +100,9 @@ def run_pipeline(
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}", run_id):
         raise ValueError(f"invalid run_id {run_id!r}")
     run_dir = Path(out_root) / run_id
-    if run_dir.exists():
-        raise FileExistsError(f"run directory already exists: {run_dir}")
-    run_dir.mkdir(parents=True)
+    if run_dir.exists() and not resume:
+        raise FileExistsError(f"run directory already exists: {run_dir} (use resume only for the agent backend)")
+    run_dir.mkdir(parents=True, exist_ok=resume)
 
     started = clock()
     records: dict[str, StageRecord] = {}
@@ -117,6 +118,7 @@ def run_pipeline(
 
     # ---- Stage A
     t0 = clock()
+    client.set_stage("A")
     try:
         plan, attempts = run_stage_a(utterance, run_id, client, run_dir)
         record("A", StageStatus.done, t0, [A_FILE, _write_trace(run_dir, "A", attempts, client.model_id)])
@@ -130,6 +132,7 @@ def run_pipeline(
     # ---- Stage B
     if plan is not None:
         t0 = clock()
+        client.set_stage("B")
         try:
             _, attempts = run_stage_b(plan, client, run_dir, research)
             record("B", StageStatus.done, t0, [B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
@@ -161,6 +164,7 @@ def run_pipeline(
         started_at=started,
         finished_at=clock(),
         model_id=client.model_id,
+        llm_backend=client.describe().get("backend"),
         code_commit=commit,
         code_dirty=dirty,
         tool_config={

@@ -143,6 +143,18 @@
       "title": "Finished At",
       "type": "string"
     },
+    "llm_backend": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Llm Backend"
+    },
     "missing_assets": {
       "items": {
         "pattern": "^A\\d{3,}$",

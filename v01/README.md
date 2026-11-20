@@ -42,6 +42,20 @@ Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx (pytest for dev).
 | `PPTV01_LLM_TEMPERATURE` | no | default 0.3 |
 | `PPTV01_LLM_JSON_MODE` | no | `1` to send `response_format=json_object` (only if your provider supports it) |
 
+### Agent backend (no API key; a human/agent acts as the model)
+
+```bash
+export PPTV01_LLM_BACKEND=agent PPTV01_AGENT_RESPONSES_DIR=/path/to/io
+pptv01 run "…" --out runs/ --run-id T02          # exit 3: "awaiting agent response"
+# read /path/to/io/A_request_1.json, write the model's JSON to /path/to/io/A_response_1.json
+pptv01 run "…" --out runs/ --run-id T02 --resume  # replays answered prompts, asks for the next
+```
+
+Requests/responses are `<stage>_request_<n>.json` / `<stage>_response_<n>.json` (n=2 is the repair retry).
+Answers pass through the same JSON validation and A/B post-checks (no bypass).
+`run_report.json` records `model_id = "agent:宝特 (manual, not an API model)"` and `llm_backend = "agent"`.
+This is a real answerer, not a mock, but it is NOT an API model; results must be labelled accordingly.
+
 If any required variable is missing, `pptv01 run` exits with code 2 and a clear message; nothing is created.
 
 ## CLI

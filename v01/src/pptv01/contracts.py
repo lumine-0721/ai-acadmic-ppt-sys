@@ -454,6 +454,7 @@ class RunReport(_RunFile):
     started_at: datetime
     finished_at: datetime
     model_id: str | None = None
+    llm_backend: str | None = None
     code_commit: str = "unknown"
     code_dirty: bool | None = None
     tool_config: dict[str, Any] = Field(default_factory=dict)

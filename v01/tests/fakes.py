@@ -9,6 +9,9 @@ from typing import Any
 class FakeClient:
     model_id = "fake-model-for-unit-tests"
 
+    def set_stage(self, stage):
+        self.stage = stage
+
     def __init__(self, responses: list[Any]):
         self._responses = list(responses)
         self.calls: list[list[dict[str, str]]] = []
@@ -21,4 +24,4 @@ class FakeClient:
         return r if isinstance(r, str) else json.dumps(r, ensure_ascii=False)
 
     def describe(self):
-        return {"provider_host": "fake", "model": self.model_id}
+        return {"backend": "fake", "provider_host": "fake", "model": self.model_id}
