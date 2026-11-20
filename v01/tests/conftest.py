@@ -1,9 +1,46 @@
 import json
+import sys
 from pathlib import Path
 
 import pytest
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
+
+_WINDOWS_COM_CHECKED = False
+_WINDOWS_COM_SKIP_REASON: str | None = None
+
+
+def check_windows_com_skip_reason(*, platform_name: str | None = None) -> str | None:
+    """Return a human-readable skip reason if Windows PowerPoint COM cannot run, else None."""
+    plat = sys.platform if platform_name is None else platform_name
+    if plat != "win32":
+        return f"windows_com test skipped: requires Windows desktop (current platform: {plat})"
+    try:
+        import pythoncom  # noqa: F401
+        import win32com.client  # noqa: F401
+    except ImportError as e:
+        return f"windows_com test skipped: pywin32 not installed ({e})"
+    from pptv01.renderers import PowerPointComRenderer, RendererUnavailableError
+
+    try:
+        PowerPointComRenderer().preflight()
+    except RendererUnavailableError as e:
+        return f"windows_com test skipped: PowerPoint COM unavailable ({e})"
+    except Exception as e:  # noqa: BLE001
+        return f"windows_com test skipped: PowerPoint COM probe failed ({type(e).__name__}: {e})"
+    return None
+
+
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """Auto-skip @pytest.mark.windows_com tests on non-Windows or machines without PowerPoint COM."""
+    global _WINDOWS_COM_CHECKED, _WINDOWS_COM_SKIP_REASON
+    if item.get_closest_marker("windows_com") is None:
+        return
+    if not _WINDOWS_COM_CHECKED:
+        _WINDOWS_COM_SKIP_REASON = check_windows_com_skip_reason()
+        _WINDOWS_COM_CHECKED = True
+    if _WINDOWS_COM_SKIP_REASON is not None:
+        pytest.skip(_WINDOWS_COM_SKIP_REASON)
 
 
 @pytest.fixture

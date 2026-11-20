@@ -214,13 +214,8 @@ def test_b4_placeholder_missing_notes_and_missing_attribution_fail(tmp_path):
 
 @pytest.mark.windows_com
 def test_r4_hardened_gates_pass_on_real_powerpoint_com_deck(tmp_path):
-    if sys.platform != "win32":
-        pytest.skip("windows_com test requires Windows with Microsoft PowerPoint")
     renderer = PowerPointComRenderer()
-    try:
-        renderer.preflight()
-    except RendererUnavailableError as e:
-        pytest.skip(f"PowerPoint COM unavailable: {e}")
+    renderer.preflight()
 
     ops = _make_full_ops(tmp_path)
     # Write contracts so check_gates validates everything end-to-end against real COM deck.pptx + deck_dump.json

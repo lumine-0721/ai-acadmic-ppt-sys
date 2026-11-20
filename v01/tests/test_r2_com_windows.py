@@ -20,28 +20,18 @@ import pytest
 from PIL import Image
 from pptx import Presentation
 
-from pptv01.renderers import DeckDump, PowerPointComRenderer, RendererUnavailableError
+from pptv01.renderers import DeckDump, PowerPointComRenderer
 from tests.test_r2_com_fake import _make_full_ops
-
-
-def _require_windows_powerpoint():
-    if sys.platform != "win32":
-        pytest.skip("windows_com test requires Windows with Microsoft PowerPoint")
-    renderer = PowerPointComRenderer()
-    try:
-        info = renderer.preflight()
-    except RendererUnavailableError as e:
-        pytest.skip(f"PowerPoint COM unavailable: {e}")
-    return renderer, info
 
 
 @pytest.mark.windows_com
 def test_real_powerpoint_com_build_export_measure_and_b5_five_node_diagram(tmp_path):
-    renderer, info = _require_windows_powerpoint()
+    renderer = PowerPointComRenderer()
+    info = renderer.preflight()
     ops = _make_full_ops(tmp_path)
 
     assert info.available and info.version.startswith("16.")
-    assert info.excel_available, "Office 2021 Excel COM must be available for AddChart2"
+    assert info.excel_available, "Desktop Excel COM must be available for AddChart2"
 
     res = renderer.build(ops, tmp_path)
     assert res.pptx_path.is_file()
@@ -98,7 +88,7 @@ def test_real_powerpoint_com_build_export_measure_and_b5_five_node_diagram(tmp_p
 
 @pytest.mark.windows_com
 def test_real_powerpoint_com_leaves_unrelated_open_presentation_untouched(tmp_path):
-    renderer, _ = _require_windows_powerpoint()
+    renderer = PowerPointComRenderer()
     import pythoncom
     import win32com.client
 

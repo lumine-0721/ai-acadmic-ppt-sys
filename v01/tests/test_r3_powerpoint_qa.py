@@ -266,16 +266,11 @@ def test_r3_measured_overflow_repairs_page_design_recompiles_and_records_provena
     assert "BoundHeight=" in ov_issues[0].description
 
 
-# ------------------------------------------------------------------ 3. Real Windows Office 2021 R3 test
+# ------------------------------------------------------------------ 3. Real Windows PowerPoint COM R3 test
 @pytest.mark.windows_com
 def test_r3_real_powerpoint_com_detects_and_repairs_measured_text_overflow(tmp_path):
-    if sys.platform != "win32":
-        pytest.skip("windows_com test requires Windows with Microsoft PowerPoint")
     renderer = PowerPointComRenderer()
-    try:
-        info = renderer.preflight()
-    except RendererUnavailableError as e:
-        pytest.skip(f"PowerPoint COM unavailable: {e}")
+    info = renderer.preflight()
 
     sp = _slide_plan()
     reg = AssetRegistry(run_id=RID, assets=[], sources=[], summary="0/0")
