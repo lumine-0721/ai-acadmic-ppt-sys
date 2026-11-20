@@ -125,6 +125,7 @@ class CommonsFile:
     description: str
     restrictions: str
     origin: str = "commons_search"
+    categories: list[str] = field(default_factory=list)
 
     @property
     def name(self) -> str:
@@ -147,6 +148,7 @@ class CommonsClient:
                 return (em.get(k) or {}).get("value", "")
             mime = ii.get("mime", "")
             url = ii.get("url", "") if mime == "image/svg+xml" else (ii.get("thumburl") or ii.get("url", ""))
+            cats = [c.strip() for c in plain(ev("Categories")).split("|") if c.strip()]
             out.append(CommonsFile(
                 title=p["title"], page_url=ii.get("descriptionurl", ""), file_url=url, mime=mime,
                 width=int(ii.get("width") or 0), height=int(ii.get("height") or 0),      # original size (size gate)
@@ -154,7 +156,7 @@ class CommonsClient:
                 license_short=plain(ev("LicenseShortName")), license_url=plain(ev("LicenseUrl")),
                 usage_terms=plain(ev("UsageTerms")), attribution_required=str(ev("AttributionRequired")).lower() == "true",
                 artist=plain(ev("Artist")), credit=plain(ev("Credit")), description=plain(ev("ImageDescription")),
-                restrictions=plain(ev("Restrictions")), origin=origin))
+                restrictions=plain(ev("Restrictions")), origin=origin, categories=cats))
         return out
 
     _INFO = {"prop": "imageinfo", "iiprop": "url|size|mime|extmetadata", "format": "json", "formatversion": 2}

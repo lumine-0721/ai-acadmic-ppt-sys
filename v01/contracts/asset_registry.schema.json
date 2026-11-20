@@ -170,6 +170,11 @@
           "default": null,
           "title": "Mime"
         },
+        "needs_review": {
+          "default": false,
+          "title": "Needs Review",
+          "type": "boolean"
+        },
         "notes": {
           "default": "",
           "title": "Notes",
@@ -258,6 +263,17 @@
           },
           "title": "Uncovered Targets",
           "type": "array"
+        },
+        "visual_relevance": {
+          "default": "not_assessed",
+          "enum": [
+            "relevant",
+            "weak",
+            "irrelevant",
+            "not_assessed"
+          ],
+          "title": "Visual Relevance",
+          "type": "string"
         },
         "width": {
           "anyOf": [

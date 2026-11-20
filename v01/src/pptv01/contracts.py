@@ -472,6 +472,8 @@ class AssetRecord(_Contract):
     shared_with: AssetId | None = None
     uncovered_targets: list[NonEmptyStr] = Field(default_factory=list)   # targets of a multi-target requirement NOT acquired
     candidates: list[CandidateRecord] = Field(default_factory=list)
+    visual_relevance: Literal["relevant", "weak", "irrelevant", "not_assessed"] = "not_assessed"
+    needs_review: bool = False
     checks: AssetChecks = Field(default_factory=AssetChecks)
 
     @field_validator("file_path")

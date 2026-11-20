@@ -27,10 +27,15 @@ from pptv01.contracts import (
     CandidateRecord, EntityRef, ProductionPlan, RelevanceInfo, SCHEMA_VERSION, SlidePlan, SourceCall, write_contract,
 )
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, build_user_input_requests
-from pptv01.llm import LLMConfigError
+from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval.backends import BackendError, CrossrefBackend, make_http
 from pptv01.retrieval.relevance import RULES_VERSION, Candidate, RelevanceFilter, filter_from_env
 
+from .image_rules import (
+    check_geographic_entity_conflict,
+    check_non_photo_artwork,
+    inspect_image_with_vision,
+)
 from .license import check_license, needs_attribution, plain
 from .sources import (
     IMAGE_MIMES, MAX_ASPECT, MIN_RASTER_WIDTH, NON_SUBJECT_CLASSES, CommonsClient, CommonsFile, CrossrefVerifier, OpenAlexClient, WdEntity,
@@ -58,6 +63,7 @@ class DServices:
     relevance: RelevanceFilter
     contact: str = ""
     disabled_reason: str = ""
+    vision_client: ChatClient | None = None
 
     @property
     def enabled(self) -> bool:
@@ -69,7 +75,7 @@ class DServices:
 
 
 def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.BaseTransport | None = None,
-                      openalex_fetch=None) -> DServices:
+                      openalex_fetch=None, *, vision_client: ChatClient | None = None) -> DServices:
     env = os.environ if env is None else env
     rel = filter_from_env(env)
     if (env.get(ENV_ASSETS, "auto").strip().lower() or "auto") == "none":
@@ -84,9 +90,13 @@ def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.Bas
     contact = env.get("PPTV01_RESEARCH_CONTACT", "").strip() or "https://github.com/lumine-0721/ai-acadmic-ppt-sys"
     http = make_http(timeout, contact, transport)
     oa_email = env.get(ENV_OA_EMAIL, "").strip() or (contact if "@" in contact else "")
+    v_client = vision_client
+    if v_client is None and env.get("PPTV01_E_VISION_MODEL", "").strip():
+        from pptv01.e_mapping.stage import vision_client_from_env
+        v_client = vision_client_from_env(env)
     return DServices(http, WikidataClient(http), CommonsClient(http, thumb),
                      OpenAlexClient(openalex_fetch, api_key=env.get(ENV_OA_KEY, "").strip(), email=oa_email),
-                     CrossrefVerifier(http, contact), rel, contact)
+                     CrossrefVerifier(http, contact), rel, contact, vision_client=v_client)
 
 
 # ------------------------------------------------------------------------------------------ helpers
@@ -270,13 +280,24 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         else:
             ok.append(f)
     # 2) relevance: P18 is Wikidata's own representative image of the (disambiguated) entity -> trusted;
-    #    search results go through the relevance filter (structural + scorer, else lexical overlap).
+    #    search results go through the relevance filter (structural + scorer, else lexical overlap),
+    #    followed by deterministic R6/B7 artwork & geographic/homonym conflict rules.
+    ent_label = entity[0].label if entity else ""
+    ent_desc = entity[0].description if entity else ""
     p18 = [f for f in ok if f.origin == "wikidata_p18"]
     search = [f for f in ok if f.origin != "wikidata_p18"]
     cands = [Candidate(f.name, f.description or f.name, "web", "commons", f"{primary.name} {rq.purpose}", f.title, payload=f)
              for f in search]
-    ordered: list[tuple[CommonsFile, float | None, str]] = [
-        (f, None, f"Wikidata P18 of {entity[0].qid} {entity[0].label} (representative image chosen on Wikidata)") for f in p18]
+    ordered: list[tuple[CommonsFile, float | None, str]] = []
+    for f in p18:
+        art_why = check_non_photo_artwork(f, rq)
+        geo_why = check_geographic_entity_conflict(f, rq, entity_label=ent_label, entity_desc=ent_desc)
+        if art_why or geo_why:
+            cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
+                                            decision="rejected", reason=art_why or geo_why or ""))
+        else:
+            ordered.append((f, None, f"Wikidata P18 of {entity[0].qid} {entity[0].label} (representative image chosen on Wikidata)"))
+    n_p18_kept = len(ordered)
     if cands:
         verdict, scored = _score(ctx, cands)
         want = _terms(primary.name, *([entity[0].label, entity[1].label_en] if entity else []))
@@ -287,6 +308,14 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
                 text = f"{f.name} {f.description}".lower()
                 if want and not any(w.lower() in text for w in want):
                     keep, why = False, "no lexical overlap with the target (no embedding scorer available)"
+            if keep:
+                art_why = check_non_photo_artwork(f, rq)
+                if art_why:
+                    keep, why = False, art_why
+            if keep:
+                geo_why = check_geographic_entity_conflict(f, rq, entity_label=ent_label, entity_desc=ent_desc)
+                if geo_why:
+                    keep, why = False, geo_why
             if not keep:
                 cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                                 decision="rejected", reason=why, score=score))
@@ -295,7 +324,7 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
                        else "lexical overlap with target in file metadata (no embedding scorer)")
                 ordered.append((f, score, how))
         # best score first among search results (P18 stays first)
-        head, tail = ordered[:len(p18)], sorted(ordered[len(p18):], key=lambda t: -(t[1] if t[1] is not None else -1))
+        head, tail = ordered[:n_p18_kept], sorted(ordered[n_p18_kept:], key=lambda t: -(t[1] if t[1] is not None else -1))
         ordered = head + tail
     # 3) cross-requirement deduplication: demote candidates already selected by an earlier requirement
     fresh: list[tuple[CommonsFile, float | None, str]] = []
@@ -309,7 +338,7 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             demoted.append(item)
         else:
             fresh.append(item)
-    # 4) download best unused candidate, verify, check sha256 dedupe, fall through on failure
+    # 4) download best unused candidate, verify, optional vision check, check sha256 dedupe, fall through on failure
     chosen = None
     sha_fallback = None
     for f, score, how in fresh[:MAX_DOWNLOAD_TRIES]:
@@ -326,18 +355,31 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=str(e), score=score))
             continue
+        vis_rel: Literal["relevant", "weak", "irrelevant", "not_assessed"] = "not_assessed"
+        vis_note = ""
+        if sv.vision_client is not None:
+            try:
+                vis_rel, vis_note = inspect_image_with_vision(data, f.mime, f, rq, sv.vision_client)
+            except (LLMError, LLMConfigError, ValueError) as e:
+                vis_rel = "not_assessed"
+                vis_note = f"vision check failed: {type(e).__name__}"
+            if vis_rel == "irrelevant":
+                cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
+                                                decision="rejected", reason=f"vision check irrelevant: {vis_note}", score=score))
+                continue
         if sha in ctx.used_by_sha:
             owner_rec = ctx.used_by_sha[sha]
             demoted_reasons[f.title] = f"demoted: same sha256 as {owner_rec.asset_id}"
             if sha_fallback is None:
-                sha_fallback = (f, score, how, data, w, h, sha, owner_rec)
+                sha_fallback = (f, score, how, data, w, h, sha, owner_rec, vis_rel, vis_note)
             continue
-        chosen = (f, score, how, data, w, h, sha, None)
+        chosen = (f, score, how, data, w, h, sha, None, vis_rel, vis_note)
         break
     if chosen is None and demoted:
         f, score, how = demoted[0]
         owner_rec = ctx.used_by_id[f.title]
-        chosen = (f, score, how, None, owner_rec.width, owner_rec.height, owner_rec.sha256, owner_rec)
+        chosen = (f, score, how, None, owner_rec.width, owner_rec.height, owner_rec.sha256, owner_rec,
+                  owner_rec.visual_relevance, "reused visual check from owner")
     if chosen is None and sha_fallback is not None:
         chosen = sha_fallback
     if chosen is None:
@@ -347,7 +389,7 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         return _missing(rq, f"candidates found for {primary.name!r} but none passed licence/format/relevance/download "
                             f"(see candidates)", entity=entity[0] if entity else None, candidates=cand_log,
                         uncovered_targets=uncovered)
-    f, score, how, data, w, h, sha, shared_rec = chosen
+    f, score, how, data, w, h, sha, shared_rec, vis_rel, vis_note = chosen
     tried = {c.title for c in cand_log}
     for g, gscore, _ in ordered:
         if g.title != f.title and g.title not in tried:
@@ -378,17 +420,29 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         notes.append(f"multi-target requirement: only the first target was acquired; not covered: {uncovered} (split in C / revise)")
     if shared_with:
         notes.append(f"shared with {shared_with} (no unused candidate available)")
+    if vis_rel == "relevant":
+        rel_check = f"relevant (vision verified: {vis_note}; {how})"
+        needs_rev = False
+    elif vis_rel == "weak":
+        rel_check = f"weak (vision check: {vis_note}; {how})"
+        needs_rev = True
+        notes.append(f"needs_review: vision check rated relevance weak ({vis_note})")
+    else:
+        suffix = f" ({vis_note})" if vis_note else ""
+        rel_check = f"not_assessed{suffix}; {how}; image content NOT visually inspected"
+        needs_rev = True
     rec = AssetRecord(
         asset_id=rq.asset_id, status=AssetStatus.acquired, type=AssetType.image, file_path=rel, source_url=f.page_url,
         source_name="Wikimedia Commons", license_or_terms=f"{f.license_short}" + (f" ({f.license_url})" if f.license_url else ""),
         author=artist, attribution=credit if (needs_attribution(f.license_short) or artist) else None,
         identifier=f.title, entity=entity[0] if entity else None, sha256=sha, mime=f.mime, width=w, height=h,
         retrieved_at=now(), notes="; ".join(notes), shared_with=shared_with, uncovered_targets=uncovered, candidates=cand_log,
+        visual_relevance=vis_rel, needs_review=needs_rev,
         checks=AssetChecks(
-            relevance=f"{how}; image content NOT visually inspected",
+            relevance=rel_check,
             usability=f"licence {f.license_short}" + ("; attribution required" if needs_attribution(f.license_short) else ""),
             format=f"{f.mime} {w}x{h}, {size_bytes} bytes, opened with Pillow, sha256 recorded",
-            quality="not assessed in D"))
+            quality="not assessed in D" if vis_rel == "not_assessed" else f"vision: {vis_rel}"))
     if shared_rec is None:
         ctx.used_by_id[f.title] = rec
         ctx.used_by_sha[sha] = rec
