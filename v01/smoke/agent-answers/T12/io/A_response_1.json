@@ -1,0 +1,76 @@
+{
+  "topic": "咖啡店创业计划",
+  "purpose": "business_plan",
+  "audience": "potential_investors_and_partners",
+  "language": "zh-CN",
+  "style": "professional_business",
+  "constraints": [],
+  "defaults_applied": [
+    {
+      "field": "purpose",
+      "value": "business_plan",
+      "rationale": "用户要“创业计划展示”，按创业项目陈述处理"
+    },
+    {
+      "field": "audience",
+      "value": "potential_investors_and_partners",
+      "rationale": "用户未说明听众，按需要判断项目可行性的投资人或合伙人处理"
+    },
+    {
+      "field": "style",
+      "value": "professional_business",
+      "rationale": "商业计划场合，采用简洁专业的商务风格"
+    },
+    {
+      "field": "language",
+      "value": "zh-CN",
+      "rationale": "用户使用中文，输出中文"
+    }
+  ],
+  "content_direction": "围绕“为什么做、做给谁、怎么做、能不能赚钱、风险在哪”展开：市场与目标客群、店铺定位与产品、选址与运营方式、成本与盈利逻辑、主要风险与应对。用户没有给出城市、预算或规模，这些先作为待确认的前提而不是写死的数字。",
+  "open_questions": [
+    "目标城市和商圈是什么，当地咖啡消费情况如何？",
+    "开店的资金规模和盈亏平衡周期怎么估算？",
+    "精品店、连锁加盟、社区店几种定位各自的取舍是什么？"
+  ],
+  "retrieval_brief": [
+    {
+      "topic": "咖啡店创业的商业模式",
+      "why": "为定位与盈利页提供基本框架",
+      "queries": [
+        {
+          "text": "咖啡店",
+          "lang": "zh"
+        },
+        {
+          "text": "coffeehouse business model",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "咖啡消费趋势",
+      "why": "为开篇的机会页提供候选资料",
+      "queries": [
+        {
+          "text": "咖啡 消费",
+          "lang": "zh"
+        },
+        {
+          "text": "coffee consumption trends",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "小微餐饮创业的风险",
+      "why": "为风险页提供候选资料",
+      "queries": [
+        {
+          "text": "small cafe startup failure factors",
+          "lang": "en"
+        }
+      ]
+    }
+  ]
+}

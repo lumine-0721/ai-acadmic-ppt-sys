@@ -1,0 +1,317 @@
+{
+  "requirements": [
+    {
+      "need_refs": [
+        "S001#1"
+      ],
+      "page_ids": [
+        "S001"
+      ],
+      "type": "image",
+      "purpose": "用几座不同时代的建筑拼成总览，引出“建筑反映时代”",
+      "targets": [
+        "帕特农神庙",
+        "Chrysler Building"
+      ],
+      "query_hints": [
+        "Parthenon photo Athens Acropolis",
+        "Chrysler Building photo"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印"
+      ]
+    },
+    {
+      "need_refs": [
+        "S002#1"
+      ],
+      "page_ids": [
+        "S002"
+      ],
+      "type": "image",
+      "purpose": "展示帕特农神庙的整体外观，说明古典神庙的形式",
+      "targets": [
+        "帕特农神庙"
+      ],
+      "query_hints": [
+        "Parthenon Athens full view photo",
+        "帕特农神庙 外观"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印"
+      ]
+    },
+    {
+      "need_refs": [
+        "S002#2"
+      ],
+      "page_ids": [
+        "S002"
+      ],
+      "type": "diagram",
+      "purpose": "示意多立克柱式的构成",
+      "targets": [],
+      "query_hints": [
+        "Doric order column diagram"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S003#1"
+      ],
+      "page_ids": [
+        "S003"
+      ],
+      "type": "image",
+      "purpose": "展示一座哥特式大教堂的外观与室内光线",
+      "targets": [
+        "沙特尔大教堂"
+      ],
+      "query_hints": [
+        "Chartres Cathedral exterior interior stained glass photo",
+        "沙特尔大教堂"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S003#2"
+      ],
+      "page_ids": [
+        "S003"
+      ],
+      "type": "reference",
+      "purpose": "为哥特式大教堂的结构特点提供可核验的出处",
+      "targets": [
+        "Gothic cathedrals and churches"
+      ],
+      "query_hints": [
+        "Gothic cathedrals structure ribbed vault flying buttress review"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S004#1"
+      ],
+      "page_ids": [
+        "S004"
+      ],
+      "type": "image",
+      "purpose": "展示一座东亚木构古建筑的外观，突出屋檐与斗拱",
+      "targets": [
+        "佛光寺东大殿"
+      ],
+      "query_hints": [
+        "Foguang Temple East Hall photo",
+        "佛光寺东大殿 斗拱"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S004#2"
+      ],
+      "page_ids": [
+        "S004"
+      ],
+      "type": "diagram",
+      "purpose": "示意斗拱的构造与受力方式",
+      "targets": [],
+      "query_hints": [
+        "dougong bracket structure diagram"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S005#1"
+      ],
+      "page_ids": [
+        "S005"
+      ],
+      "type": "image",
+      "purpose": "展示以钢铁与玻璃建成的代表建筑，突出新结构",
+      "targets": [
+        "埃菲尔铁塔",
+        "水晶宫"
+      ],
+      "query_hints": [
+        "Eiffel Tower photo",
+        "Crystal Palace 1851 engraving"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S005#2"
+      ],
+      "page_ids": [
+        "S005"
+      ],
+      "type": "diagram",
+      "purpose": "对比砖石结构与钢框架结构的受力方式",
+      "targets": [],
+      "query_hints": [
+        "masonry vs steel frame load path diagram"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S006#1"
+      ],
+      "page_ids": [
+        "S006"
+      ],
+      "type": "image",
+      "purpose": "展示现代主义代表作的外观，说明其简洁的形式",
+      "targets": [
+        "萨伏伊别墅"
+      ],
+      "query_hints": [
+        "Villa Savoye photo Le Corbusier",
+        "萨伏伊别墅"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S006#2"
+      ],
+      "page_ids": [
+        "S006"
+      ],
+      "type": "image",
+      "purpose": "展示一座装饰艺术风格的摩天楼，对照现代主义的简洁",
+      "targets": [
+        "Chrysler Building"
+      ],
+      "query_hints": [
+        "Chrysler Building Art Deco photo"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印"
+      ]
+    },
+    {
+      "need_refs": [
+        "S007#1"
+      ],
+      "page_ids": [
+        "S007"
+      ],
+      "type": "image",
+      "purpose": "展示一座强调可持续设计的当代建筑",
+      "targets": [
+        "上海中心大厦"
+      ],
+      "query_hints": [
+        "Shanghai Tower sustainable design photo",
+        "上海中心大厦 双层幕墙"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S007#2"
+      ],
+      "page_ids": [
+        "S007"
+      ],
+      "type": "diagram",
+      "purpose": "示意被动式节能的几种设计手法",
+      "targets": [],
+      "query_hints": [
+        "passive building design strategies diagram"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S008#1"
+      ],
+      "page_ids": [
+        "S008"
+      ],
+      "type": "diagram",
+      "purpose": "画一张把前面几座建筑按时代排开的时间线",
+      "targets": [],
+      "query_hints": [
+        "architecture timeline diagram styles"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    }
+  ],
+  "dropped_needs": []
+}

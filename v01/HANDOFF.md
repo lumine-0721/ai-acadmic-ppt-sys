@@ -1,11 +1,11 @@
-# HANDOFF.md — 给编码 Agent（Antigravity / Gemini）的任务书（第 2 版：2026-11-20）
+# HANDOFF.md — 给编码 Agent（Antigravity / Gemini）的任务书（第 3 版：2026-11-20）
 
 > 读者：接手写代码的 Agent。本文自包含：读完即可开工，不需要别的上下文。
 > 仓库：<https://github.com/lumine-0721/ai-acadmic-ppt-sys>，本项目目录 `v01/`。
-> **代码基线（重要）**：你上一轮的成果在分支 `feature/v01-h-qa`（头提交 `4550cc1`，已评审）。**本轮请从它拉新分支 `feature/v01-office-renderer`**（`git fetch --all && git checkout -b feature/v01-office-renderer origin/feature/v01-h-qa`）。本文件所在的 `feature/v01-pipeline` 只放任务书/调研文档，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
+> **代码基线（重要，第 3 版）**：你上一轮的成果在分支 `feature/v01-office-renderer`（头提交 `7ceb945`，已评审，见第 4.1 节）。**下一轮继续在这个分支上做（或从它拉 `feature/v01-office-renderer-2`）**，做第 5 节的 N0–N8；Windows 实机测试清单在第 5B 节，由用户在真机上跑。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
-> **本版相对第 1 版的变化**：第 1 节状态表更新为 A–H 均已有实现；第 4 节是对你上一轮推送的**评审结果**（含 bug 清单，带文件:行）；第 5 节是**新的任务清单**——最大的变化是用户决定**渲染层不再用 python-pptx，改用 Office 自动化（PowerPoint COM 为主）**，同时保留契约/素材登记/映射/版式计划/硬门槛这些好思路。
+> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最重要的两件事：** ① 全量 `pytest` 在没装 Office 的机器上是红的（N0）；② python-pptx 仍在默认生成路径里、机器很可能不是 Office 2021 而是 Microsoft 365（N1、N7）。
 
 ---
 ## 1. 项目目标与现状
@@ -136,7 +136,67 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 
 ---
 
-## 4. 对你上一轮推送的评审结果（宝特，2026-11-20）
+## 4. 评审结果
+
+### 4.1 第 2 轮评审（对象：`feature/v01-office-renderer`，头提交 `7ceb945`，2026-11-20，宝特）
+
+**评审对象：** 分支 `origin/feature/v01-office-renderer`，在 `4550cc1` 之后共 9 个提交（作者 Antigravity (Gemini)）：
+
+| 提交 | 内容 | 对应任务 |
+| --- | --- | --- |
+| `b47fc8e` | 修 B1/B2/B3 | R0 |
+| `fa0c5ff` `338ef22` | Stage G/H 调研页；DeckOps 契约、`DeckRenderer` 协议、`g_build/compile_ops.py` | R1 |
+| `ad20309` | PowerPoint COM 渲染器（`renderers/powerpoint_com/*`，含 fake COM 与 Windows 实机测试） | R2 |
+| `94e9016` | COM 导出 PNG/PDF、`BoundHeight` 实测、几何 lint、PageDesign 修复循环 | R3 |
+| `16b6b56` | 硬门槛加固（sha256 校验、形状白名单、COM 校验） | R4 |
+| `c3dcaa9` | F 容量校准、去空卡片、统一 `crop_fill` 槽位、B6 QA 规则 | R5 |
+| `3148956` | D 图片相关度核验（艺术插画过滤、同名异地过滤、可选 VLM） | R6 |
+| `7ceb945` | `pptv01 doctor`、`--renderer`、`docs/windows-testing.md` | R7 |
+
+**测试（评审机 Linux，清环境 `PPTV01_*` 全 unset，`pytest -o addopts="" -rs`，看真实退出码）：**
+**2 failed，471 passed，4 skipped，pytest 退出码 1（不是 0）。** 失败的两条都是**漏了跳过保护**的 Windows 实机测试：`tests/test_r5_layout_quality.py:193`（`test_r5_windows_com_redesigned_deck_clean_qa_and_gates`）、`tests/test_r7_doctor.py:77`（`test_r7_windows_real_doctor_all_required_green`）。它们带了 `@pytest.mark.windows_com` 标记，但没有"非 Windows / 没装 PowerPoint 就 skip"的守卫（别的 windows_com 测试有）。Antigravity 在 Windows 上只跑了 `-m "not windows_com"` 与 `-m windows_com`，所以没发现"全量 `pytest` 在没有 Office 的机器上是红的"。这违反第 2 节规则 2。**Windows 侧的真实 Office 结果我这边无法复核，必须看第 5B 节的回传。**
+
+**Smoke 4 编译层（Linux，`--renderer compile-only`，agent 后端；A–C/E 手写答案标注 `agent:宝特 (manual, not an API model)`）：** T02/T12/T26/T36 都能从 `page_design.json` 编出 `deck_ops.json`（T12 为 72 条操作），每个图都带 provenance 绑定；`--on-missing placeholder` 下占位框用虚线并标 `PLACEHOLDER_U###`。B1–B3、B4 的多数路径已修好（见下）。真实 PowerPoint 渲染图我没有，**R5 的"版式是否真的好看"没有任何可信证据，等 5B 回传。**
+
+#### 逐项验收（R0–R7）
+
+| 任务 | 结论 | 说明 |
+| --- | --- | --- |
+| **R0** 还账 B1/B2/B3 | ✅ 通过（含新增缺陷 B13） | B1：`provide` 之后 `--resume` 会作废并重算 E–H，流程图真的进了 deck（复现通过，`runner.py` 里 `_can_reuse` + `input_hashes`）；B2：幻灯片不再带 `content_summary`；B3：请求文案不再写"自绘"，且 C 校验会拒绝"否则自绘并说明"。副作用：旧的 C 答案要重写（我已改）。缺陷见 B13（否定句误杀）。 |
+| **R1** 契约/协议/编译层 | ✅ 通过 | `DeckOps` 契约 + schema + fixture；`DeckRenderer` 协议；`compile_ops` 纯 Python、确定性（两次编译字节一致）；流程图节点/边全部编出（B5 在编译层已解决，行数多时换行不截断）。待办：`h_qa/stage.py:90` 用 `co_varnames` 探测参数（见 B11）。 |
+| **R2** COM 执行器 | ⚠️ 静态看合理，**只有 fake COM 验证过**，会话安全有 bug | fake COM 测试 471 里通过；真实 COM 行为我无法验证。好处：线程内只 `CoInitialize` 一次、Excel 图表工作簿 `finally` 关闭、`AddChart2` 先开最小化窗口、`SetSourceData` 用字符串区域。缺陷：**B8**（连到用户已运行的 PowerPoint，且可能 `Quit` 它；没有 COM 调用超时）。 |
+| **R3** H 用 PowerPoint 渲染+实测 | ⚠️ 部分通过 | 导出 PNG、PDF（`SaveAs(…,32)`）、`TextFrame2.BoundHeight` 实测、几何 lint、改 `page_design` 后重编译重建重导出——结构齐。缺陷：**B10**（修复循环里重新编译漏掉 `template_path`，改过一轮后模板会丢）、**B11**。真实修复效果未验证。 |
+| **R4** 硬门槛加固 | ✅ 基本通过，有漏洞 B9 | sha256 对 blob 校验、改名图片/手绘椭圆/连接线/换 blob 的 B4 复现全被门槛抓住。**但白名单正则 `_ALLOWED_STRUCTURAL_RE` 太宽**：名为 `card_*`/`accent_*` 的手绘形状可以通过（B9，我已复现）。 |
+| **R5** 版式质量 | ⚠️ 代码层改了，**效果未证实** | 去掉空卡片、统一裁切槽位、B6 QA 规则（空卡片/图过小）有测试；T02 新的 F 设计图比之前大。真实视觉必须在 PowerPoint 渲染图上由人眼+PPTEval 验证。`docs/stage-f-layout-calibration.md` 里的容量校准基于"Office 2021"，但见 B12（机器很可能不是 2021）。 |
+| **R6** D 图片相关度 | ⚠️ 部分通过，有过拟合和"错图被选中" | 艺术插画过滤、美国辖区过滤、不可评估时诚实记 `not_assessed`+`needs_review`。缺陷：**B14**（同名异地规则 `_HOMONYM_CONFLICTS` 只硬编码了 Pekin 和 Nashville/Parthenon 两个冒烟例子，换一个例子就不灵，属于对基准的拟合）、**B15**（T02 里北京的图被选成纽约 ISS 卫星照，相似度刚过 0.30 阈值，没有"候选与目标实体不符"的通用判据）。 |
+| **R7** doctor + Windows 协议 | ✅ 通过（待实机输出） | `pptv01 doctor [--json]` 区分 required/optional，缺项退出码 1；`docs/windows-testing.md` 步骤齐全。缺陷：**B12**（doctor 不判断 Office 版本类型；文档写"Office 2021 / Office 365"含糊）。 |
+
+#### 其他检查
+
+- **python-pptx 是否已退出生成路径：❌ 没有。** `pyproject.toml:13` 仍是核心依赖；`--renderer` 默认是 `legacy`（`cli.py:25`），旧 `g_pptx` 仍是默认生成路径；`h_qa/repair.py:9-11` 在非 COM 路径仍用 python-pptx **写** PPTX；`grading/gates.py:14` 在模块顶部 `from pptx import …`（只读，OK，但若把 python-pptx 挪到 `[verify]` 就必须改成惰性导入+明确报错）。COM 路径本身没有 python-pptx 写入。
+- **Microsoft 365 专属 API：** 未发现 Designer/Copilot/动态数组/新版图表专属调用；`AddChart2`（Office 2013+）、`TextFrame2`、`Export`、`SaveAs(…,32)` 在 2021 都有。**但机器版本存疑**，见 B12。
+- **假图：** 未发现。图表要么来自用户 `provided` 的数据，要么是 `missing` → 占位框；没有自绘图表代码。
+- **复用/署名：** `NOTICE.md` 登记了 pptlive（MIT）、ykuwai/ppt-mcp（MIT）、aprd 导出脚本、ppt-master `slot_capacity`；无许可证的 Ayushmaniar/powerpoint-mcp 未复制。✅
+- **B1–B7 复现结论：** B1 ✅ 已修；B2 ✅；B3 ✅；B4 ✅（改名、手绘椭圆、连接线、换 blob 都被抓；但见 B9 新漏洞）；B5 ✅（编译层）；B6 ⚠️（有规则，视觉未验证）；B7 ⚠️（Pekin 被拒，但换成了纽约的图，见 B15）。
+
+#### Bug 清单（文件:行，均在 `7ceb945` 复现或静态确认）
+
+- **B8（高）`renderers/powerpoint_com/session.py:64-68`（`_connect_powerpoint`）与 `:264`（`__exit__` 里的 `app.Quit()`）**：文档字符串和模块头都写"`DispatchEx` 独立实例"，代码却先 `GetActiveObject` 连上**用户正在用的 PowerPoint**，只有没运行时才 `Dispatch`。另外 `Quit` 的条件是"我们开始时没有已打开的演示文稿"，用户开着一个空的 PowerPoint 也会被我们关掉。违反规则 11（不动用户已打开的内容）。且整个会话**没有 COM 调用超时/看门狗**，PowerPoint 弹模态框时会永远挂住。修法：始终 `DispatchEx` 新实例并记下 PID，只 `Quit`/终止自己启动的 PID；加看门狗（超时则终止自己启动的 PID，报明确错误）；加 fake COM 测试覆盖"用户已开着 PowerPoint"。
+- **B9（高）`grading/gates.py:49-52`（`_ALLOWED_STRUCTURAL_RE`）与 `:152`（`.match(name)`）**：白名单是前缀正则，`card_*`、`accent_*` 等前缀下的任何手绘形状（例如名为 `card_fake_chart` 的椭圆+折线）都会通过 `no_fabricated_visuals`。修法：白名单改成**精确集合**——只允许 `deck_ops.json`/`page_design.json` 里声明过的结构元素名；并按形状类型约束（结构元素只能是矩形/文本框/直线，不能是椭圆、自由曲线、带点列表的形状；连接线只允许 `DIAGRAM_*` 且两端必须绑在图节点上）；加 `card_fake_*` 手绘图的回归测试。
+- **B10（中）`h_qa/stage.py:138`**：修复循环里 `compile_deck_ops(slide_plan, current_design, reg, uir, run_dir)` 没传 `template_path`（对照 `runner.py:485` 有传），修复一轮后重建的 deck 会丢模板。修法：传同一个 `tpl_rel`；加测试（带模板、触发一次修复后，deck 的母版/版式仍来自模板）。
+- **B11（中）`h_qa/stage.py:90`**：`"page_ids" in deck_renderer.measure.__code__.co_varnames` 这种内省 hack。协议（`renderers/protocol.py`）应该统一成 `measure(pptx, page_ids=None)`，所有实现与 fake 都要实现。
+- **B12（高，需用户确认）机器的 Office 版本**：汇报里的 "PowerPoint 16.0 Build 20527" 对不上"Office 2021 永久授权版"——Office 2021/LTSC 的版本号是 2108，Build 在 14332–14334.x；Build 20xxx 是 **Microsoft 365 订阅版**当前通道。所以很可能不是 2021。影响：（a）所有"Office 2021 实测"的措辞和校准结论（`docs/stage-f-layout-calibration.md`、`windows-testing.md`、测试 docstring、`AddChart2` 窗口结论）要改为"在 Microsoft 365 Build xxxxx 上实测"；（b）我们无法证明在 2021 上可用，除非找一台真 2021。修法：`doctor` 读注册表 `HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration` 的 `ProductReleaseIds`/`VersionToReport`/`UpdateChannel`，输出"产品类型：Microsoft 365 / Office 2021 / 其他"；文档与测试里不要再写死"2021"。
+- **B13（低）`c_asset_requirements/validate.py:26,101`（`SELF_DRAW_RE`）**：对"不允许凭空绘制"这类**否定**说法也报错（误杀）。修法：先剥掉否定前缀（"不/不得/禁止/不允许/严禁 + 自绘/凭空绘制"）再匹配，加正反测试。
+- **B14（中）`d_retrieve/image_rules.py:76-90`（`_HOMONYM_CONFLICTS`）**：只硬编码 `pekin`、`nashville|tennessee|arkansas|centennial park` 两条，且 `_US_JURISDICTION_RE` 里也混了 `tazewell county|nashville|centennial park`——这是照着冒烟样本拟合的。盲测集换题就不灵。修法：改成**通用**判据——候选的标题/描述/分类里出现的地名限定词，与需求目标实体所在地（用 Wikidata 的 `P17/P131/instance of` 或需求里的地点文字）不一致就判冲突；删除按题硬编码的条目（或只留在测试夹具里）。
+- **B15（中）`d_retrieve/image_rules.py`（选择阶段）**：目标是"北京"的图，最后选中了"ISS-39 New York City.jpg"。原因：被拒掉一张后，退而求其次选了相似度刚过 0.30 的另一张，**没有检查候选是否真的在讲目标实体**。修法：若需求有明确地点/实体目标，候选的元数据（标题/描述/分类/Wikidata 标签）必须命中目标（含别名/译名）；不命中就算 `missing` 并生成用户补充请求，而不是选一张"相关"的图。
+- **B16（低）`pyproject.toml:13` / `cli.py:25` / `h_qa/repair.py:9-11,47,164`**：见上"python-pptx 是否已退出生成路径"。
+- **B17（低）测试：** `tests/test_r5_layout_quality.py:193`、`tests/test_r7_doctor.py:77` 缺跳过保护（见上）。修法：在 `tests/conftest.py` 里统一给 `windows_com` 标记加自动跳过（非 Windows、`pywin32` 缺失或 `PowerPoint.Application` 起不来时 skip 并写明原因），再逐个删掉测试里零散的守卫；并在汇报里同时给 `pytest`（全量）与 `pytest -m windows_com` 两个退出码。
+
+#### 评审通过的做法（保留）
+
+编译层纯 Python 且确定性；DeckOps 带 provenance 绑定；`input_hashes` 级联失效；`doctor` 的 required/optional 区分；fake COM 的存在让执行器逻辑能在 Linux 上测；`windows-testing.md` 里"不要把 pytest 接管道"的提醒；R6 在无法评估时诚实写 `not_assessed`。
+
+### 4.2 第 1 轮评审（对象：`feature/v01-h-qa` `4550cc1`，已归档；B1–B7 已在 4.1 复核）
 
 **评审对象：** 分支 `feature/v01-h-qa`，提交 `30f1b7f … 4550cc1`（11 个提交，作者 Antigravity (Gemini)，均晚于 `dc9cd22`）。
 
@@ -144,7 +204,7 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 
 **Smoke 4（T02/T12/T26/T36，agent 后端；A–C 沿用旧的手写答案，E 由宝特手写并标注 `agent:宝特 (manual, not an API model)`）：** 四题都 A→H 全 `done`，`overall=complete_with_placeholders`，`pptv01 gates` 全部 pass，QA 报告 0 issue。T02 7 页（5 个占位）、T12 7 页（9 个占位）、T26 8 页（5 个占位、7 张真实图）、T36 ≤5 页（5 个占位，符合"不超过 5 页"）。另手动验证：`--on-missing wait` 退出码 **4**、`overall=needs_input`、E–H 为 `skipped`；`provide` 拒绝空来源和损坏 PNG；`provide` 一个 5 节点流程图后图能进 deck（但见 B1、B5）。
 
-### 逐项验收
+#### 逐项验收（第 1 轮）
 
 | 任务 | 结论 | 说明 |
 | --- | --- | --- |
@@ -155,7 +215,7 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 | (e) G 生成 | ⚠️ 部分通过 | 原生文本/形状/图片、备注署名、`pptx_opens`/`native_content`/`attribution_present` 是真检查；缺陷：**B4**（硬门槛可被改名骗过）、**B5**（流程图不画边、静默截断节点）。**该阶段将被 Office 渲染器取代，B5 不必在旧 G 里修，而要在新渲染器里验收。** |
 | (f) H 渲染+QA | ⚠️ 部分通过 | LibreOffice→PDF→PNG 真跑、缺工具明确报错、有修复循环和复验记录、有测试；缺陷：**B6**（QA 对"看得出来的丑"报 0 issue）。 |
 
-### Bug 清单（文件:行，均已在 `4550cc1` 复现）
+#### Bug 清单（第 1 轮，`4550cc1`）
 
 - **B1 `runner.py:306/338/371/398`**：`--resume` 只要 `slide_asset_mapping.json`/`page_design.json`/`deck.pptx`/`qa_report.json` 存在就直接复用，**不比较上游输入是否变了**。复现：T36 跑完后 `pptv01 provide … U002 --file flow.json` 再 `--resume`，deck 里 U002 仍是 `PLACEHOLDER_U002`（要手工删 E–H 产物并重答 E 才生效）。任务书写的是"`--resume` 后 E–H 使用用户材料"，**未满足**。修法：在 `StageRecord` 里记录上游产物的 sha256，resume 时不一致就作废该站及下游；`provide` 成功后明确标记 E–H 为 stale。
 - **B2 `f_layout/stage.py:501`**：`body_text = page.content_summary…` 被渲染成页面正文，而 `content_summary` 是 B 的**页面规划说明**（如"用一个简洁的图示说明概念，文字只保留最核心的一句"、"用开场提出观看建筑的几个角度，并交代后面怎么组织"），不是给听众看的文案。T26/T36/T02 的每页都印出了这种"导演提示"。修法：不渲染 `content_summary`；它进讲者备注或设计注释；正文只用 `key_points`。加测试：任何页面文本不得包含规划提示句式（至少断言文本集合 ⊆ `key_points ∪ title ∪ 署名/来源`）。
@@ -166,11 +226,156 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 - **B7（D，已知弱点，评审新发现的实例）**：T02 的 A009 `File:Pekin park 20231019 0017.jpg` 是**美国伊利诺伊州 Pekin 的公园**（图里有美国国旗），不是北京（第 1 版任务书"北京公园照"的说法有误，已更正）；A011 `A Solarpunk tower.png` 是**插画**，不是真实城市场景；D 对这两张都判 `acquired`，只因为我在手写 E 答案时看图才发现并放进 `unused_assets`。D 仍然**没有任何看图核验**。（修法见 R6。）
 - **B8（次要）** `README`/任务书里没有说明 `pptv01 provide` 之后需要 `--resume` 且要重答 E（B1 修好后应自动）；另外 `runs/*/user_input_requests.json` 的 `status` 在渲染后变成 `placeholder_rendered`，`provide` 能把它再改成 `provided`——行为合理，但请在 README 写明状态机。
 
-### 评审通过的做法（保留，别推倒）
+#### 评审通过的做法（第 1 轮）
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 新任务清单：Office 自动化渲染器（按顺序做；每项一个小批次，推送前过测试）
+## 5. 第 3 轮任务清单（N0–N8；按顺序做，每项一个小批次）
+
+> **基线：** 继续在 `feature/v01-office-renderer`（头 `7ceb945`）上做，或从它再拉 `feature/v01-office-renderer-2`；只推你自己的分支。规则（第 2 节）全部照旧。
+> **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器。** N0–N4 可以马上做（大部分 Linux 就能测）。
+
+### N0 全量 `pytest` 在 Linux/没装 Office 的机器上必须绿（修 B17）
+- 在 `tests/conftest.py` 给 `windows_com` 标记统一自动跳过：非 Windows、`pywin32` 缺失或起不来 `PowerPoint.Application` 时 skip，原因写进 skip 信息；删除各测试里零散重复的守卫。
+- 验收：Linux 上清环境 `pytest -o addopts="" -rs` 退出码 0（宝特会复核，当前是 2 failed）；Windows 上 `pytest` 与 `pytest -m windows_com` 各给退出码。
+
+### N1 先确认机器到底是什么 Office（修 B12）
+- `pptv01 doctor` 读 `HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration`（`ProductReleaseIds`、`VersionToReport`、`UpdateChannel`、`Platform`），再加 `Application.Version/Build`，输出"产品类型：Microsoft 365 订阅 / Office 2021·LTSC / 其他 / 未知"；`--json` 里也有。
+- 文档与测试 docstring 里不要再写死"Office 2021"：按 doctor 的实际结果写（`windows-testing.md` §1、`stage-f-layout-calibration.md`、`test_r*_com_windows.py`）。
+- **等用户回传 5B-1 的结果后**：若确实是 Microsoft 365，把"AddChart2 需要窗口"等 COM 结论标注"已在 Microsoft 365 Build xxxxx 上验证，Office 2021 未验证"。
+
+### N2 COM 会话安全（修 B8，规则 11）
+- 始终 `DispatchEx` 独立实例，记录自己启动的 PID；**绝不**连上用户已运行的 PowerPoint；只 `Quit`/终止自己启动的实例。
+- 所有 COM 调用有超时/看门狗（卡住时终止自己启动的 PID，抛明确错误），不吞异常。
+- fake COM 测试：用户已开着 PowerPoint（有/无已打开文稿）时我们不碰它；模拟挂起触发超时。
+
+### N3 H 修复循环与协议整洁（修 B10、B11）
+- 修复循环重新编译时传 `template_path`；加"带模板 + 修复一轮后仍用模板母版"测试。
+- `DeckRenderer.measure` 协议统一为 `measure(pptx, page_ids=None)`，删掉 `co_varnames` 探测。
+
+### N4 硬门槛：白名单改精确集合（修 B9）
+- 结构元素名只允许 `deck_ops.json`/`page_design.json` 里声明过的精确名；并按形状类型约束（结构元素只能矩形/文本框/直线；连接线必须 `DIAGRAM_*` 且两端绑在节点上）。
+- 回归测试：`card_fake_*`/`accent_*` 名的手绘椭圆+折线图必须被 `no_fabricated_visuals` 拦住；原有 B4 的四种绕过继续被拦。
+
+### N5 D 图片相关度：去拟合、堵"错图被选中"（修 B14、B15）
+- 删除按题硬编码的 `_HOMONYM_CONFLICTS`（可留在测试夹具里当回归样例），改成通用判据：候选元数据里的地名/实体限定词与需求目标不一致 → 冲突。
+- 需求有明确地点/实体目标时，候选元数据（标题/描述/分类/Wikidata 标签，含别名与译名）必须命中目标，否则算 `missing` 并生成用户补充请求——**不要退而求其次选一张"差不多"的图**。
+- 验收：T02 的"北京"不再选出纽约的图；**另用 3 个与冒烟样本无关的同名异地例子**（自己找，如 Springfield、Paris Texas、Cambridge 之类）证明规则通用。宝特用私有盲测集复核。
+
+### N6 C 校验否定句（修 B13）
+- `SELF_DRAW_RE` 前先剥掉否定前缀；正反例测试各 ≥5 条。
+
+### N7 python-pptx 退出生成路径（**须等 5B 回传：Smoke 4 在 PowerPoint 上通过之后**，修 B16）
+- 当前不要动。回传通过后：（1）默认渲染器改为 `powerpoint-com`（Windows）/ 其他系统明确报错并提示 `--renderer compile-only`；（2）`pyproject.toml` 把 `python-pptx` 从核心依赖移到 `[verify]`，`grading/gates.py` 改惰性导入，缺失时给清楚的报错；（3）**单独一个提交**删除旧 `g_pptx` 与 `h_qa/repair.py` 里的 python-pptx 写路径；（4）LibreOffice 路径降为 `--cross-render` 兼容性参考。
+
+### N8 把 5B 里发现的问题修掉
+- 5B 回传会带来真实 PowerPoint 的渲染图和 QA 数据；宝特评审后在这里补具体条目（文字溢出、连线粘合、图表可编辑、版式质量等）。
+
+### 不要现在做
+Office.js add-in、macOS/Linux 渲染、云端批量（用户已说"以后再用云服务器"）。
+
+---
+## 5B. Windows 实机测试清单（用户在真机上跑；Antigravity 可陪同）
+
+> 目的：把"只在 fake COM 里验证过"的东西，在**真实 PowerPoint** 上验证，并把结果发回给宝特。按顺序做，**每一步的输出都复制/保存**。
+> 约定：路径用你机器上的仓库路径（下面以 `F:\ggagy\ai-acadmic-ppt-sys\v01` 为例）；PowerShell 里**不要把 pytest 接管道**（会吞退出码）。贴中文命令时建议用 **PowerShell 7**，或先执行 `chcp 65001`。
+
+**0. 拿到最新代码和冒烟答案（不要 commit 这些）**
+```powershell
+cd F:\ggagy\ai-acadmic-ppt-sys
+git fetch --all
+git checkout feature/v01-office-renderer
+git pull
+git log --oneline -3                       # 期望最上面是 7ceb945 或更新
+git checkout origin/feature/v01-pipeline -- v01/smoke v01/HANDOFF.md   # 只取冒烟答案和任务书，工作区会变脏，别提交
+cd v01
+```
+
+**1. 查清 Office 到底是什么版本（最重要，宝特怀疑不是 2021）**
+```powershell
+# 1a 注册表里的产品类型（2021 会含 "2021"，订阅版会含 "O365"/"M365"）
+Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" |
+  Select-Object ProductReleaseIds, VersionToReport, UpdateChannel, Platform, CDNBaseUrl | Format-List
+# 1b PowerPoint 可执行文件版本（路径若不同请自行找 POWERPNT.EXE）
+$ppt = "C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE"
+if (Test-Path $ppt) { (Get-Item $ppt).VersionInfo | Format-List ProductVersion, FileVersion }
+```
+再打开 PowerPoint → **文件 → 账户**，截图（或抄下「产品信息」里那一行，如"Microsoft 365 应用版/ Office 2021 专业增强版"，以及"关于 PowerPoint"里的版本号）。
+
+**2. doctor**
+```powershell
+.\.venv\Scripts\python.exe -m pptv01.cli doctor
+"DOCTOR_EXIT=$LASTEXITCODE"
+.\.venv\Scripts\python.exe -m pptv01.cli doctor --json | Out-File -Encoding utf8 doctor.json
+```
+**回传：** 1a/1b 输出、账户页截图或文字、`doctor` 文本输出、`doctor.json`。
+
+**3. 测试（清环境，分别看退出码）**
+```powershell
+Get-ChildItem Env:PPTV01_* -ErrorAction SilentlyContinue | Remove-Item
+.\.venv\Scripts\python.exe -m pytest -o addopts="" -rs -p no:cacheprovider > pytest_all.txt 2>&1
+"PYTEST_ALL_EXIT=$LASTEXITCODE"
+```
+```powershell
+.\.venv\Scripts\python.exe -m pytest -m windows_com -o addopts="" -rs -v -p no:faulthandler > pytest_com.txt 2>&1
+"PYTEST_COM_EXIT=$LASTEXITCODE"
+.\.venv\Scripts\python.exe -m pytest -m "not windows_com" -o addopts="" -rs > pytest_nocom.txt 2>&1
+"PYTEST_NOCOM_EXIT=$LASTEXITCODE"
+```
+**回传：** 三个 txt 文件和三个退出码；特别注意**最后一行摘要**（`N passed, N failed, N skipped`）。跑完后看任务管理器里有没有残留的 `POWERPNT.EXE`/`EXCEL.EXE`（有就记下数量，别手动关之前先截图）。
+
+**4. Smoke 4：在真 PowerPoint 上跑 T02/T12/T26/T36**
+> 用宝特手写的 A–C/E 答案（标注 `agent:宝特 (manual, not an API model)`）和冻结的 `research_brief.json` 回放。D 会联网取素材（Wikimedia/Wikidata/OpenAlex 等）；**如果你所在网络访问不了，会在 D 的报告里如实写出，把输出发回即可，别绕。**
+```powershell
+$env:PPTV01_LLM_BACKEND = "agent"
+Remove-Item Env:PPTV01_RESEARCH -ErrorAction SilentlyContinue
+$P = @{
+  T02 = "帮我介绍一下城市热岛效应。"
+  T12 = "帮我准备一个咖啡店创业计划展示。"
+  T26 = "做一份介绍世界著名建筑的PPT。"
+  T36 = "做一份不超过5页的人工智能介绍，尽量少用文字。"
+}
+foreach ($t in "T02","T12","T26","T36") {
+  New-Item -ItemType Directory -Force "runs\smoke4\$t","runs\smoke4\io_$t" | Out-Null
+  Copy-Item "smoke\agent-answers\$t\io\*.json" "runs\smoke4\io_$t\"
+  Copy-Item "smoke\agent-answers\$t\research_brief.json" "runs\smoke4\$t\"
+  $env:PPTV01_AGENT_RESPONSES_DIR = "runs\smoke4\io_$t"
+  .\.venv\Scripts\python.exe -m pptv01.cli run $P[$t] --out runs\smoke4 --run-id $t --resume --renderer powerpoint-com --on-missing placeholder > "runs\smoke4\$t.log" 2>&1
+  "RUN_EXIT_$t=$LASTEXITCODE"
+  .\.venv\Scripts\python.exe -m pptv01.cli gates "runs\smoke4\$t" > "runs\smoke4\$t.gates.log" 2>&1
+  "GATES_EXIT_$t=$LASTEXITCODE"
+}
+```
+- 退出码 `3` 表示 agent 后端在等答案（D 取到的素材和我的答案对不上）：把 `runs\smoke4\io_Txx\` 里最新的 `*_request_*.json` 一起回传，**不要自己编答案**。
+- 期望：`RUN_EXIT=0`（`overall=complete_with_placeholders`）、`GATES_EXIT=0`。
+
+**5. 用肉眼检查 `deck.pptx`（每题至少看 3 页，截图）**
+- [ ] 用**桌面 PowerPoint**直接双击打开，没有"修复/无法读取"提示；
+- [ ] 每页标题是**标题占位符**（点选后左侧"大纲视图"里能看到标题文字）；
+- [ ] 图片是**铺满槽位且不变形**（裁切而不是拉伸）；
+- [ ] 占位框是**虚线**、写着 `PLACEHOLDER_U###`，没有任何"看起来像真图"的自绘图；
+- [ ] 文字**没有超出文本框或页面**；中文字体正常（不是方块/缺字）；
+- [ ] T26/T02 里的参考文献/图片署名在**备注**里能看到；
+- [ ] 流程图（若有 `provide` 过的）：节点之间是**真连接线**，拖动节点时线跟着动；
+- [ ] 图表（若有）：右键 → 编辑数据能打开 Excel；
+- [ ] 版式观感：图是否够大、留白是否过多、是否仍然满屏圆角卡片——**写一句主观评价**。
+
+**6. 打包回传（`runs/` 被 gitignore，别提交）**
+```powershell
+foreach ($t in "T02","T12","T26","T36") {
+  Compress-Archive -Force -DestinationPath "smoke4-$t.zip" -Path `
+    "runs\smoke4\$t\deck.pptx","runs\smoke4\$t\deck_dump.json","runs\smoke4\$t\qa_report.json", `
+    "runs\smoke4\$t\gate_report.json","runs\smoke4\$t\run_report.json","runs\smoke4\$t\deck_ops.json", `
+    "runs\smoke4\$t\page_design.json","runs\smoke4\$t\render","runs\smoke4\$t.log","runs\smoke4\$t.gates.log"
+}
+```
+若某个文件不存在（例如 H 没跑到），`Compress-Archive` 会报错——把报错原文发回，并把已有文件手动打包。
+
+**回传清单（给宝特/用户）：** ① 第 1 步（版本）的全部输出 + 账户页；② `doctor` 输出与 `doctor.json`；③ `pytest_all.txt`/`pytest_com.txt`/`pytest_nocom.txt` 与三个退出码；④ 四个 `smoke4-Txx.zip` 与 `RUN_EXIT_*`/`GATES_EXIT_*`；⑤ 第 5 步的勾选结果和 3–5 张你觉得最差的页面截图；⑥ 任何卡住、弹窗（激活/登录/安全模式）、残留 `POWERPNT.EXE`/`EXCEL.EXE` 进程的情况。
+
+**宝特拿到后会做：** 用 PowerPoint 渲染图重评 PPTEval 的 Design 维度；对照 `qa_report.json` 的 `BoundHeight` 看 QA 是否抓得到"看得出来的丑"；核对 `deck_dump.json` 与 `gate_report.json`；决定是否执行 N7（默认渲染器切换、删 `g_pptx`）。
+
+## 5A. 第 2 轮任务清单 R0–R7（**已完成并评审，见 4.1；以下为原文归档，勿重做**）
 
 > 用户的原话：「不能用 py pptx，用我说的 Office COM / VBA / Office.js API 自动化；保留优质思路；确保后续优化 copy reuse 1st；好改的就使劲改」。
 > **路线结论（理由与证据见 `docs/renderer-office-research.md`）：主路线 = Windows 上 Python + pywin32 驱动桌面 PowerPoint 的 COM。** VBA 只当对象模型参考；Office.js（PowerPointApi 到 1.10 仍无法创建/读写图表）只留给第二阶段"插入当前文档"，**本轮不做**。
@@ -238,7 +443,7 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 ### 不要现在做（写进"未做"即可）
 Office.js add-in（"插入当前文档"）、macOS/Linux 渲染、云端批量。用户若要再开。
 
-### Windows 上怎么测（给用户/你自己）
+### Windows 上怎么测（旧版，已被第 5B 节取代）
 1. `pptv01 doctor` 全绿。
 2. 清环境全量 `pytest`（PowerShell 写法见第 1 节），**看 `$LASTEXITCODE`**；`pytest -m windows_com` 单独跑，汇报里分别给出两个退出码和用例数。
 3. Smoke 4：沿用 agent 后端的 A–C 答案（`PPTV01_AGENT_RESPONSES_DIR`），E 同样可由宝特手答；跑 `pptv01 run … --resume` 到 H，检查 `deck.pptx`（用 PowerPoint 打开能正常编辑、标题是占位符、流程图连线可拖动）、`render/slide_*.png`、`qa_report.json`、`pptv01 gates`。
@@ -257,7 +462,7 @@ Office.js add-in（"插入当前文档"）、macOS/Linux 渲染、云端批量�
 8. **A/B/C/E 的答案仍是 agent 手写**，不是 API 模型的产出。
 9. **QA 对"丑"没有感知**（B6）；版式质量靠 R5 重做。
 10. **COM 只能在用户桌面 Windows + 桌面 PowerPoint 上跑**，不是云服务（微软 KB257757 不支持无人值守自动化 Office）；macOS/Linux 不可行。宝特的 Linux box 不能跑 COM，所有 COM 验收靠 Windows 实测。
-11. 目标机器已确认为 **Office 2021 桌面版 + 真正的 PowerPoint，Antigravity 在同一台本机 Windows 上运行**（见第 5 节「已确认的决定」）；Excel 是否随装、Build 号待 `pptv01 doctor` 实测。云端批量（含 Windows VM 方案）**后做**。
+11. 用户说目标机器是 **Office 2021 桌面版**，但 PowerPoint 报告的是 Build 20527，那是 **Microsoft 365** 的版本号（Office 2021 是 14332–14334.x）——**版本待 5B-1 实测确认（B12）**；Antigravity 在同一台本机 Windows 上运行（见 5A「已确认的决定」）。R2–R5 的真实 PowerPoint 行为目前只有 fake COM 验证，**未经宝特复核**。云端批量（含 Windows VM 方案）**后做**。
 
 ---
 

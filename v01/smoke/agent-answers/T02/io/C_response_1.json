@@ -1,0 +1,297 @@
+{
+  "requirements": [
+    {
+      "need_refs": [
+        "S001#1"
+      ],
+      "page_ids": [
+        "S001"
+      ],
+      "type": "image",
+      "purpose": "并排展示城区与郊区的地表温度分布，说明城区相对周边更热",
+      "targets": [
+        "某大城市的城市热岛地表温度热像图"
+      ],
+      "query_hints": [
+        "urban heat island thermal image city",
+        "land surface temperature urban rural map",
+        "城市热岛 热像图 城郊"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S001#2"
+      ],
+      "page_ids": [
+        "S001"
+      ],
+      "type": "reference",
+      "purpose": "为城市热岛的定义提供可核验的出处",
+      "targets": [
+        "城市热岛"
+      ],
+      "query_hints": [
+        "urban heat island definition",
+        "城市热岛 定义"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S002#1"
+      ],
+      "page_ids": [
+        "S002"
+      ],
+      "type": "diagram",
+      "purpose": "并列画出气象站测气温与卫星测地表温度两种方式及其差异",
+      "targets": [],
+      "query_hints": [
+        "weather station vs satellite land surface temperature diagram",
+        "城市热岛 度量 示意图"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S002#2"
+      ],
+      "page_ids": [
+        "S002"
+      ],
+      "type": "reference",
+      "purpose": "为热岛强度的度量方法提供文献出处",
+      "targets": [
+        "Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones"
+      ],
+      "query_hints": [
+        "urban heat island intensity zones spatial pattern urban form"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S003#1"
+      ],
+      "page_ids": [
+        "S003"
+      ],
+      "type": "diagram",
+      "purpose": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
+      "targets": [],
+      "query_hints": [
+        "urban heat island causes diagram",
+        "城市热岛 成因 示意图"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S003#2"
+      ],
+      "page_ids": [
+        "S003"
+      ],
+      "type": "reference",
+      "purpose": "为成因机制提供综述类文献",
+      "targets": [
+        "城市热岛成因综述"
+      ],
+      "query_hints": [
+        "urban heat island causes review",
+        "城市热岛 成因 综述"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S004#1"
+      ],
+      "page_ids": [
+        "S004"
+      ],
+      "type": "diagram",
+      "purpose": "画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条",
+      "targets": [],
+      "query_hints": [
+        "urban heat island impacts energy health diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S004#2"
+      ],
+      "page_ids": [
+        "S004"
+      ],
+      "type": "reference",
+      "purpose": "为能耗与健康影响提供可核验的研究出处",
+      "targets": [
+        "城市热岛对能耗与健康影响的研究"
+      ],
+      "query_hints": [
+        "urban heat island energy consumption health impact review"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S005#1"
+      ],
+      "page_ids": [
+        "S005"
+      ],
+      "type": "image",
+      "purpose": "并列展示两三座城市的热岛分布图，用来比较差异",
+      "targets": [
+        "北京",
+        "纽约"
+      ],
+      "query_hints": [
+        "Beijing urban heat island land surface temperature map",
+        "New York City urban heat island map"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S005#2"
+      ],
+      "page_ids": [
+        "S005"
+      ],
+      "type": "chart_data",
+      "purpose": "比较多个城市热岛强度的观测数据",
+      "targets": [
+        "多个城市的热岛强度观测数据"
+      ],
+      "query_hints": [
+        "urban heat island intensity multiple cities dataset",
+        "city heat island observation data"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "数据与要比较的对象直接对应",
+        "可合法使用：数据许可或使用条款明确，并记录出处",
+        "数据口径与时间范围清楚",
+        "须核实所选对象确实存在并与此页对应"
+      ]
+    },
+    {
+      "need_refs": [
+        "S006#1"
+      ],
+      "page_ids": [
+        "S006"
+      ],
+      "type": "image",
+      "purpose": "展示屋顶绿化的实景，说明它如何降低屋面升温",
+      "targets": [
+        "屋顶花园"
+      ],
+      "query_hints": [
+        "green roof photo",
+        "屋顶花园 实景"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印"
+      ]
+    },
+    {
+      "need_refs": [
+        "S006#2"
+      ],
+      "page_ids": [
+        "S006"
+      ],
+      "type": "image",
+      "purpose": "展示海绵城市的绿地与雨水设施，说明水体与绿地对降温的作用",
+      "targets": [
+        "海绵城市"
+      ],
+      "query_hints": [
+        "sponge city rain garden photo",
+        "海绵城市 绿地 雨水设施"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印"
+      ]
+    },
+    {
+      "need_refs": [
+        "S007#1"
+      ],
+      "page_ids": [
+        "S007"
+      ],
+      "type": "diagram",
+      "purpose": "用一张主线图回顾“现象—度量—成因—影响—缓解”",
+      "targets": [],
+      "query_hints": [
+        "urban heat island concept summary diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    }
+  ],
+  "dropped_needs": []
+}

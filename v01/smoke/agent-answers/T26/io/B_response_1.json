@@ -1,0 +1,286 @@
+{
+ "narrative": "以不同时代和地区的代表建筑为线索，每座建筑只讲清一个最值得看的技术或文化点，让听众看到建筑如何体现所处时代；具体选哪些建筑，等确认有清晰可用的图片后再定。",
+ "pages": [
+  {
+   "title": "为什么看建筑就是看时代",
+   "goal": "让听众理解建筑能反映技术、信仰和社会",
+   "key_points": [
+    "建筑材料和结构技术决定了能建成什么样",
+    "宗教、权力与日常生活塑造建筑形式",
+    "后面每座建筑只抓一个看点"
+   ],
+   "content_summary": "用开场提出观看建筑的几个角度，并交代后面怎么组织。",
+   "visual_intent": "一张多座著名建筑的拼图式总览",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "用几座不同时代的建筑拼成总览，引出“建筑反映时代”",
+     "targets": [
+      {
+       "name": "帕特农神庙",
+       "entity_type": "building",
+       "verification": "verified",
+       "source_refs": [
+        "R008"
+       ]
+      },
+      {
+       "name": "Chrysler Building",
+       "entity_type": "building",
+       "verification": "verified",
+       "source_refs": [
+        "R005"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R008",
+    "R005"
+   ]
+  },
+  {
+   "title": "古代的纪念性建筑",
+   "goal": "让听众看到早期建筑如何用有限技术实现宏大目标",
+   "key_points": [
+    "石材砌筑与比例秩序",
+    "古典柱式的发展",
+    "建筑与信仰、权力的关系"
+   ],
+   "content_summary": "以帕特农神庙为例，讲清它的结构方式和象征意义。",
+   "visual_intent": "清晰的建筑外观图加一张柱式示意",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示帕特农神庙的整体外观，说明古典神庙的形式",
+     "targets": [
+      {
+       "name": "帕特农神庙",
+       "entity_type": "building",
+       "verification": "verified",
+       "source_refs": [
+        "R008"
+       ]
+      }
+     ]
+    },
+    {
+     "type": "diagram",
+     "description": "示意多立克柱式的构成",
+     "targets": []
+    }
+   ],
+   "source_refs": [
+    "R008",
+    "R010"
+   ]
+  },
+  {
+   "title": "宗教建筑与空间的升华",
+   "goal": "让听众理解拱券与飞扶壁怎样塑造高耸而明亮的空间",
+   "key_points": [
+    "拱券与肋拱的受力思路",
+    "光线在宗教空间中的作用",
+    "哥特式与其他宗教建筑风格的差异"
+   ],
+   "content_summary": "以一座哥特式大教堂为例，讲结构和空间感受。",
+   "visual_intent": "外观与室内光线的对比图",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示一座哥特式大教堂的外观与室内光线",
+     "targets": [
+      {
+       "name": "沙特尔大教堂",
+       "entity_type": "building",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "reference",
+     "description": "为哥特式大教堂的结构特点提供可核验的出处",
+     "targets": [
+      {
+       "name": "Gothic cathedrals and churches",
+       "entity_type": "concept",
+       "verification": "verified",
+       "source_refs": [
+        "R013"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R013",
+    "R011"
+   ]
+  },
+  {
+   "title": "东方的木构与园林",
+   "goal": "让听众看到东方建筑独有的结构逻辑和审美",
+   "key_points": [
+    "木构架与斗拱的结构特点",
+    "院落与园林的空间组织",
+    "与自然关系的不同理解"
+   ],
+   "content_summary": "选一座有代表性的东亚古建筑，讲木构特点和空间观。",
+   "visual_intent": "建筑外观加构架示意图",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示一座东亚木构古建筑的外观，突出屋檐与斗拱",
+     "targets": [
+      {
+       "name": "佛光寺东大殿",
+       "entity_type": "building",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "diagram",
+     "description": "示意斗拱的构造与受力方式",
+     "targets": []
+    }
+   ],
+   "source_refs": [
+    "R001"
+   ]
+  },
+  {
+   "title": "工业时代的新材料与新结构",
+   "goal": "让听众明白钢铁和玻璃如何改变建筑",
+   "key_points": [
+    "钢铁、玻璃和混凝土的出现",
+    "高度与跨度的突破",
+    "工程技术成为建筑表现的一部分"
+   ],
+   "content_summary": "选一座工业时代的代表作，讲新材料带来的变化。",
+   "visual_intent": "建筑外观和结构细部图",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示以钢铁与玻璃建成的代表建筑，突出新结构",
+     "targets": [
+      {
+       "name": "埃菲尔铁塔",
+       "entity_type": "building",
+       "verification": "to_verify",
+       "source_refs": []
+      },
+      {
+       "name": "水晶宫",
+       "entity_type": "building",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "diagram",
+     "description": "对比砖石结构与钢框架结构的受力方式",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "现代主义与标志性设计",
+   "goal": "让听众看清现代建筑怎样追求功能与形式",
+   "key_points": [
+    "形式追随功能的思路",
+    "玻璃、钢材和钢筋混凝土的使用",
+    "标志性建筑如何成为城市名片"
+   ],
+   "content_summary": "挑一两座现代标志性建筑，讲设计理念和城市意义。",
+   "visual_intent": "外观图和概念草图的对照",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示现代主义代表作的外观，说明其简洁的形式",
+     "targets": [
+      {
+       "name": "萨伏伊别墅",
+       "entity_type": "building",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "image",
+     "description": "展示一座装饰艺术风格的摩天楼，对照现代主义的简洁",
+     "targets": [
+      {
+       "name": "Chrysler Building",
+       "entity_type": "building",
+       "verification": "verified",
+       "source_refs": [
+        "R005"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R016",
+    "R005"
+   ]
+  },
+  {
+   "title": "当代建筑的新问题",
+   "goal": "让听众看到当代建筑在可持续与技术上的探索",
+   "key_points": [
+    "可持续与能耗的考虑",
+    "数字设计与新结构的可能",
+    "建筑与城市环境的关系"
+   ],
+   "content_summary": "选一座当代代表建筑，讲它回应了什么新问题。",
+   "visual_intent": "外观与技术细节示意",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示一座强调可持续设计的当代建筑",
+     "targets": [
+      {
+       "name": "上海中心大厦",
+       "entity_type": "building",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "diagram",
+     "description": "示意被动式节能的几种设计手法",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "回看：几座建筑的共同线索",
+   "goal": "帮听众把各时代的看点串起来",
+   "key_points": [
+    "技术、信仰与社会如何共同塑造建筑",
+    "同一功能在不同文化里的不同答案",
+    "以后看建筑可以问哪些问题"
+   ],
+   "content_summary": "回顾前面各座建筑的看点，给出一组观察建筑的问题。",
+   "visual_intent": "一张时间线或对照图",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "画一张把前面几座建筑按时代排开的时间线",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  }
+ ]
+}

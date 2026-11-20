@@ -1,0 +1,13 @@
+{"mappings":[
+{"page_id":"S002","asset_id":"A001","request_id":null,"usage":"置于左侧：帕特农神庙正面外观，展示古希腊纪念性建筑的柱廊与比例","accepted":true},
+{"page_id":"S003","asset_id":"A004","request_id":null,"usage":"置于左侧：沙特尔主教座堂西立面，展示哥特式宗教建筑的双塔与玫瑰窗","accepted":true},
+{"page_id":"S003","asset_id":"A005","request_id":null,"usage":"在页脚/备注作为宗教建筑页的参考文献条目引用","accepted":true},
+{"page_id":"S004","asset_id":"A006","request_id":null,"usage":"置于左侧：佛光寺屋檐下斗拱与木构细部，仅展示木构架局部，不是整座建筑外观","accepted":true},
+{"page_id":"S005","asset_id":"A008","request_id":null,"usage":"置于左侧：埃菲尔铁塔全景，展示铁结构的工业时代新材料与新结构","accepted":true},
+{"page_id":"S006","asset_id":"A011","request_id":null,"usage":"置于左侧：克莱斯勒大厦外观，作为现代标志性高层设计的实例","accepted":true},
+{"page_id":"S007","asset_id":"A012","request_id":null,"usage":"置于左侧：上海中心大厦外观，作为当代超高层建筑的实例","accepted":true}
+],
+"unused_assets":[
+{"asset_id":"A002","request_id":null,"reason":"与 A001 同为帕特农神庙，且主体被前景城墙分割，信息重复"},
+{"asset_id":"A010","request_id":null,"reason":"人工核对：为萨伏伊别墅室内浴室，不能代表现代主义建筑的外观与理念，放弃"}
+]}

@@ -1,0 +1,151 @@
+{
+  "requirements": [
+    {
+      "need_refs": [
+        "S001#1"
+      ],
+      "page_ids": [
+        "S001"
+      ],
+      "type": "diagram",
+      "purpose": "用输入—处理—输出的简图说明人工智能做什么",
+      "targets": [],
+      "query_hints": [
+        "artificial intelligence input process output diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S001#2"
+      ],
+      "page_ids": [
+        "S001"
+      ],
+      "type": "reference",
+      "purpose": "为概念表述提供百科类出处",
+      "targets": [
+        "人工智能"
+      ],
+      "query_hints": [
+        "人工智能 定义",
+        "artificial intelligence definition"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S002#1"
+      ],
+      "page_ids": [
+        "S002"
+      ],
+      "type": "diagram",
+      "purpose": "画出数据、训练和预测三步的流程",
+      "targets": [],
+      "query_hints": [
+        "machine learning workflow data training prediction diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S003#1"
+      ],
+      "page_ids": [
+        "S003"
+      ],
+      "type": "icon",
+      "purpose": "用图标分别表示语音识别、图像识别、推荐与自动驾驶",
+      "targets": [],
+      "query_hints": [
+        "AI application icons speech recognition image recognition recommendation self-driving"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与要表示的概念直接对应，风格统一",
+        "可合法使用：许可明确（如 CC0 或开源图标库）",
+        "小尺寸下仍清晰"
+      ]
+    },
+    {
+      "need_refs": [
+        "S004#1"
+      ],
+      "page_ids": [
+        "S004"
+      ],
+      "type": "diagram",
+      "purpose": "用左右对比图展示能做到的与做不到的",
+      "targets": [],
+      "query_hints": [
+        "AI capabilities and limitations comparison diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    },
+    {
+      "need_refs": [
+        "S004#2"
+      ],
+      "page_ids": [
+        "S004"
+      ],
+      "type": "reference",
+      "purpose": "为“生成内容可能出错”提供出处",
+      "targets": [
+        "Hallucination (artificial intelligence)"
+      ],
+      "query_hints": [
+        "AI hallucination definition",
+        "artificial intelligence hallucination"
+      ],
+      "priority": "optional",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验，有 DOI 或稳定链接，不得编造条目",
+        "须核实该文献或条目确实存在"
+      ]
+    },
+    {
+      "need_refs": [
+        "S005#1"
+      ],
+      "page_ids": [
+        "S005"
+      ],
+      "type": "diagram",
+      "purpose": "用一张极简图收束全篇并留下一个提问",
+      "targets": [],
+      "query_hints": [
+        "AI summary minimal diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ]
+    }
+  ],
+  "dropped_needs": []
+}

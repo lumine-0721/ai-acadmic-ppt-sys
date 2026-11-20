@@ -1,0 +1,80 @@
+{
+  "topic": "世界著名建筑",
+  "purpose": "general_presentation",
+  "audience": "general",
+  "language": "zh-CN",
+  "style": "visual_rich_educational",
+  "constraints": [],
+  "defaults_applied": [
+    {
+      "field": "purpose",
+      "value": "general_presentation",
+      "rationale": "用户未说明场合，按一般介绍处理"
+    },
+    {
+      "field": "audience",
+      "value": "general",
+      "rationale": "用户未指定受众，按对建筑感兴趣的普通听众处理"
+    },
+    {
+      "field": "style",
+      "value": "visual_rich_educational",
+      "rationale": "主题以视觉为主，采用图片丰富、讲解清楚的风格"
+    },
+    {
+      "field": "language",
+      "value": "zh-CN",
+      "rationale": "用户使用中文，输出中文"
+    }
+  ],
+  "content_direction": "选取不同时代、地区和风格的代表性建筑，让听众看到“建筑如何体现当时的技术、宗教或文化”；可以按时代脉络或按风格对照组织，具体选哪几座、怎么排由后面阶段结合可用图片再定。",
+  "open_questions": [
+    "哪些建筑最具代表性、能覆盖不同时代与地区？",
+    "哪些建筑有可合法使用、清晰的图片资料？",
+    "每座建筑最值得讲清的一个技术或文化点是什么？"
+  ],
+  "retrieval_brief": [
+    {
+      "topic": "世界著名建筑概览",
+      "why": "寻找各时代代表建筑的候选对象",
+      "queries": [
+        {
+          "text": "世界著名建筑",
+          "lang": "zh"
+        },
+        {
+          "text": "world famous landmark buildings architecture",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "古代与宗教建筑",
+      "why": "为古代和宗教建筑页找候选对象",
+      "queries": [
+        {
+          "text": "帕特农神庙",
+          "lang": "zh"
+        },
+        {
+          "text": "Gothic cathedral architecture",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "现代与当代建筑",
+      "why": "为现代和当代页找候选对象",
+      "queries": [
+        {
+          "text": "现代主义建筑",
+          "lang": "zh"
+        },
+        {
+          "text": "sustainable architecture landmark",
+          "lang": "en"
+        }
+      ]
+    }
+  ]
+}

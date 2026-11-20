@@ -1,0 +1,80 @@
+{
+  "topic": "城市热岛效应",
+  "purpose": "general_presentation",
+  "audience": "general",
+  "language": "zh-CN",
+  "style": "clear_educational",
+  "constraints": [],
+  "defaults_applied": [
+    {
+      "field": "purpose",
+      "value": "general_presentation",
+      "rationale": "用户只说“介绍”，未说明场合，按一般讲解处理"
+    },
+    {
+      "field": "audience",
+      "value": "general",
+      "rationale": "用户未指定受众，按没有专业背景的普通听众处理"
+    },
+    {
+      "field": "style",
+      "value": "clear_educational",
+      "rationale": "未指定风格，采用清晰的科普讲解风格"
+    },
+    {
+      "field": "language",
+      "value": "zh-CN",
+      "rationale": "用户使用中文，输出中文"
+    }
+  ],
+  "content_direction": "以“这是什么现象、为什么会出现、有什么影响、怎么应对”为主线，先让听众分清热岛与一般热浪，再讲成因机制和可观察的影响，最后讨论缓解思路；不预设某个城市的结论，具体数据留待检索后再定。",
+  "open_questions": [
+    "常用的城市热岛强度度量方式有哪些，各自怎么定义？",
+    "哪些成因有公开可查的观测或研究支撑？",
+    "缓解措施里哪些有可核验的效果评估？"
+  ],
+  "retrieval_brief": [
+    {
+      "topic": "城市热岛的定义与度量",
+      "why": "为第一、二页提供定义和度量方式的出处",
+      "queries": [
+        {
+          "text": "城市热岛",
+          "lang": "zh"
+        },
+        {
+          "text": "urban heat island intensity measurement",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "热岛的成因",
+      "why": "为成因页提供机制与出处",
+      "queries": [
+        {
+          "text": "城市热岛 成因",
+          "lang": "zh"
+        },
+        {
+          "text": "urban heat island causes review",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "热岛的影响与缓解",
+      "why": "为影响和缓解页提供候选资料",
+      "queries": [
+        {
+          "text": "urban heat island mitigation green roofs",
+          "lang": "en"
+        },
+        {
+          "text": "海绵城市",
+          "lang": "zh"
+        }
+      ]
+    }
+  ]
+}

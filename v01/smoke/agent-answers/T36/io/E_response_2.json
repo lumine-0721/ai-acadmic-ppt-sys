@@ -1,0 +1,5 @@
+{"mappings":[
+{"page_id":"S001","asset_id":"A002","request_id":null,"usage":"在页脚/备注作为参考文献引用","accepted":true},
+{"page_id":"S004","asset_id":"A006","request_id":null,"usage":"在页脚/备注作为参考文献引用","accepted":true},
+{"page_id":"S002","asset_id":"A003","request_id":"U002","usage":"置于左侧：用户提供的数据—训练—预测流程图（结构化节点与边，带来源）","accepted":true}
+],"unused_assets":[]}

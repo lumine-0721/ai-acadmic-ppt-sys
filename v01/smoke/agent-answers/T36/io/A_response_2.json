@@ -1,0 +1,82 @@
+{
+  "topic": "人工智能介绍",
+  "purpose": "general_presentation",
+  "audience": "general",
+  "language": "zh-CN",
+  "style": "minimal_text_visual",
+  "constraints": [
+    "不超过5页",
+    "尽量少用文字"
+  ],
+  "defaults_applied": [
+    {
+      "field": "purpose",
+      "value": "general_presentation",
+      "rationale": "用户只说“介绍”，按一般讲解处理"
+    },
+    {
+      "field": "audience",
+      "value": "general",
+      "rationale": "用户未指定受众，按普通听众处理"
+    },
+    {
+      "field": "style",
+      "value": "minimal_text_visual",
+      "rationale": "用户要求尽量少用文字，采用以图示为主、文字极简的风格"
+    },
+    {
+      "field": "language",
+      "value": "zh-CN",
+      "rationale": "用户使用中文，输出中文"
+    }
+  ],
+  "content_direction": "篇幅很短，只讲最核心的几条线索：人工智能是什么、它大致是怎样学会做事的、现在用在哪些地方、需要注意什么；每条线索尽量用图示承载，文字压到最少。",
+  "open_questions": [
+    "用什么样的图示最能让外行一眼看懂“机器如何学习”？",
+    "有哪些广为人知、来源明确的应用例子可以用？"
+  ],
+  "retrieval_brief": [
+    {
+      "topic": "人工智能的定义",
+      "why": "为“人工智能是什么”的概念表述提供简明定义出处",
+      "queries": [
+        {
+          "text": "人工智能",
+          "lang": "zh"
+        },
+        {
+          "text": "artificial intelligence definition",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "机器学习的基本思路",
+      "why": "为“机器怎样学习”的讲解提供流程出处",
+      "queries": [
+        {
+          "text": "机器学习",
+          "lang": "zh"
+        },
+        {
+          "text": "machine learning overview",
+          "lang": "en"
+        }
+      ]
+    },
+    {
+      "topic": "人工智能的应用与局限",
+      "why": "为应用与局限页提供候选资料",
+      "queries": [
+        {
+          "text": "人工智能 应用",
+          "lang": "zh"
+        },
+        {
+          "text": "limitations of artificial intelligence",
+          "lang": "en"
+        }
+      ]
+    }
+  ]
+}

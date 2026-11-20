@@ -1,0 +1,214 @@
+{
+ "narrative": "沿着“为什么做、做给谁、怎么做、能不能赚钱、风险在哪”推进，先讲机会和客群，再讲店的样子和运营，最后讲账和风险；所有数字都等有依据后再填，不预设规模。",
+ "pages": [
+  {
+   "title": "为什么现在开一家咖啡店",
+   "goal": "让听众理解这个项目背后的机会与动机",
+   "key_points": [
+    "咖啡店作为社交与日常消费场所的角色",
+    "创业者想解决的具体问题或空白",
+    "这个项目想成为什么样的店"
+   ],
+   "content_summary": "用咖啡店的定位和消费趋势说明机会，不夸大市场。",
+   "visual_intent": "一张表现咖啡店场景的图",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示咖啡店作为日常社交场所的典型场景",
+     "targets": [
+      {
+       "name": "咖啡店",
+       "entity_type": "concept",
+       "verification": "verified",
+       "source_refs": [
+        "R001"
+       ]
+      }
+     ]
+    },
+    {
+     "type": "statistic",
+     "description": "提供咖啡消费趋势的可核验数据",
+     "targets": [
+      {
+       "name": "咖啡消费趋势数据",
+       "entity_type": "dataset",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R001",
+    "R009"
+   ]
+  },
+  {
+   "title": "目标客群是谁",
+   "goal": "让听众清楚这家店服务谁、他们为什么会来",
+   "key_points": [
+    "核心客群的特征与需求",
+    "他们现在去哪里喝咖啡、有什么不满",
+    "我们和他们的场景如何对上"
+   ],
+   "content_summary": "描述一到两类客群画像，并说明待验证的假设。",
+   "visual_intent": "客群画像或典型一天的场景图示",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "画出一到两类目标客群的画像和到店场景",
+     "targets": []
+    },
+    {
+     "type": "statistic",
+     "description": "提供本地消费人群的公开统计",
+     "targets": [
+      {
+       "name": "目标城市的咖啡消费人群统计",
+       "entity_type": "dataset",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "店铺定位与产品",
+   "goal": "让听众看清这家店和别家有什么不同",
+   "key_points": [
+    "定位：精品、社区还是别的",
+    "核心产品与菜单思路",
+    "空间与体验上的特点"
+   ],
+   "content_summary": "讲清定位和产品组合，与常见竞品做对比。",
+   "visual_intent": "定位对比图与门店空间参考",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "用二维图对比精品、社区和连锁几种定位",
+     "targets": []
+    },
+    {
+     "type": "image",
+     "description": "展示精品咖啡店的空间与产品风格作为参考",
+     "targets": [
+      {
+       "name": "Specialty coffee",
+       "entity_type": "concept",
+       "verification": "verified",
+       "source_refs": [
+        "R012"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R012"
+   ]
+  },
+  {
+   "title": "选址与运营方式",
+   "goal": "让听众理解店开在哪里、怎么跑起来",
+   "key_points": [
+    "选址要看哪些因素：人流、租金、竞争",
+    "营业时间与人员安排的思路",
+    "供应链与咖啡豆来源的考虑"
+   ],
+   "content_summary": "讲选址判断标准和运营骨架，具体地点作为待确认项。",
+   "visual_intent": "选址因素的评估图或流程图",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "画出选址时人流、租金、竞争三类因素的评估框架",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "成本与盈利逻辑",
+   "goal": "让听众明白这家店靠什么赚钱、钱花在哪",
+   "key_points": [
+    "主要成本构成：租金、人工、原料、设备",
+    "收入来源与客单价思路",
+    "盈亏平衡是怎么推算的"
+   ],
+   "content_summary": "讲清算账的结构，具体数字等调研后再填，不先写结论。",
+   "visual_intent": "成本结构图和盈亏平衡示意",
+   "asset_needs": [
+    {
+     "type": "chart_data",
+     "description": "展示一家小型咖啡店的成本结构",
+     "targets": [
+      {
+       "name": "小型咖啡店成本结构数据",
+       "entity_type": "dataset",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "diagram",
+     "description": "示意收入、成本与盈亏平衡点的关系",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "主要风险与应对",
+   "goal": "让听众看到我们清楚风险并有预案",
+   "key_points": [
+    "竞争加剧与客流不及预期",
+    "成本上升",
+    "运营和人员稳定性"
+   ],
+   "content_summary": "逐条列风险并配上应对思路，诚实说明哪些还不确定。",
+   "visual_intent": "风险与应对对照表",
+   "asset_needs": [
+    {
+     "type": "table",
+     "description": "风险与应对对照表，逐条配预案",
+     "targets": []
+    },
+    {
+     "type": "reference",
+     "description": "为风险判断提供小微创业失败原因的研究出处",
+     "targets": [
+      {
+       "name": "小微餐饮创业失败原因的研究",
+       "entity_type": "publication",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "下一步与需要的支持",
+   "goal": "让听众知道接下来要做什么、希望得到什么",
+   "key_points": [
+    "近期要验证的关键假设",
+    "需要的资源与合作",
+    "希望听众给出的反馈"
+   ],
+   "content_summary": "用清单讲下一步，把关键假设和请求说清楚。",
+   "visual_intent": "一条简单的路线图",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "画出近期验证关键假设的路线图",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  }
+ ]
+}

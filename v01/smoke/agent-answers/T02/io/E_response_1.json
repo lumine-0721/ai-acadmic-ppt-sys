@@ -1,0 +1,12 @@
+{"mappings":[
+{"page_id":"S001","asset_id":"A001","request_id":null,"usage":"置于页面右侧：SEDAC 全球城乡夏季白天地表温差数据集示意图，说明「城区相对郊区偏热」是长期空间差异（图中为地表温度差，非气温）","accepted":true},
+{"page_id":"S001","asset_id":"A002","request_id":null,"usage":"在页脚/备注作为「城市热岛概念」的参考文献条目引用","accepted":true},
+{"page_id":"S002","asset_id":"A004","request_id":null,"usage":"在页脚/备注作为「气温与地表温度度量方式」的参考文献条目引用","accepted":true},
+{"page_id":"S003","asset_id":"A006","request_id":null,"usage":"在页脚/备注作为「热岛成因」页的参考文献条目引用","accepted":true},
+{"page_id":"S004","asset_id":"A008","request_id":null,"usage":"在页脚/备注作为「热岛影响（能耗与健康）」页的参考文献条目引用","accepted":true},
+{"page_id":"S005","asset_id":"A009","request_id":null,"usage":"置于页面左侧：国际空间站拍摄的纽约曼哈顿一带卫星影像，仅作为「城市形态与布局不同」的一个实例；不是北京，也不代表热岛强度数据","accepted":true},
+{"page_id":"S006","asset_id":"A011","request_id":null,"usage":"置于页面右侧：屋顶绿化的实景照片，作为「屋顶绿化等材料与结构措施」的实例；不代表降温效果数据","accepted":true}
+],
+"unused_assets":[
+{"asset_id":"A012","request_id":null,"reason":"天津桥园公园为大型绿地景观，与 A011 同属绿化案例；本页已选屋顶绿化更对应要点，A012 留作备选"}
+]}

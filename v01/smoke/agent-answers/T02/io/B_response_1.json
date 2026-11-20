@@ -1,0 +1,258 @@
+{
+ "narrative": "先让听众分清热岛和一般热浪，再讲它怎么被测量、怎么形成，接着看对生活和环境的影响，最后落到缓解思路；不预设某个城市的结论，具体数据等素材取回后再定。",
+ "pages": [
+  {
+   "title": "什么是城市热岛",
+   "goal": "让听众能把城市热岛和一般热浪区分开",
+   "key_points": [
+    "城区气温相对周边郊区偏高",
+    "它是城区与郊区之间长期的空间差异，不是某几天的高温",
+    "夜间的差异往往更明显"
+   ],
+   "content_summary": "用定义加城郊对比说明现象本身，并点出它与热浪的区别。",
+   "visual_intent": "一张城郊温度对比的热像图，直观看到“城区更热”",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "并排展示城区与郊区的地表温度分布，说明城区相对周边更热",
+     "targets": [
+      {
+       "name": "某大城市的城市热岛地表温度热像图",
+       "entity_type": "dataset",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "reference",
+     "description": "为城市热岛的定义提供可核验的出处",
+     "targets": [
+      {
+       "name": "城市热岛",
+       "entity_type": "concept",
+       "verification": "verified",
+       "source_refs": [
+        "R001"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R001",
+    "R004"
+   ]
+  },
+  {
+   "title": "怎么看出热岛：度量方式",
+   "goal": "让听众知道热岛是怎样被测量和比较的",
+   "key_points": [
+    "气象站的气温对比",
+    "卫星遥感得到的地表温度",
+    "气温与地表温度是不同的指标"
+   ],
+   "content_summary": "介绍两类常见度量思路及其差异，提醒读图时要分清指标。",
+   "visual_intent": "并列的两种数据来源示意",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "并列画出气象站测气温与卫星测地表温度两种方式及其差异",
+     "targets": []
+    },
+    {
+     "type": "reference",
+     "description": "为热岛强度的度量方法提供文献出处",
+     "targets": [
+      {
+       "name": "Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones",
+       "entity_type": "publication",
+       "verification": "verified",
+       "source_refs": [
+        "R005"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R004",
+    "R005"
+   ]
+  },
+  {
+   "title": "热岛从哪里来：成因",
+   "goal": "让听众能说出几个主要成因及其机制",
+   "key_points": [
+    "地表材料与植被、水体的差异",
+    "人为排热",
+    "城市形态影响通风与散热"
+   ],
+   "content_summary": "逐个讲成因的物理或空间机制，并标出哪些点需要数据佐证。",
+   "visual_intent": "成因关系示意图，而不是装饰图",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
+     "targets": []
+    },
+    {
+     "type": "reference",
+     "description": "为成因机制提供综述类文献",
+     "targets": [
+      {
+       "name": "城市热岛成因综述",
+       "entity_type": "publication",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R001"
+   ]
+  },
+  {
+   "title": "热岛带来的影响",
+   "goal": "让听众理解热岛和日常生活、能源与健康有什么关系",
+   "key_points": [
+    "夜间降温变慢，影响居住舒适度",
+    "降温需求与用电负荷的关系",
+    "对高温健康风险的叠加作用"
+   ],
+   "content_summary": "把影响分成几类来讲，每类说清机制，不下过度的定量结论。",
+   "visual_intent": "影响链条图",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条",
+     "targets": []
+    },
+    {
+     "type": "reference",
+     "description": "为能耗与健康影响提供可核验的研究出处",
+     "targets": [
+      {
+       "name": "城市热岛对能耗与健康影响的研究",
+       "entity_type": "publication",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R001"
+   ]
+  },
+  {
+   "title": "不同城市的热岛差异",
+   "goal": "让听众看到热岛强弱受哪些条件影响，而不是一概而论",
+   "key_points": [
+    "气候背景和地形不同",
+    "城市规模与布局不同",
+    "同一城市内部也有冷热分区"
+   ],
+   "content_summary": "用两三个有公开资料的城市做对照，说明差异从何而来。",
+   "visual_intent": "城市对照图或分区热力图",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "并列展示两三座城市的热岛分布图，用来比较差异",
+     "targets": [
+      {
+       "name": "北京",
+       "entity_type": "city",
+       "verification": "to_verify",
+       "source_refs": []
+      },
+      {
+       "name": "纽约",
+       "entity_type": "city",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    },
+    {
+     "type": "chart_data",
+     "description": "比较多个城市热岛强度的观测数据",
+     "targets": [
+      {
+       "name": "多个城市的热岛强度观测数据",
+       "entity_type": "dataset",
+       "verification": "to_verify",
+       "source_refs": []
+      }
+     ]
+    }
+   ],
+   "source_refs": []
+  },
+  {
+   "title": "怎么缓解热岛",
+   "goal": "让听众能说出几类缓解思路及各自的作用机制",
+   "key_points": [
+    "增加绿地、水体和树荫",
+    "屋顶绿化等材料与结构措施",
+    "改善通风与雨水利用"
+   ],
+   "content_summary": "按措施类型讲机制，并说明哪些措施效果有评估依据、哪些仍在讨论。",
+   "visual_intent": "措施与机制对应的图示",
+   "asset_needs": [
+    {
+     "type": "image",
+     "description": "展示屋顶绿化的实景，说明它如何降低屋面升温",
+     "targets": [
+      {
+       "name": "屋顶花园",
+       "entity_type": "concept",
+       "verification": "verified",
+       "source_refs": [
+        "R002"
+       ]
+      }
+     ]
+    },
+    {
+     "type": "image",
+     "description": "展示海绵城市的绿地与雨水设施，说明水体与绿地对降温的作用",
+     "targets": [
+      {
+       "name": "海绵城市",
+       "entity_type": "concept",
+       "verification": "verified",
+       "source_refs": [
+        "R003"
+       ]
+      }
+     ]
+    }
+   ],
+   "source_refs": [
+    "R002",
+    "R003"
+   ]
+  },
+  {
+   "title": "小结与可以带走的问题",
+   "goal": "帮听众把前面的概念串起来并知道还可以关注什么",
+   "key_points": [
+    "热岛是什么、怎么来、有何影响、怎么缓解",
+    "每座城市的情况需要具体数据来看",
+    "可以关注自己所在城市的相关监测"
+   ],
+   "content_summary": "回顾主线，抛出可继续了解的问题，不给口号式结论。",
+   "visual_intent": "一张极简的主线回顾图",
+   "asset_needs": [
+    {
+     "type": "diagram",
+     "description": "用一张主线图回顾“现象—度量—成因—影响—缓解”",
+     "targets": []
+    }
+   ],
+   "source_refs": []
+  }
+ ]
+}
