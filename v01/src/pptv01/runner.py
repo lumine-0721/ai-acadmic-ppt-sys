@@ -25,6 +25,7 @@ from pptv01.contracts import (
     AssetRequirements,
     PageDesign,
     ProductionPlan,
+    QAReport,
     ResearchRecord,
     SlidePlan,
     RunOverall,
@@ -41,6 +42,8 @@ from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, ru
 from pptv01.e_mapping import ARTIFACT as E_FILE, run_stage_e
 from pptv01.f_layout import ARTIFACT as F_FILE, run_stage_f
 from pptv01.g_pptx import ARTIFACT as G_FILE, run_stage_g
+from pptv01.h_qa import ARTIFACT as H_FILE, RenderExecutionError, RendererUnavailableError, run_stage_h
+from pptv01.h_qa.stage import RenderFn
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval import ResearchProvider, research_from_env
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, summarize_requests
@@ -55,7 +58,7 @@ STAGE_NAMES = {
     "G": "pptx_generation",
     "H": "render_qa_repair",
 }
-IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E", "F", "G")
+IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E", "F", "G", "H")
 
 
 def _now() -> datetime:
@@ -129,6 +132,7 @@ def run_pipeline(
     research: ResearchProvider | None = None,
     assets: DServices | None = None,
     vision_client: ChatClient | None = None,
+    render_fn: RenderFn | None = None,
     clock: Callable[[], datetime] = _now,
 ) -> tuple[RunReport, Path]:
     """Run implemented stages for one utterance. Returns (report, run_dir).
@@ -383,14 +387,43 @@ def run_pipeline(
             error="skipped: stage F did not produce page_design.json",
         )
 
-    for code in "H":
-        if waiting_for_input:
-            records[code] = StageRecord(
-                stage=code, name=STAGE_NAMES[code], status=StageStatus.skipped,
-                error="skipped: waiting for user input (see user_input_requests.json)",
+    # ---- Stage H (LibreOffice render + QA + bounded repair)
+    if waiting_for_input:
+        records["H"] = StageRecord(
+            stage="H", name=STAGE_NAMES["H"], status=StageStatus.skipped,
+            error="skipped: waiting for user input (see user_input_requests.json)",
+        )
+    elif deck_path is not None and slide_plan is not None and not failure:
+        t0 = clock()
+        if resume and (run_dir / H_FILE).is_file() and list((run_dir / "render").glob("slide_*.png")):
+            h_files = [H_FILE] + sorted(
+                p.relative_to(run_dir).as_posix()
+                for p in (run_dir / "render").glob("slide_*.png") if p.is_file()
             )
+            record("H", StageStatus.done, t0, h_files)
         else:
-            records[code] = StageRecord(stage=code, name=STAGE_NAMES[code], status=StageStatus.not_implemented)
+            try:
+                _qa_rep, rendered_pngs = run_stage_h(
+                    deck_path,
+                    slide_plan,
+                    run_dir,
+                    design=design,
+                    reg=reg,
+                    uir=uir,
+                    mapping=mapping,
+                    render_fn=render_fn,
+                )
+                h_files = [H_FILE] + [p.relative_to(run_dir).as_posix() for p in rendered_pngs]
+                record("H", StageStatus.done, t0, h_files)
+            except (RendererUnavailableError, RenderExecutionError, OSError, ValueError) as e:
+                h_files = [H_FILE] if (run_dir / H_FILE).is_file() else []
+                failure = f"stage H failed: {type(e).__name__}: {str(e)[:500]}"
+                record("H", StageStatus.failed, t0, h_files, failure)
+    else:
+        records["H"] = StageRecord(
+            stage="H", name=STAGE_NAMES["H"], status=StageStatus.skipped,
+            error="skipped: stage G did not produce deck.pptx",
+        )
 
     stages = [records[c] for c in "ABCDEFGH"]
     if failure:

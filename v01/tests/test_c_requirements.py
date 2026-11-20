@@ -1,5 +1,6 @@
-import json
 import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -167,18 +168,34 @@ def test_prompt_shows_need_refs_and_research_titles():
     assert '"need_ref": "S001#1"' in body and "[R001] 城市热岛" in body
 
 
+def _stub_render(pptx_path: Path, out_dir: Path) -> list[Path]:
+    from PIL import Image, ImageDraw
+    from pptx import Presentation
+    prs = Presentation(str(pptx_path))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = []
+    for i in range(1, len(prs.slides) + 1):
+        p = out_dir / f"slide_{i:03d}.png"
+        im = Image.new("RGB", (320, 180), (245, 248, 252))
+        ImageDraw.Draw(im).rectangle([10, 10, 100, 50], fill=(30, 64, 175))
+        im.save(p, "PNG")
+        out.append(p)
+    return out
+
+
 def test_runner_runs_a_to_d_and_reports_e_to_h_not_implemented(tmp_path):
-    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-c")
+    report, run_dir = run_pipeline(
+        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-c", render_fn=_stub_render
+    )
     st = {s.stage: s.status for s in report.stages}
-    assert [st[x] for x in "ABCDEFG"] == [StageStatus.done] * 7
-    assert st["H"] is StageStatus.not_implemented
+    assert [st[x] for x in "ABCDEFGH"] == [StageStatus.done] * 8
     assert (run_dir / "asset_requirements.json").is_file() and (run_dir / "llm_trace" / "C.json").is_file()
-    assert report.overall.value == "incomplete"
+    assert report.overall.value == "complete_with_placeholders"
     # conftest sets PPTV01_ASSETS=none: D records every requirement as missing, saying retrieval was disabled
     reg = json.loads((run_dir / "asset_registry.json").read_text("utf-8"))
     assert all(a["status"] == "missing" and "disabled" in a["notes"] for a in reg["assets"])
     assert report.missing_assets == [a["asset_id"] for a in reg["assets"]]
-    assert (run_dir / "deck.pptx").is_file() and not (run_dir / "qa_report.json").exists()
+    assert (run_dir / "deck.pptx").is_file() and (run_dir / "qa_report.json").is_file()
 
 
 def test_runner_stage_c_failure_reported(tmp_path):

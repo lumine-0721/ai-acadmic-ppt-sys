@@ -204,12 +204,14 @@ def test_on_missing_wait_exits_4_then_provide_and_resume(tmp_path, monkeypatch, 
         }],
         "unused_assets": [],
     }, ensure_ascii=False), encoding="utf-8")
+    from pptv01.h_qa import has_render_tools
     rc2 = cli.main(["run", U, "--out", str(runs_root), "--run-id", "w1", "--resume", "--on-missing", "placeholder"])
-    assert rc2 == 0
+    assert rc2 == (0 if has_render_tools() else 1)
     uir_after = load_contract(UserInputRequests, run_dir / "user_input_requests.json")
     assert uir_after.requests[0].status is UserRequestStatus.provided
     rep2 = load_contract(RunReport, run_dir / "run_report.json")
     assert rep2.user_input_requests.provided_count == 1
+    assert {s.stage: s.status.value for s in rep2.stages}["G"] == "done"
 
 
 # ---------------------------------------------------------------- ⑥ reject invalid user-provided files

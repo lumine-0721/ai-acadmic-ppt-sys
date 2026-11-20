@@ -12,24 +12,40 @@ from pptv01.runner import run_pipeline
 U = "帮我做一个城市热岛效应的 PPT。"
 
 
+def _test_render(pptx_path: Path, out_dir: Path) -> list[Path]:
+    from PIL import Image, ImageDraw
+    from pptx import Presentation
+    prs = Presentation(str(pptx_path))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = []
+    for i in range(1, len(prs.slides) + 1):
+        p = out_dir / f"slide_{i:03d}.png"
+        im = Image.new("RGB", (320, 180), (245, 248, 252))
+        ImageDraw.Draw(im).rectangle([10, 10, 100, 50], fill=(30, 64, 175))
+        im.save(p, "PNG")
+        out.append(p)
+    return out
+
+
 def test_runner_writes_files_and_honest_report(tmp_path):
-    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-001")
+    report, run_dir = run_pipeline(
+        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-001", render_fn=_test_render
+    )
     assert run_dir == tmp_path / "t-001"
-    for f in ("production_plan.json", "slide_plan.json", "run_report.json", "llm_trace/A.json", "llm_trace/B.json"):
+    for f in ("production_plan.json", "slide_plan.json", "qa_report.json", "deck.pptx", "run_report.json",
+              "llm_trace/A.json", "llm_trace/B.json"):
         assert (run_dir / f).is_file(), f
     load_contract(ProductionPlan, run_dir / "production_plan.json")
     assert load_contract(SlidePlan, run_dir / "slide_plan.json").status.value == "provisional"
     rep = load_contract(RunReport, run_dir / "run_report.json")
     st = {s.stage: s.status for s in rep.stages}
-    assert [st[c] for c in "ABCDEFG"] == [StageStatus.done] * 7
-    assert st["H"] is StageStatus.not_implemented
-    assert rep.overall.value == "incomplete"          # never "complete" while H is missing
+    assert [st[c] for c in "ABCDEFGH"] == [StageStatus.done] * 8
+    # conftest sets PPTV01_ASSETS=none so placeholders were rendered -> complete_with_placeholders (never plain complete)
+    assert rep.overall.value == "complete_with_placeholders"
     assert rep.model_id == "fake-model-for-unit-tests"
     assert rep.code_commit and rep.started_at <= rep.finished_at
     assert rep.defaults_summary
-    assert (run_dir / "deck.pptx").is_file()
-    # no phantom deliverables for H
-    assert not (run_dir / "qa_report.json").exists()
+    assert (run_dir / "render" / "slide_001.png").is_file()
 
 
 def test_stage_a_failure_is_reported_and_b_skipped(tmp_path):
