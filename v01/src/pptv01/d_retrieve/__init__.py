@@ -1,7 +1,5 @@
-"""Stage D (retrieve): NOT IMPLEMENTED in this batch.
+"""Stage D (asset registry): real retrieval from Wikimedia Commons / Wikidata / OpenAlex / Crossref. See stage.py."""
 
-The runner reports this stage as not_implemented; nothing is faked.
-See docs/V0.1-技术方案.md section 2.3 / 6 for the contract and development order.
-"""
+from .stage import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env  # noqa: F401
 
-IMPLEMENTED = False
+IMPLEMENTED = True

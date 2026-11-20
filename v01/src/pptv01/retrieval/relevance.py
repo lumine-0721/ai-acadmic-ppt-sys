@@ -48,7 +48,8 @@ _FIGURE_PREFIX = re.compile(r"^\s*(?:figure|fig\.?|table|plate|图|表)\s*\d+[\s
 _DISAMBIG = re.compile(r"(?:may (?:also )?refer to|can refer to|most commonly refers to|消歧义|可以指|可能指|指的是以下)", re.I)
 _LIST_TITLE = re.compile(r"(?:^list of |^lists of |列表$|一覽表$|一览表$|^index of )", re.I)
 MIN_BODY_CHARS = 60           # an encyclopedia extract shorter than this carries no usable fact
-BAD_CROSSREF_TYPES = {"component", "peer-review", "report-component", "grant", "other", "journal-issue", "journal-volume"}
+BAD_CROSSREF_TYPES = {"component", "peer-review", "report-component", "grant", "other", "journal-issue", "journal-volume",
+                       "erratum", "paratext", "editorial", "letter", "retraction"}   # Crossref + OpenAlex work types
 
 
 @dataclass

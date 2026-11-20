@@ -1,0 +1,48 @@
+{
+ "entities": {
+  "Q10288": {
+   "type": "item",
+   "id": "Q10288",
+   "labels": {
+    "en": {
+     "language": "en",
+     "value": "Parthenon"
+    },
+    "zh": {
+     "language": "zh",
+     "value": "帕德嫩神廟"
+    }
+   },
+   "descriptions": {
+    "en": {
+     "language": "en",
+     "value": "former temple of Athena on the Athenian Acropolis, Greece"
+    },
+    "zh": {
+     "language": "zh",
+     "value": "古希臘奉祀雅典娜的神廟"
+    }
+   },
+   "claims": {
+    "P18": [
+     {
+      "mainsnak": {
+       "snaktype": "value",
+       "property": "P18",
+       "hash": "b023ca393c193a2ebd4134d20ae46e5d46490a52",
+       "datavalue": {
+        "value": "The Parthenon in Athens.jpg",
+        "type": "string"
+       },
+       "datatype": "commonsMedia"
+      },
+      "type": "statement",
+      "id": "Q10288$C10C8B18-204C-49C6-ABAF-F68F2DDBF2A0",
+      "rank": "normal"
+     }
+    ]
+   }
+  }
+ },
+ "success": 1
+}

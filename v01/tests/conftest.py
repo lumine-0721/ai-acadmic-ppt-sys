@@ -66,6 +66,7 @@ def _clean_env(monkeypatch):
             monkeypatch.delenv(k)
     monkeypatch.setenv("PPTV01_RESEARCH", "none")
     monkeypatch.setenv("PPTV01_RELEVANCE", "structural")   # never load an ML model in unit tests
+    monkeypatch.setenv("PPTV01_ASSETS", "none")            # never hit Commons/OpenAlex from unit tests
 
 
 @pytest.fixture(autouse=True)

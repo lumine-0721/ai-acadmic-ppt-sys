@@ -410,15 +410,65 @@ class AssetChecks(_Contract):
     quality: str | None = None
 
 
+class EntityRef(_Contract):
+    """Wikidata disambiguation result for a named target. ``alternatives`` keeps what was NOT chosen."""
+
+    name: NonEmptyStr                       # the target name as written in the requirement
+    qid: Annotated[str, StringConstraints(pattern=r"^Q\d+$")]
+    label: NonEmptyStr
+    description: str = ""
+    url: Annotated[str, StringConstraints(pattern=r"^https?://\S+$")]
+    chosen_by: Literal["only_candidate", "search_rank", "relevance_score"]
+    alternatives: list[str] = Field(default_factory=list)       # "Qid label - description"
+
+
+class CandidateRecord(_Contract):
+    """One candidate D looked at for a requirement, and why it was kept or rejected (audit trail)."""
+
+    title: NonEmptyStr
+    url: str = ""
+    license: str = ""
+    origin: str = ""                         # wikidata_p18 | commons_search | openalex | crossref
+    decision: Literal["selected", "rejected"]
+    reason: str = ""
+    score: float | None = None
+
+
+class SourceCall(_Contract):
+    backend: NonEmptyStr                     # commons | wikidata | openalex | crossref
+    purpose: NonEmptyStr
+    query: str = ""
+    status: Literal["ok", "no_results", "error", "disabled"]
+    hits: int = Field(default=0, ge=0)
+    error: str | None = None
+
+    @model_validator(mode="after")
+    def _err(self) -> "SourceCall":
+        if self.status == "error" and not self.error:
+            raise ValueError("an errored source call must record its error")
+        return self
+
+
 class AssetRecord(_Contract):
     asset_id: AssetId
     status: AssetStatus
+    type: AssetType | None = None
     file_path: RelPath | None = None
     source_url: str | None = None
     source_name: str | None = None
     license_or_terms: str | None = None
+    author: str | None = None
+    attribution: str | None = None            # ready-to-print credit line (CC BY / BY-SA need it)
+    identifier: str | None = None             # DOI / Commons file title / OpenAlex id
+    entity: EntityRef | None = None
+    sha256: str | None = None
+    mime: str | None = None
+    width: int | None = Field(default=None, ge=1)
+    height: int | None = Field(default=None, ge=1)
     retrieved_at: datetime | None = None
     notes: str = ""
+    uncovered_targets: list[NonEmptyStr] = Field(default_factory=list)   # targets of a multi-target requirement NOT acquired
+    candidates: list[CandidateRecord] = Field(default_factory=list)
     checks: AssetChecks = Field(default_factory=AssetChecks)
 
     @field_validator("file_path")
@@ -440,11 +490,21 @@ class AssetRecord(_Contract):
                 raise ValueError(f"missing asset {self.asset_id} must not carry a file_path")
         if s is not AssetStatus.acquired and not self.notes.strip():
             raise ValueError(f"{s.value} asset {self.asset_id} requires notes explaining why")
+        if s is AssetStatus.acquired and self.type is AssetType.image:
+            if not (self.sha256 and self.mime and self.width and self.height):
+                raise ValueError(f"acquired image {self.asset_id} requires sha256, mime, width and height")
+            if re.search(r"\bBY\b", (self.license_or_terms or "").upper()) and not (self.author and self.attribution):
+                raise ValueError(f"CC BY(-SA) image {self.asset_id} requires author and attribution")
+        if s is AssetStatus.acquired and self.type is AssetType.reference and not self.identifier:
+            raise ValueError(f"acquired reference {self.asset_id} requires an identifier (DOI)")
         return self
 
 
 class AssetRegistry(_RunFile):
     assets: list[AssetRecord]
+    sources: list[SourceCall] = Field(default_factory=list)
+    relevance_filter: RelevanceInfo | None = None
+    summary: str = ""
 
     @model_validator(mode="after")
     def _unique(self) -> "AssetRegistry":

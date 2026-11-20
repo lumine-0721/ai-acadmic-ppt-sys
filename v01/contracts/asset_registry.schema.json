@@ -63,8 +63,50 @@
           "title": "Asset Id",
           "type": "string"
         },
+        "attribution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribution"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Author"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/CandidateRecord"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
         "checks": {
           "$ref": "#/$defs/AssetChecks"
+        },
+        "entity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "file_path": {
           "anyOf": [
@@ -79,6 +121,31 @@
           "default": null,
           "title": "File Path"
         },
+        "height": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "identifier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Identifier"
+        },
         "license_or_terms": {
           "anyOf": [
             {
@@ -90,6 +157,18 @@
           ],
           "default": null,
           "title": "License Or Terms"
+        },
+        "mime": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mime"
         },
         "notes": {
           "default": "",
@@ -108,6 +187,18 @@
           ],
           "default": null,
           "title": "Retrieved At"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
         },
         "source_name": {
           "anyOf": [
@@ -135,6 +226,38 @@
         },
         "status": {
           "$ref": "#/$defs/AssetStatus"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "uncovered_targets": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Uncovered Targets",
+          "type": "array"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
         }
       },
       "required": [
@@ -153,6 +276,272 @@
       ],
       "title": "AssetStatus",
       "type": "string"
+    },
+    "AssetType": {
+      "description": "Asset kinds shared by stage B (asset_needs) and stage C (requirements).",
+      "enum": [
+        "image",
+        "icon",
+        "diagram",
+        "chart_data",
+        "table",
+        "reference",
+        "statistic"
+      ],
+      "title": "AssetType",
+      "type": "string"
+    },
+    "CandidateRecord": {
+      "additionalProperties": false,
+      "description": "One candidate D looked at for a requirement, and why it was kept or rejected (audit trail).",
+      "properties": {
+        "decision": {
+          "enum": [
+            "selected",
+            "rejected"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "license": {
+          "default": "",
+          "title": "License",
+          "type": "string"
+        },
+        "origin": {
+          "default": "",
+          "title": "Origin",
+          "type": "string"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "decision"
+      ],
+      "title": "CandidateRecord",
+      "type": "object"
+    },
+    "EntityRef": {
+      "additionalProperties": false,
+      "description": "Wikidata disambiguation result for a named target. ``alternatives`` keeps what was NOT chosen.",
+      "properties": {
+        "alternatives": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "chosen_by": {
+          "enum": [
+            "only_candidate",
+            "search_rank",
+            "relevance_score"
+          ],
+          "title": "Chosen By",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "qid": {
+          "pattern": "^Q\\d+$",
+          "title": "Qid",
+          "type": "string"
+        },
+        "url": {
+          "pattern": "^https?://\\S+$",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "qid",
+        "label",
+        "url",
+        "chosen_by"
+      ],
+      "title": "EntityRef",
+      "type": "object"
+    },
+    "RelevanceInfo": {
+      "additionalProperties": false,
+      "description": "How the filter ran. ``scorer is None`` means structural rules only (and ``note`` says why).",
+      "properties": {
+        "mode": {
+          "enum": [
+            "auto",
+            "structural",
+            "off"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "n_candidates": {
+          "minimum": 0,
+          "title": "N Candidates",
+          "type": "integer"
+        },
+        "n_filtered": {
+          "minimum": 0,
+          "title": "N Filtered",
+          "type": "integer"
+        },
+        "n_kept": {
+          "minimum": 0,
+          "title": "N Kept",
+          "type": "integer"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "rules_version": {
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "scorer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scorer"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        }
+      },
+      "required": [
+        "mode",
+        "rules_version",
+        "n_candidates",
+        "n_kept",
+        "n_filtered"
+      ],
+      "title": "RelevanceInfo",
+      "type": "object"
+    },
+    "SourceCall": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "minLength": 1,
+          "title": "Backend",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "hits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hits",
+          "type": "integer"
+        },
+        "purpose": {
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "query": {
+          "default": "",
+          "title": "Query",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "no_results",
+            "error",
+            "disabled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "backend",
+        "purpose",
+        "status"
+      ],
+      "title": "SourceCall",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -164,6 +553,17 @@
       "title": "Assets",
       "type": "array"
     },
+    "relevance_filter": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RelevanceInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "run_id": {
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
       "title": "Run Id",
@@ -173,6 +573,18 @@
       "const": "0.1",
       "default": "0.1",
       "title": "Schema Version",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceCall"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "summary": {
+      "default": "",
+      "title": "Summary",
       "type": "string"
     }
   },

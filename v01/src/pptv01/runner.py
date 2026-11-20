@@ -21,6 +21,8 @@ from pptv01.a_plan import ARTIFACT as A_FILE, run_stage_a
 from pptv01.c_asset_requirements import ARTIFACT as C_FILE, run_stage_c
 from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchFailed, run_stage_b
 from pptv01.contracts import (
+    AssetRegistry,
+    AssetRequirements,
     ProductionPlan,
     ResearchRecord,
     SlidePlan,
@@ -31,7 +33,8 @@ from pptv01.contracts import (
     load_contract,
     write_contract,
 )
-from pptv01.llm import ChatClient, LLMError
+from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env
+from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval import ResearchProvider, research_from_env
 
 STAGE_NAMES = {
@@ -44,7 +47,7 @@ STAGE_NAMES = {
     "G": "pptx_generation",
     "H": "render_qa_repair",
 }
-IMPLEMENTED_STAGES = ("A", "B", "C")
+IMPLEMENTED_STAGES = ("A", "B", "C", "D")
 
 
 def _now() -> datetime:
@@ -84,6 +87,18 @@ def _research_summary(rec: ResearchRecord) -> dict[str, Any]:
     }
 
 
+def _assets_summary(reg: AssetRegistry) -> dict[str, Any]:
+    rf = reg.relevance_filter
+    return {
+        "summary": reg.summary,
+        "acquired": [{"id": a.asset_id, "type": a.type.value if a.type else None, "source": a.source_name,
+                      "license": a.license_or_terms, "identifier": a.identifier} for a in reg.assets if a.status.value == "acquired"],
+        "missing": [a.asset_id for a in reg.assets if a.status.value == "missing"],
+        "source_calls": len(reg.sources), "source_errors": sum(c.status == "error" for c in reg.sources),
+        "relevance_filter": None if rf is None else {"scorer": rf.scorer, "threshold": rf.threshold, "note": rf.note},
+    }
+
+
 def _write_trace(run_dir: Path, stage: str, attempts: list[dict[str, Any]], model_id: str) -> str:
     rel = f"llm_trace/{stage}.json"
     p = run_dir / rel
@@ -103,6 +118,7 @@ def run_pipeline(
     run_id: str | None = None,
     resume: bool = False,
     research: ResearchProvider | None = None,
+    assets: DServices | None = None,
     clock: Callable[[], datetime] = _now,
 ) -> tuple[RunReport, Path]:
     """Run implemented stages for one utterance. Returns (report, run_dir).
@@ -123,6 +139,7 @@ def run_pipeline(
     records: dict[str, StageRecord] = {}
     plan: ProductionPlan | None = None
     slide_plan: SlidePlan | None = None
+    reqs: AssetRequirements | None = None
     notes: dict[str, Any] = {}
     failure: str | None = None
     defaults_summary: list[str] = []
@@ -180,7 +197,7 @@ def run_pipeline(
         t0 = clock()
         client.set_stage("C")
         try:
-            _, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
+            reqs, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
             record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)])
         except (LLMError, ValueError) as e:
             trace = getattr(e, "attempts", None)
@@ -191,7 +208,34 @@ def run_pipeline(
         records["C"] = StageRecord(stage="C", name=STAGE_NAMES["C"], status=StageStatus.skipped,
                                    error="skipped: stage B did not produce a slide plan")
 
-    for code in "DEFGH":
+    # ---- Stage D (asset registry: real retrieval; no LLM involved)
+    assets_summary: dict[str, Any] = {}
+    missing_assets: list[str] = []
+    if reqs is not None:
+        t0 = clock()
+        svc = None
+        try:
+            svc = assets if assets is not None else services_from_env()
+            reg = run_stage_d(plan, slide_plan, reqs, run_dir, svc)
+            missing_assets = [a.asset_id for a in reg.assets if a.status.value == "missing"]
+            assets_summary = _assets_summary(reg)
+            record("D", StageStatus.done, t0, [REGISTRY_FILE] + sorted(
+                str(p.relative_to(run_dir)) for p in (run_dir / "assets").glob("*") if p.is_file()))
+        except AssetRetrievalFailed as e:
+            assets_summary = _assets_summary(e.registry)
+            missing_assets = [a.asset_id for a in e.registry.assets]
+            failure = f"stage D failed: {e}"[:600]
+            record("D", StageStatus.failed, t0, [REGISTRY_FILE], failure)
+        except (LLMConfigError, ValueError) as e:
+            failure = f"stage D failed: {type(e).__name__}: {str(e)[:500]}"
+            record("D", StageStatus.failed, t0, [], failure)
+        finally:
+            if svc is not None and assets is None:
+                svc.close()
+    else:
+        records["D"] = StageRecord(stage="D", name=STAGE_NAMES["D"], status=StageStatus.skipped,
+                                   error="skipped: stage C did not produce asset requirements")
+    for code in "EFGH":
         records[code] = StageRecord(stage=code, name=STAGE_NAMES[code], status=StageStatus.not_implemented)
 
     stages = [records[c] for c in "ABCDEFGH"]
@@ -219,10 +263,11 @@ def run_pipeline(
             "llm": client.describe(),
             "implemented_stages": list(IMPLEMENTED_STAGES),
             "research": research_summary or {"status": "not_run"},
+            "assets": assets_summary or {"status": "not_run"},
         },
         stages=stages,
         defaults_summary=defaults_summary,
-        missing_assets=[],
+        missing_assets=missing_assets,
         revision_count=0,
         failure_reason=failure,
     )

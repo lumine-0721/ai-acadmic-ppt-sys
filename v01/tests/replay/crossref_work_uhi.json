@@ -1,0 +1,1013 @@
+{
+ "status": "ok",
+ "message-type": "work",
+ "message-version": "1.0.0",
+ "message": {
+  "indexed": {
+   "date-parts": [
+    [
+     2026,
+     11,
+     15
+    ]
+   ],
+   "date-time": "2026-11-15T04:30:44Z",
+   "timestamp": 1794717044108,
+   "version": "4.9.1"
+  },
+  "reference-count": 70,
+  "publisher": "Springer Science and Business Media LLC",
+  "issue": "1",
+  "license": [
+   {
+    "start": {
+     "date-parts": [
+      [
+       2020,
+       5,
+       27
+      ]
+     ],
+     "date-time": "2020-05-27T00:00:00Z",
+     "timestamp": 1590537600000
+    },
+    "content-version": "tdm",
+    "delay-in-days": 0,
+    "URL": "https://creativecommons.org/licenses/by/4.0"
+   },
+   {
+    "start": {
+     "date-parts": [
+      [
+       2020,
+       5,
+       27
+      ]
+     ],
+     "date-time": "2020-05-27T00:00:00Z",
+     "timestamp": 1590537600000
+    },
+    "content-version": "vor",
+    "delay-in-days": 0,
+    "URL": "https://creativecommons.org/licenses/by/4.0"
+   }
+  ],
+  "content-domain": {
+   "domain": [
+    "link.springer.com"
+   ],
+   "crossmark-restriction": false
+  },
+  "short-container-title": [
+   "Nat Commun"
+  ],
+  "abstract": "<jats:title>Abstract</jats:title>\n                  <jats:p>The canopy layer urban heat island (UHI) effect, as manifested by elevated near-surface air temperatures in urban areas, exposes urban dwellers to additional heat stress in many cities, specially during heat waves. We simulate the urban climate of various generated cities under the same weather conditions. For mono-centric cities, we propose a linear combination of logarithmic city area and logarithmic gross building volume, which also captures the influence of building density. By studying various city shapes, we generalise and propose a reduced form to estimate UHI intensities based only on the structure of urban sites, as well as their relative distances. We conclude that in addition to the size, the UHI intensity of a city is directly related to the density and an amplifying effect that urban sites have on each other. Our approach can serve as a UHI rule of thumb for the comparison of urban development scenarios.</jats:p>",
+  "DOI": "10.1038/s41467-020-16461-9",
+  "type": "journal-article",
+  "created": {
+   "date-parts": [
+    [
+     2020,
+     5,
+     27
+    ]
+   ],
+   "date-time": "2020-05-27T06:03:12Z",
+   "timestamp": 1590559392000
+  },
+  "update-policy": "https://doi.org/10.1007/springer_crossmark_policy",
+  "source": "Crossref",
+  "is-referenced-by-count": 497,
+  "title": [
+   "On the influence of density and morphology on the Urban Heat Island intensity"
+  ],
+  "prefix": "10.1038",
+  "volume": "11",
+  "author": [
+   {
+    "ORCID": "https://orcid.org/0000-0001-7023-4599",
+    "authenticated-orcid": false,
+    "given": "Yunfei",
+    "family": "Li",
+    "sequence": "first",
+    "affiliation": [],
+    "role": [
+     {
+      "vocabulary": "crossref",
+      "role": "author"
+     }
+    ]
+   },
+   {
+    "ORCID": "https://orcid.org/0000-0001-5683-3894",
+    "authenticated-orcid": false,
+    "given": "Sebastian",
+    "family": "Schubert",
+    "sequence": "additional",
+    "affiliation": [],
+    "role": [
+     {
+      "vocabulary": "crossref",
+      "role": "author"
+     }
+    ]
+   },
+   {
+    "ORCID": "https://orcid.org/0000-0001-7791-3420",
+    "authenticated-orcid": false,
+    "given": "Jürgen P.",
+    "family": "Kropp",
+    "sequence": "additional",
+    "affiliation": [],
+    "role": [
+     {
+      "vocabulary": "crossref",
+      "role": "author"
+     }
+    ]
+   },
+   {
+    "ORCID": "https://orcid.org/0000-0001-6125-7705",
+    "authenticated-orcid": false,
+    "given": "Diego",
+    "family": "Rybski",
+    "sequence": "additional",
+    "affiliation": [],
+    "role": [
+     {
+      "vocabulary": "crossref",
+      "role": "author"
+     }
+    ]
+   }
+  ],
+  "member": "297",
+  "published-online": {
+   "date-parts": [
+    [
+     2020,
+     5,
+     27
+    ]
+   ]
+  },
+  "reference": [
+   {
+    "key": "16461_CR1",
+    "doi-asserted-by": "crossref",
+    "unstructured": "Oke, T. R., Mills, G., Christen, A. & Voogt, J. A. Urban Climates (Cambridge University Press, 2017).",
+    "DOI": "10.1017/9781139016476"
+   },
+   {
+    "key": "16461_CR2",
+    "doi-asserted-by": "publisher",
+    "first-page": "1921",
+    "DOI": "10.1007/s10980-017-0561-4",
+    "volume": "32",
+    "author": "S Chapman",
+    "year": "2017",
+    "unstructured": "Chapman, S., Watson, J. E. M., Salazar, A., Thatcher, M. & McAlpine, C. A. The impact of urbanization and climate change on urban temperatures: a systematic review. Landsc. Ecol. 32, 1921–1935 (2017).",
+    "journal-title": "Landsc. Ecol."
+   },
+   {
+    "key": "16461_CR3",
+    "first-page": "1",
+    "volume": "108",
+    "author": "TR Oke",
+    "year": "1982",
+    "unstructured": "Oke, T. R. The energetic basis of the urban heat island. Q. J. R. Meteorol. Soc. 108, 1–24 (1982).",
+    "journal-title": "Q. J. R. Meteorol. Soc."
+   },
+   {
+    "key": "16461_CR4",
+    "doi-asserted-by": "publisher",
+    "first-page": "237",
+    "DOI": "10.1002/joc.3370010304",
+    "volume": "1",
+    "author": "TR Oke",
+    "year": "1981",
+    "unstructured": "Oke, T. R. Canyon geometry and the nocturnal urban heat island: comparison of scale model and field observations. J. Clim. 1, 237–254 (1981).",
+    "journal-title": "J. Clim."
+   },
+   {
+    "key": "16461_CR5",
+    "doi-asserted-by": "publisher",
+    "first-page": "216",
+    "DOI": "10.1038/nature13462",
+    "volume": "511",
+    "author": "L Zhao",
+    "year": "2014",
+    "unstructured": "Zhao, L., Lee, X., Smith, R. B. & Oleson, K. Strong contributions of local background climate to urban heat islands. Nature 511, 216 (2014).",
+    "journal-title": "Nature"
+   },
+   {
+    "key": "16461_CR6",
+    "doi-asserted-by": "publisher",
+    "first-page": "756",
+    "DOI": "10.1126/science.1150195",
+    "volume": "319",
+    "author": "NB Grimm",
+    "year": "2008",
+    "unstructured": "Grimm, N. B. et al. Global change and the ecology of cities. Science 319, 756–760 (2008).",
+    "journal-title": "Science"
+   },
+   {
+    "key": "16461_CR7",
+    "doi-asserted-by": "publisher",
+    "first-page": "310",
+    "DOI": "10.1038/nature04188",
+    "volume": "438",
+    "author": "JA Patz",
+    "year": "2005",
+    "unstructured": "Patz, J. A., Campbell-Lendrum, D., Holloway, T. & Foley, J. A. Impact of regional climate change on human health. Nature 438, 310 (2005).",
+    "journal-title": "Nature"
+   },
+   {
+    "key": "16461_CR8",
+    "doi-asserted-by": "publisher",
+    "first-page": "31",
+    "DOI": "10.1016/S0169-2046(00)00034-7",
+    "volume": "48",
+    "author": "I Eliasson",
+    "year": "2000",
+    "unstructured": "Eliasson, I. The use of climate knowledge in urban planning. Landsc. Urban Plan. 48, 31–44 (2000).",
+    "journal-title": "Landsc. Urban Plan."
+   },
+   {
+    "key": "16461_CR9",
+    "doi-asserted-by": "publisher",
+    "first-page": "75",
+    "DOI": "10.1007/s00484-009-0256-x",
+    "volume": "54",
+    "author": "J Tan",
+    "year": "2010",
+    "unstructured": "Tan, J. et al. The urban heat island and its impact on heat waves and human health in Shanghai. Int. J. Biometeorol. 54, 75–84 (2010).",
+    "journal-title": "Int. J. Biometeorol."
+   },
+   {
+    "key": "16461_CR10",
+    "doi-asserted-by": "publisher",
+    "first-page": "134",
+    "DOI": "10.1016/j.envint.2017.12.027",
+    "volume": "112",
+    "author": "Q Cao",
+    "year": "2018",
+    "unstructured": "Cao, Q., Yu, D., Georgescu, M., Wu, J. & Wang, W. Impacts of future urban expansion on summer climate and heat-related human health in eastern china. Environ. Int. 112, 134–146 (2018).",
+    "journal-title": "Environ. Int."
+   },
+   {
+    "key": "16461_CR11",
+    "doi-asserted-by": "publisher",
+    "first-page": "034003",
+    "DOI": "10.1088/1748-9326/aa9f73",
+    "volume": "13",
+    "author": "L Zhao",
+    "year": "2018",
+    "unstructured": "Zhao, L. et al. Interactions between urban heat islands and heat waves. Environ. Res. Lett. 13, 034003 (2018).",
+    "journal-title": "Environ. Res. Lett."
+   },
+   {
+    "key": "16461_CR12",
+    "doi-asserted-by": "publisher",
+    "first-page": "1651",
+    "DOI": "10.1007/s11069-014-1563-z",
+    "volume": "76",
+    "author": "D Habeeb",
+    "year": "2015",
+    "unstructured": "Habeeb, D., Vargo, J. & Stone, B. Rising heat wave trends in large us cities. Nat. Hazards 76, 1651–1665 (2015).",
+    "journal-title": "Nat. Hazards"
+   },
+   {
+    "key": "16461_CR13",
+    "doi-asserted-by": "publisher",
+    "first-page": "2044",
+    "DOI": "10.1016/j.envpol.2011.01.016",
+    "volume": "159",
+    "author": "KM Gabriel",
+    "year": "2011",
+    "unstructured": "Gabriel, K. M. & Endlicher, W. R. Urban and rural mortality rates during heat waves in Berlin and Brandenburg, Germany. Environ. Pollut. 159, 2044–2050 (2011).",
+    "journal-title": "Environ. Pollut."
+   },
+   {
+    "key": "16461_CR14",
+    "doi-asserted-by": "publisher",
+    "first-page": "094024",
+    "DOI": "10.1088/1748-9326/10/9/094024",
+    "volume": "10",
+    "author": "J Schatz",
+    "year": "2015",
+    "unstructured": "Schatz, J. & Kucharik, C. J. Urban climate effects on extreme temperatures in madison, wisconsin, usa. Environ. Res. Lett. 10, 094024 (2015).",
+    "journal-title": "Environ. Res. Lett."
+   },
+   {
+    "key": "16461_CR15",
+    "doi-asserted-by": "publisher",
+    "first-page": "2051",
+    "DOI": "10.1175/JAMC-D-13-02.1",
+    "volume": "52",
+    "author": "D Li",
+    "year": "2013",
+    "unstructured": "Li, D. & Bou-Zeid, E. Synergistic interactions between urban heat islands and heat waves: the impact in cities is larger than the sum of its parts. J. Appl. Meteorol. Climatol. 52, 2051–2064 (2013).",
+    "journal-title": "J. Appl. Meteorol. Climatol."
+   },
+   {
+    "key": "16461_CR16",
+    "doi-asserted-by": "publisher",
+    "first-page": "528",
+    "DOI": "10.1038/nature01675",
+    "volume": "423",
+    "author": "E Kalnay",
+    "year": "2003",
+    "unstructured": "Kalnay, E. & Cai, M. Impact of urbanization and land-use change on climate. Nature 423, 528 (2003).",
+    "journal-title": "Nature"
+   },
+   {
+    "key": "16461_CR17",
+    "doi-asserted-by": "publisher",
+    "first-page": "2183",
+    "DOI": "10.1007/s00382-013-1789-6",
+    "volume": "42",
+    "author": "D Argüeso",
+    "year": "2014",
+    "unstructured": "Argüeso, D., Evans, J. P., Fita, L. & Bormann, K. J. Temperature response to future urbanization and climate change. Clim. Dyn. 42, 2183–2199 (2014).",
+    "journal-title": "Clim. Dyn."
+   },
+   {
+    "key": "16461_CR18",
+    "doi-asserted-by": "publisher",
+    "first-page": "37",
+    "DOI": "10.1038/nclimate1656",
+    "volume": "3",
+    "author": "M Georgescu",
+    "year": "2013",
+    "unstructured": "Georgescu, M., Moustaoui, M., Mahalov, A. & Dudhia, J. Summer-time climate impacts of projected megapolitan expansion in Arizona. Nat. Clim. Chang. 3, 37 (2013).",
+    "journal-title": "Nat. Clim. Chang."
+   },
+   {
+    "key": "16461_CR19",
+    "doi-asserted-by": "publisher",
+    "first-page": "296",
+    "DOI": "10.1007/s40572-017-0150-3",
+    "volume": "4",
+    "author": "C Heaviside",
+    "year": "2017",
+    "unstructured": "Heaviside, C., Macintyre, H. & Vardoulakis, S. The urban heat island: implications for health in a changing environment. Curr. Environ. Health Rep. 4, 296–305 (2017).",
+    "journal-title": "Curr. Environ. Health Rep."
+   },
+   {
+    "key": "16461_CR20",
+    "doi-asserted-by": "publisher",
+    "first-page": "1097",
+    "DOI": "10.1038/s41558-018-0320-9",
+    "volume": "8",
+    "author": "ES Krayenhoff",
+    "year": "2018",
+    "unstructured": "Krayenhoff, E. S., Moustaoui, M., Broadbent, A. M., Gupta, V. & Georgescu, M. Diurnal interaction between urban expansion, climate change and adaptation in us cities. Nat. Clim. Chang. 8, 1097 (2018).",
+    "journal-title": "Nat. Clim. Chang."
+   },
+   {
+    "key": "16461_CR21",
+    "doi-asserted-by": "publisher",
+    "first-page": "403",
+    "DOI": "10.1038/nclimate3301",
+    "volume": "7",
+    "author": "F Estrada",
+    "year": "2017",
+    "unstructured": "Estrada, F., Botzen, W. W. & Tol, R. S. A global economic assessment of city policies to reduce climate change impacts. Nat. Clim. Chang. 7, 403 (2017).",
+    "journal-title": "Nat. Clim. Chang."
+   },
+   {
+    "key": "16461_CR22",
+    "doi-asserted-by": "publisher",
+    "first-page": "905-917",
+    "DOI": "10.1002/joc.4748",
+    "volume": "37",
+    "author": "S Grossman-Clarke",
+    "year": "2017",
+    "unstructured": "Grossman-Clarke, S., Schubert, S. & Fenner, D. Urban effects on temperature in germany under climate change. Int. J. Climatol. 37, 905-917 (2017).",
+    "journal-title": "Int. J. Climatol."
+   },
+   {
+    "key": "16461_CR23",
+    "doi-asserted-by": "publisher",
+    "first-page": "254",
+    "DOI": "10.1289/ehp.1103532",
+    "volume": "120",
+    "author": "K Laaidi",
+    "year": "2011",
+    "unstructured": "Laaidi, K. et al. The impact of heat islands on mortality in Paris during the august 2003 heat wave. Environ. Health Perspect. 120, 254–259 (2011).",
+    "journal-title": "Environ. Health Perspect."
+   },
+   {
+    "key": "16461_CR24",
+    "doi-asserted-by": "publisher",
+    "first-page": "44",
+    "DOI": "10.1111/j.1467-8306.1989.tb00249.x",
+    "volume": "79",
+    "author": "LS Kalkstein",
+    "year": "1989",
+    "unstructured": "Kalkstein, L. S. & Davis, R. E. Weather and human mortality: an evaluation of demographic and interregional responses in the united states. Ann. Assoc. Am. Geogr. 79, 44–64 (1989).",
+    "journal-title": "Ann. Assoc. Am. Geogr."
+   },
+   {
+    "key": "16461_CR25",
+    "doi-asserted-by": "publisher",
+    "first-page": "2497",
+    "DOI": "10.1016/j.buildenv.2010.05.012",
+    "volume": "45",
+    "author": "ER Marciotto",
+    "year": "2010",
+    "unstructured": "Marciotto, E. R., Oliveira, A. P. & Hanna, S. R. Modeling study of the aspect ratio influence on urban canopy energy fluxes with a modified wall-canyon energy budget scheme. Build. Environ. 45, 2497–2505 (2010).",
+    "journal-title": "Build. Environ."
+   },
+   {
+    "key": "16461_CR26",
+    "doi-asserted-by": "publisher",
+    "first-page": "91",
+    "DOI": "10.1016/j.buildenv.2014.08.029",
+    "volume": "83",
+    "author": "L Van Hove",
+    "year": "2015",
+    "unstructured": "Van Hove, L. et al. Temporal and spatial variability of urban heat island and thermal comfort within the rotterdam agglomeration. Build. Environ. 83, 91–103 (2015).",
+    "journal-title": "Build. Environ."
+   },
+   {
+    "key": "16461_CR27",
+    "doi-asserted-by": "publisher",
+    "first-page": "3110",
+    "DOI": "10.1016/j.scitotenv.2018.10.025",
+    "volume": "650",
+    "author": "H Li",
+    "year": "2019",
+    "unstructured": "Li, H. et al. Quantifying urban heat island intensity and its physical mechanism using wrf/ucm. Sci. Total Environ. 650, 3110–3119 (2019).",
+    "journal-title": "Sci. Total Environ."
+   },
+   {
+    "key": "16461_CR28",
+    "doi-asserted-by": "publisher",
+    "first-page": "131",
+    "DOI": "10.1127/0941-2948/2013/0393",
+    "volume": "22",
+    "author": "S Schubert",
+    "year": "2013",
+    "unstructured": "Schubert, S. & Grossman-Clarke, S. The influence of green areas and roof albedos on air temperatures during extreme heat events in Berlin, Germany. Meteorol. Z. 22, 131–143 (2013).",
+    "journal-title": "Meteorol. Z."
+   },
+   {
+    "key": "16461_CR29",
+    "doi-asserted-by": "publisher",
+    "first-page": "68",
+    "DOI": "10.1016/j.landurbplan.2018.11.006",
+    "volume": "183",
+    "author": "M Straka",
+    "year": "2019",
+    "unstructured": "Straka, M. & Sodoudi, S. Evaluating climate change adaptation strategies and scenarios of enhanced vertical and horizontal compactness at urban scale (a case study for berlin). Landsc. Urban Plan. 183, 68–78 (2019).",
+    "journal-title": "Landsc. Urban Plan."
+   },
+   {
+    "key": "16461_CR30",
+    "doi-asserted-by": "publisher",
+    "first-page": "582",
+    "DOI": "10.1002/joc.2292",
+    "volume": "32",
+    "author": "E Ng",
+    "year": "2012",
+    "unstructured": "Ng, E. Towards planning and practical understanding of the need for meteorological and climatic information in the design of high-density cities: a case-based study of Hong Kong. Int. J. Climatol. 32, 582–598 (2012).",
+    "journal-title": "Int. J. Climatol."
+   },
+   {
+    "key": "16461_CR31",
+    "doi-asserted-by": "publisher",
+    "DOI": "10.1038/s41598-017-04242-2",
+    "volume": "7",
+    "author": "B Zhou",
+    "year": "2017",
+    "unstructured": "Zhou, B., Rybski, D. & Kropp, J. P. The role of city size and urban form in the surface urban heat island. Sci. Rep. 7, 4791 (2017).",
+    "journal-title": "Sci. Rep."
+   },
+   {
+    "key": "16461_CR32",
+    "doi-asserted-by": "publisher",
+    "first-page": "1467",
+    "DOI": "10.1016/j.scitotenv.2018.04.091",
+    "volume": "635",
+    "author": "X Zhou",
+    "year": "2018",
+    "unstructured": "Zhou, X. & Chen, H. Impact of urbanization-related land use land cover changes and urban morphology changes on the urban heat island phenomenon. Sci. Total Environ. 635, 1467–1476 (2018).",
+    "journal-title": "Sci. Total Environ."
+   },
+   {
+    "key": "16461_CR33",
+    "doi-asserted-by": "publisher",
+    "first-page": "1425",
+    "DOI": "10.1289/ehp.0901879",
+    "volume": "118",
+    "author": "B Stone",
+    "year": "2010",
+    "unstructured": "Stone, B., Hess, J. J. & Frumkin, H. Urban form and extreme heat events: are sprawling cities more vulnerable to climate change than compact cities? Environ. Health Perspect. 118, 1425–1428 (2010).",
+    "journal-title": "Environ. Health Perspect."
+   },
+   {
+    "key": "16461_CR34",
+    "doi-asserted-by": "publisher",
+    "first-page": "439",
+    "DOI": "10.1007/s10546-012-9728-3",
+    "volume": "145",
+    "author": "S Schubert",
+    "year": "2012",
+    "unstructured": "Schubert, S., Grossman-Clarke, S. & Martilli, A. A double-canyon radiation scheme for multi-layer urban canopy models. Bound. Layer. Meteor. 145, 439–468 (2012).",
+    "journal-title": "Bound. Layer. Meteor."
+   },
+   {
+    "key": "16461_CR35",
+    "doi-asserted-by": "publisher",
+    "first-page": "696",
+    "DOI": "10.1021/es2030438",
+    "volume": "46",
+    "author": "S Peng",
+    "year": "2012",
+    "unstructured": "Peng, S. et al. Surface urban heat island across 419 global big cities. Environ. Sci. Technol. 46, 696–703 (2012).",
+    "journal-title": "Environ. Sci. Technol."
+   },
+   {
+    "key": "16461_CR36",
+    "doi-asserted-by": "publisher",
+    "first-page": "5486",
+    "DOI": "10.1002/2013GL057320",
+    "volume": "40",
+    "author": "B Zhou",
+    "year": "2013",
+    "unstructured": "Zhou, B., Rybski, D. & Kropp, J. P. On the statistics of urban heat island intensity. Geophys. Res. Lett. 40, 5486–5491 (2013).",
+    "journal-title": "Geophys. Res. Lett."
+   },
+   {
+    "key": "16461_CR37",
+    "doi-asserted-by": "publisher",
+    "first-page": "179",
+    "DOI": "10.1007/s00704-005-0153-0",
+    "volume": "84",
+    "author": "TR Oke",
+    "year": "2006",
+    "unstructured": "Oke, T. R. Towards better scientific communication in urban climate. Theor. Appl. Climatol. 84, 179–190 (2006).",
+    "journal-title": "Theor. Appl. Climatol."
+   },
+   {
+    "key": "16461_CR38",
+    "unstructured": "Stewart, I. & Oke, T. R. Methodological concerns surrounding the classification of urban and rural climate stations to define urban heat island magnitude. In Proc. of the Preparation 6th International Conference Urban Climate, 431–444 (International Association for Urban Climate, Goteborg, Sweden, 2006)."
+   },
+   {
+    "key": "16461_CR39",
+    "doi-asserted-by": "publisher",
+    "unstructured": "Li, Y., Rybski, D. & Kropp, J. P. Singularity cities. Environ. Plan. B https://doi.org/10.1177/2399808319843534 (2019).",
+    "DOI": "10.1177/2399808319843534"
+   },
+   {
+    "key": "16461_CR40",
+    "doi-asserted-by": "publisher",
+    "first-page": "042114",
+    "DOI": "10.1103/PhysRevE.87.042114",
+    "volume": "87",
+    "author": "D Rybski",
+    "year": "2013",
+    "unstructured": "Rybski, D., Ros, A. G. C. & Kropp, J. P. Distance weighted city growth. Phys. Rev. E 87, 042114 (2013).",
+    "journal-title": "Phys. Rev. E"
+   },
+   {
+    "key": "16461_CR41",
+    "doi-asserted-by": "publisher",
+    "first-page": "769",
+    "DOI": "10.1016/0004-6981(73)90140-6",
+    "volume": "7",
+    "author": "TRR Oke",
+    "year": "1973",
+    "unstructured": "Oke, T. R. R. City size and the urban heat island. Atmos. Environ. 7, 769–779 (1973).",
+    "journal-title": "Atmos. Environ."
+   },
+   {
+    "key": "16461_CR42",
+    "doi-asserted-by": "publisher",
+    "first-page": "426",
+    "DOI": "10.1016/j.scitotenv.2017.06.229",
+    "volume": "605",
+    "author": "X Li",
+    "year": "2017",
+    "unstructured": "Li, X., Zhou, Y., Asrar, G. R., Imhoff, M. & Li, X. The surface urban heat island response to urban expansion: a panel analysis for the conterminous united states. Sci. Total Environ. 605, 426–435 (2017).",
+    "journal-title": "Sci. Total Environ."
+   },
+   {
+    "key": "16461_CR43",
+    "doi-asserted-by": "publisher",
+    "first-page": "55",
+    "DOI": "10.1038/s41586-019-1512-9",
+    "volume": "573",
+    "author": "G Manoli",
+    "year": "2019",
+    "unstructured": "Manoli, G. et al. Magnitude of urban heat islands largely explained by climate and population. Nature 573, 55–60 (2019).",
+    "journal-title": "Nature"
+   },
+   {
+    "key": "16461_CR44",
+    "unstructured": "Oke, T. R. Boundary Layer Climates 2nd edn (Methuen, London, 1987)."
+   },
+   {
+    "key": "16461_CR45",
+    "doi-asserted-by": "publisher",
+    "first-page": "283",
+    "DOI": "10.1080/02723646.2000.10642711",
+    "volume": "21",
+    "author": "K Runnalls",
+    "year": "2000",
+    "unstructured": "Runnalls, K. & Oke, T. Dynamics and controls of the near-surface heat island of vancouver, british columbia. Phys. Geogr. 21, 283–304 (2000).",
+    "journal-title": "Phys. Geogr."
+   },
+   {
+    "key": "16461_CR46",
+    "volume-title": "Fractal Cities: A Geometry of Form and Function",
+    "author": "M Batty",
+    "year": "1994",
+    "unstructured": "Batty, M. & Longley, P. Fractal Cities: A Geometry of Form and Function (Academic Press Inc, San Diego, CA and London, 1994)."
+   },
+   {
+    "key": "16461_CR47",
+    "doi-asserted-by": "publisher",
+    "first-page": "1400",
+    "DOI": "10.1103/PhysRevLett.47.1400",
+    "volume": "47",
+    "author": "TA Witten Jr.",
+    "year": "1981",
+    "unstructured": "Witten Jr., T. A. & Sander, L. M. Diffusion-limited aggregation, a kinetic critical phenomenon. Phys. Rev. Lett. 47, 1400–1403 (1981).",
+    "journal-title": "Phys. Rev. Lett."
+   },
+   {
+    "key": "16461_CR48",
+    "doi-asserted-by": "publisher",
+    "first-page": "55",
+    "DOI": "10.1007/BF01934667",
+    "volume": "67",
+    "author": "AS Fotheringham",
+    "year": "1989",
+    "unstructured": "Fotheringham, A. S., Batty, M. & Longley, P. A. Diffusion-limited aggregation and the fractal nature of urban growth. Pap. Reg. Sci. Assoc. 67, 55–69 (1989).",
+    "journal-title": "Pap. Reg. Sci. Assoc."
+   },
+   {
+    "key": "16461_CR49",
+    "doi-asserted-by": "publisher",
+    "first-page": "192",
+    "DOI": "10.3758/BF03206482",
+    "volume": "11",
+    "author": "E-J Wagenmakers",
+    "year": "2004",
+    "unstructured": "Wagenmakers, E.-J. & Farrell, S. Aic model selection using akaike weights. Psychon. Bull. Rev. 11, 192–196 (2004).",
+    "journal-title": "Psychon. Bull. Rev."
+   },
+   {
+    "key": "16461_CR50",
+    "doi-asserted-by": "publisher",
+    "first-page": "94",
+    "DOI": "10.1016/j.buildenv.2005.01.013",
+    "volume": "41",
+    "author": "F Ali-Toudert",
+    "year": "2006",
+    "unstructured": "Ali-Toudert, F. & Mayer, H. Numerical study on the effects of aspect ratio and orientation of an urban street canyon on outdoor thermal comfort in hot and dry climate. Build. Environ. 41, 94–108 (2006).",
+    "journal-title": "Build. Environ."
+   },
+   {
+    "key": "16461_CR51",
+    "unstructured": "United Nations Population Division. World Population Prospects 2019: Highlights https://population.un.org/wpp/Publications/Files/WPP2019_Highlights.pdf (2019)."
+   },
+   {
+    "key": "16461_CR52",
+    "doi-asserted-by": "publisher",
+    "first-page": "16",
+    "DOI": "10.1016/j.landurbplan.2013.11.004",
+    "volume": "122",
+    "author": "A Middel",
+    "year": "2014",
+    "unstructured": "Middel, A., Häb, K., Brazel, A. J., Martin, C. A. & Guhathakurta, S. Impact of urban form and design on mid-afternoon microclimate in phoenix local climate zones. Landsc. Urban Plan. 122, 16–28 (2014).",
+    "journal-title": "Landsc. Urban Plan."
+   },
+   {
+    "key": "16461_CR53",
+    "doi-asserted-by": "publisher",
+    "first-page": "696",
+    "DOI": "10.1016/j.scitotenv.2018.03.350",
+    "volume": "634",
+    "author": "C Yin",
+    "year": "2018",
+    "unstructured": "Yin, C., Yuan, M., Lu, Y., Huang, Y. & Liu, Y. Effects of urban form on the urban heat island effect based on spatial regression model. Sci. Total Environ. 634, 696–704 (2018).",
+    "journal-title": "Sci. Total Environ."
+   },
+   {
+    "key": "16461_CR54",
+    "doi-asserted-by": "publisher",
+    "first-page": "1447",
+    "DOI": "10.1068/a211447",
+    "volume": "21",
+    "author": "M Batty",
+    "year": "1989",
+    "unstructured": "Batty, M., Longley, P. & Fotheringham, S. Urban growth and form: scaling, fractal geometry, and diffusion-limited aggregation. Environ. Plan. A 21, 1447–1472 (1989).",
+    "journal-title": "Environ. Plan. A"
+   },
+   {
+    "key": "16461_CR55",
+    "doi-asserted-by": "publisher",
+    "DOI": "10.7551/mitpress/9399.001.0001",
+    "volume-title": "The New Science of Cities",
+    "author": "M Batty",
+    "year": "2013",
+    "unstructured": "Batty, M. The New Science of Cities (MIT Press, Cambridge, MA, 2013)."
+   },
+   {
+    "key": "16461_CR56",
+    "doi-asserted-by": "publisher",
+    "first-page": "1",
+    "DOI": "10.1016/0378-7788(84)90040-9",
+    "volume": "7",
+    "author": "TR Oke",
+    "year": "1984",
+    "unstructured": "Oke, T. R. Towards a prescription for the greater use of climatic principles in settlement planning. Energy Build. 7, 1–10 (1984).",
+    "journal-title": "Energy Build."
+   },
+   {
+    "key": "16461_CR57",
+    "doi-asserted-by": "publisher",
+    "first-page": "69",
+    "DOI": "10.1007/s00704-005-0145-0",
+    "volume": "84",
+    "author": "G Mills",
+    "year": "2006",
+    "unstructured": "Mills, G. Progress toward sustainable settlements: a role for urban climatology. Theor. Appl. Climatol. 84, 69–76 (2006).",
+    "journal-title": "Theor. Appl. Climatol."
+   },
+   {
+    "key": "16461_CR58",
+    "doi-asserted-by": "publisher",
+    "first-page": "228",
+    "DOI": "10.1016/j.proenv.2010.09.015",
+    "volume": "1",
+    "author": "G Mills",
+    "year": "2010",
+    "unstructured": "Mills, G. et al. Climate information for improved planning and management of mega cities (needs perspective). Procedia Environ. Sci. 1, 228–246 (2010).",
+    "journal-title": "Procedia Environ. Sci."
+   },
+   {
+    "key": "16461_CR59",
+    "doi-asserted-by": "publisher",
+    "first-page": "687",
+    "DOI": "10.1002/qj.2144",
+    "volume": "140",
+    "author": "S Bohnenstengel",
+    "year": "2014",
+    "unstructured": "Bohnenstengel, S., Hamilton, I., Davies, M. & Belcher, S. Impact of anthropogenic heat emissions on london’s temperatures. Q. J. R. Meteorol. Soc. 140, 687–698 (2014).",
+    "journal-title": "Q. J. R. Meteorol. Soc."
+   },
+   {
+    "key": "16461_CR60",
+    "doi-asserted-by": "publisher",
+    "first-page": "497524",
+    "DOI": "10.1155/2011/497524",
+    "volume": "2011",
+    "author": "P Shahmohamadi",
+    "year": "2011",
+    "unstructured": "Shahmohamadi, P., Che-Ani, A., Maulud, K., Tawil, N. & Abdullah, N. The impact of anthropogenic heat on formation of urban heat island and energy consumption balance. Urban Stud. Res. 2011, 497524 (2011).",
+    "journal-title": "Urban Stud. Res"
+   },
+   {
+    "key": "16461_CR61",
+    "doi-asserted-by": "publisher",
+    "first-page": "99",
+    "DOI": "10.1016/S0378-7788(96)00999-1",
+    "volume": "25",
+    "author": "H Taha",
+    "year": "1997",
+    "unstructured": "Taha, H. Urban climates and heat islands: albedo, evapotranspiration, and anthropogenic heat. Energy Build. 25, 99–103 (1997).",
+    "journal-title": "Energy Build."
+   },
+   {
+    "key": "16461_CR62",
+    "doi-asserted-by": "publisher",
+    "first-page": "149",
+    "DOI": "10.1016/j.apenergy.2013.11.057",
+    "volume": "117",
+    "author": "C Li",
+    "year": "2014",
+    "unstructured": "Li, C. et al. Interaction between urban microclimate and electric air-conditioning energy consumption during high temperature season. Appl. Energy 117, 149–156 (2014).",
+    "journal-title": "Appl. Energy"
+   },
+   {
+    "key": "16461_CR63",
+    "doi-asserted-by": "publisher",
+    "first-page": "5949",
+    "DOI": "10.1002/2013JD021225",
+    "volume": "119",
+    "author": "F Salamanca",
+    "year": "2014",
+    "unstructured": "Salamanca, F., Georgescu, M., Mahalov, A., Moustaoui, M. & Wang, M. Anthropogenic heating of the urban environment due to air conditioning. J. Geophys. Res. Atmos. 119, 5949–5965 (2014).",
+    "journal-title": "J. Geophys. Res. Atmos."
+   },
+   {
+    "key": "16461_CR64",
+    "doi-asserted-by": "publisher",
+    "first-page": "210",
+    "DOI": "10.1002/joc.3415",
+    "volume": "33",
+    "author": "C De Munck",
+    "year": "2013",
+    "unstructured": "De Munck, C. et al. How much can air conditioning increase air temperatures for a city like Paris, France? Int. J. Climatol. 33, 210–227 (2013).",
+    "journal-title": "Int. J. Climatol."
+   },
+   {
+    "key": "16461_CR65",
+    "doi-asserted-by": "publisher",
+    "first-page": "75",
+    "DOI": "10.1007/s00703-001-0592-9",
+    "volume": "82",
+    "author": "J Steppeler",
+    "year": "2003",
+    "unstructured": "Steppeler, J. et al. Meso-gamma scale forecasts using the nonhydrostatic model lm. Meteorol. Atmos. Phys. 82, 75–96 (2003).",
+    "journal-title": "Meteorol. Atmos. Phys."
+   },
+   {
+    "key": "16461_CR66",
+    "doi-asserted-by": "publisher",
+    "first-page": "2465",
+    "DOI": "10.1002/qj.2311",
+    "volume": "140",
+    "author": "S Schubert",
+    "year": "2014",
+    "unstructured": "Schubert, S. & Grossman-Clarke, S. Evaluation of the coupled COSMO-CLM/DCEP model with observations from BUBBLE. Q. J. R. Meteorol. Soc. 140, 2465–2483 (2014).",
+    "journal-title": "Q. J. R. Meteorol. Soc."
+   },
+   {
+    "key": "16461_CR67",
+    "doi-asserted-by": "publisher",
+    "first-page": "261",
+    "DOI": "10.1023/A:1016099921195",
+    "volume": "104",
+    "author": "A Martilli",
+    "year": "2002",
+    "unstructured": "Martilli, A., Clappier, A. & Rotach, M. W. An urban surface exchange parameterisation for mesoscale models. Bound. Layer. Meteor. 104, 261–304 (2002).",
+    "journal-title": "Bound. Layer. Meteor."
+   },
+   {
+    "key": "16461_CR68",
+    "doi-asserted-by": "publisher",
+    "first-page": "1879",
+    "DOI": "10.1175/BAMS-D-11-00019.1",
+    "volume": "93",
+    "author": "ID Stewart",
+    "year": "2012",
+    "unstructured": "Stewart, I. D. & Oke, T. R. Local climate zones for urban temperature studies. Bull. Am. Meteorol. Soc. 93, 1879–1900 (2012).",
+    "journal-title": "Bull. Am. Meteorol. Soc."
+   },
+   {
+    "key": "16461_CR69",
+    "doi-asserted-by": "publisher",
+    "first-page": "18702",
+    "DOI": "10.1073/pnas.0807435105",
+    "volume": "105",
+    "author": "HD Rozenfeld",
+    "year": "2008",
+    "unstructured": "Rozenfeld, H. D. et al. Laws of population growth. Proc. Natl Acad. Sci. USA 105, 18702–18707 (2008).",
+    "journal-title": "Proc. Natl Acad. Sci. USA"
+   },
+   {
+    "key": "16461_CR70",
+    "doi-asserted-by": "publisher",
+    "unstructured": "Li, Y., Schubert, S., Kropp, J. P. & Rybski, D. Urban canopy parameterization data for urban climate simulation using CCLM/DCEP and hourly 2m temperature output. PANGAEA https://doi.org/10.1594/PANGAEA.914906 (2020).",
+    "DOI": "10.1594/PANGAEA.914906"
+   }
+  ],
+  "container-title": [
+   "Nature Communications"
+  ],
+  "original-title": [],
+  "language": "en",
+  "link": [
+   {
+    "URL": "https://www.nature.com/articles/s41467-020-16461-9.pdf",
+    "content-type": "application/pdf",
+    "content-version": "vor",
+    "intended-application": "text-mining"
+   },
+   {
+    "URL": "https://www.nature.com/articles/s41467-020-16461-9",
+    "content-type": "text/html",
+    "content-version": "vor",
+    "intended-application": "text-mining"
+   },
+   {
+    "URL": "https://www.nature.com/articles/s41467-020-16461-9.pdf",
+    "content-type": "application/pdf",
+    "content-version": "vor",
+    "intended-application": "similarity-checking"
+   }
+  ],
+  "deposited": {
+   "date-parts": [
+    [
+     2022,
+     12,
+     5
+    ]
+   ],
+   "date-time": "2022-12-05T17:26:14Z",
+   "timestamp": 1670261174000
+  },
+  "score": 1,
+  "resource": {
+   "primary": {
+    "URL": "https://www.nature.com/articles/s41467-020-16461-9"
+   }
+  },
+  "subtitle": [],
+  "short-title": [],
+  "issued": {
+   "date-parts": [
+    [
+     2020,
+     5,
+     27
+    ]
+   ]
+  },
+  "references-count": 70,
+  "journal-issue": {
+   "issue": "1",
+   "published-online": {
+    "date-parts": [
+     [
+      2020,
+      12
+     ]
+    ]
+   }
+  },
+  "alternative-id": [
+   "16461"
+  ],
+  "URL": "https://doi.org/10.1038/s41467-020-16461-9",
+  "relation": {},
+  "ISSN": [
+   "2041-1723"
+  ],
+  "issn-type": [
+   {
+    "value": "2041-1723",
+    "type": "electronic"
+   }
+  ],
+  "subject": [],
+  "published": {
+   "date-parts": [
+    [
+     2020,
+     5,
+     27
+    ]
+   ]
+  },
+  "assertion": [
+   {
+    "value": "19 March 2019",
+    "order": 1,
+    "name": "received",
+    "label": "Received",
+    "group": {
+     "name": "ArticleHistory",
+     "label": "Article History"
+    }
+   },
+   {
+    "value": "4 May 2020",
+    "order": 2,
+    "name": "accepted",
+    "label": "Accepted",
+    "group": {
+     "name": "ArticleHistory",
+     "label": "Article History"
+    }
+   },
+   {
+    "value": "27 May 2020",
+    "order": 3,
+    "name": "first_online",
+    "label": "First Online",
+    "group": {
+     "name": "ArticleHistory",
+     "label": "Article History"
+    }
+   },
+   {
+    "value": "The authors declare no competing interests.",
+    "order": 1,
+    "name": "Ethics",
+    "group": {
+     "name": "EthicsHeading",
+     "label": "Competing interests"
+    }
+   }
+  ],
+  "article-number": "2647"
+ }
+}

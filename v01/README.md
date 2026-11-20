@@ -11,12 +11,14 @@ No multi-agent orchestrator, no Deck IR, no legacy handoff files.
 
 | Stage | State |
 | --- | --- |
-| Contracts (`contracts.py`, `contracts/*.schema.json`) | 9 contracts (incl. `research_brief`), validated |
+| Contracts (`contracts.py`, `contracts/*.schema.json`) | 11 contracts (incl. `research_brief`, `grade_report`, `gate_report`), validated |
 | LLM client (`llm.py`) | OpenAI-compatible or labelled `agent` backend; env-only config; 1 repair retry |
 | **A** production plan (+ `retrieval_brief`) | implemented |
-| **B** research + provisional slide plan | implemented; real retrieval (Wikipedia, Crossref, optional SearXNG); structured `asset_needs` |
+| **B** research + provisional slide plan | implemented; real retrieval (Wikipedia, Crossref, optional SearXNG) + relevance filter (structural rules, fastembed, optional bge-reranker; kept AND filtered hits recorded); structured `asset_needs` |
 | **C** asset requirements | implemented: every B need is covered or dropped with a reason; checked for traceability, concrete purpose, acceptance criteria |
-| D retrieve, E mapping, F layout, G pptx, H QA | **not implemented** — runner reports `not_implemented` |
+| **D** asset registry | implemented: Wikimedia Commons images (licence allowlist, author, source page) with Wikidata disambiguation/P18, OpenAlex (pyalex) + Crossref DOI verification for references; diagram/icon/statistic/chart_data/table are recorded `missing` with a reason (see `docs/stage-d-research.md`) |
+| Grading | PPTEval rubric (MIT, vendored verbatim) + separate deterministic hard gates: `pptv01 grade`, `pptv01 gates` (see `docs/grading.md`) |
+| E mapping, F layout, G pptx, H QA | **not implemented** — runner reports `not_implemented` |
 
 Unit tests use a scripted fake client / fake research / HTTP replay that exist only under `tests/`; the package has no mock fallback.
 Real model runs need an LLM (API key, or the `agent` backend where a human/agent answers); see below.
@@ -26,11 +28,11 @@ Real model runs need an LLM (API key, or the `agent` backend where a human/agent
 ```bash
 cd v01
 python3 -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev]"            # add ,rank for the fastembed relevance scorer (,rerank for bge-reranker)
 pytest
 ```
 
-Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx (pytest for dev).
+Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx, cn2an, pyalex, pillow (pytest for dev; fastembed optional).
 
 ## Environment variables (secrets only from env, never in code/logs)
 
@@ -44,6 +46,11 @@ Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx (pytest for dev).
 | `PPTV01_RESEARCH` | no | stage-B research: `auto` (default = wikipedia + crossref, no key needed) / `none` (explicitly off, recorded as `disabled`) / comma list `wikipedia,crossref,searxng` |
 | `PPTV01_RESEARCH_SEARXNG_URL` | with `searxng` | base URL of a SearXNG instance with the JSON API |
 | `PPTV01_RESEARCH_CONTACT` | no | e-mail/URL put in the User-Agent (Wikimedia/Crossref etiquette); Crossref `mailto` if it contains `@` |
+| `PPTV01_RELEVANCE` | no | `auto` (default: structural rules + fastembed if installed, else structural only, recorded) / `structural` / `off` |
+| `PPTV01_RELEVANCE_SCORER` / `_THRESHOLD` | no | `fastembed` (default, 0.30) or `bge-reranker` (opt-in, see `docs/relevance-benchmark.md`) / float override |
+| `PPTV01_ASSETS` | no | stage D: `auto` (default) / `none` (explicitly off, every requirement recorded `missing`) |
+| `PPTV01_OPENALEX_API_KEY` / `_EMAIL` | no | OpenAlex free key (the shared anonymous budget is small; quota errors are recorded, never hidden) |
+| `PPTV01_GRADER_BACKEND` + `_BASE_URL/_API_KEY/_MODEL/_VISION_MODEL` or `_EXCHANGE_DIR` | for `grade` | PPTEval judge: `api` (OpenAI-compatible MLLM) or `agent` (manual, labelled); unset = error, never a made-up score |
 | `PPTV01_RESEARCH_MAX_HITS` / `_MAX_QUERIES` / `_TIMEOUT_S` | no | per query per backend (3) / queries per run (12) / HTTP timeout (20 s) |
 | `PPTV01_LLM_JSON_MODE` | no | `1` to send `response_format=json_object` (only if your provider supports it) |
 
@@ -80,11 +87,14 @@ runs/<run_id>/
   research_brief.json      # stage B: queries, per-query status, notes with URL/title/retrieved_at/licence (or status disabled/failed)
   slide_plan.json          # stage B, status=provisional, structured asset_needs
   asset_requirements.json  # stage C
+  asset_registry.json      # stage D: one record per requirement (acquired with source/licence/sha256, or missing with reason), candidates audit trail, source-call log
+  assets/                  # stage D files (A001.jpg, A004.json ...)
+  gate_report.json, grade_report.json  # optional: pptv01 gates / grade
   llm_trace/A.json, B.json, C.json # raw model output + validation errors per attempt (no secrets)
   run_report.json          # per-stage status, model id, code commit (+dirty flag), timestamps, tool config
 ```
 
-`run_report.json.overall` is `incomplete` while any of C–H is `not_implemented`; it is never `complete` unless every stage is `done`.
+`run_report.json.overall` is `incomplete` while any of E–H is `not_implemented`; it is never `complete` unless every stage is `done`.
 
 ## Layout
 

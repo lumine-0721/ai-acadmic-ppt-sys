@@ -1,0 +1,61 @@
+{
+ "searchinfo": {
+  "search": "帕特农神庙"
+ },
+ "search": [
+  {
+   "id": "Q10288",
+   "title": "Q10288",
+   "pageid": 11696,
+   "concepturi": "http://www.wikidata.org/entity/Q10288",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q10288",
+   "display": {
+    "label": {
+     "value": "帕德嫩神廟",
+     "language": "zh"
+    },
+    "description": {
+     "value": "古希臘奉祀雅典娜的神廟",
+     "language": "zh"
+    }
+   },
+   "label": "帕德嫩神廟",
+   "description": "古希臘奉祀雅典娜的神廟",
+   "match": {
+    "type": "label",
+    "language": "zh-cn",
+    "text": "帕特农神庙"
+   },
+   "aliases": [
+    "帕特农神庙"
+   ]
+  },
+  {
+   "id": "Q3753726",
+   "title": "Q3753726",
+   "pageid": 3578743,
+   "concepturi": "http://www.wikidata.org/entity/Q3753726",
+   "repository": "wikidata",
+   "url": "//www.wikidata.org/wiki/Q3753726",
+   "display": {
+    "label": {
+     "value": "帕特农神庙的山形墙浮雕",
+     "language": "zh"
+    },
+    "description": {
+     "value": "sculpture by Phidias",
+     "language": "en"
+    }
+   },
+   "label": "帕特农神庙的山形墙浮雕",
+   "description": "sculpture by Phidias",
+   "match": {
+    "type": "label",
+    "language": "zh",
+    "text": "帕特农神庙的山形墙浮雕"
+   }
+  }
+ ],
+ "success": 1
+}
