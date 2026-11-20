@@ -2,11 +2,11 @@
 
 > 读者：接手写代码的 Agent。本文自包含：读完即可开工，不需要别的上下文。
 > 仓库：<https://github.com/lumine-0721/ai-acadmic-ppt-sys>，本项目目录 `v01/`。
-> **代码基线（重要，第 3 版）**：你上一轮的成果在分支 `feature/v01-office-renderer`（头提交 `7ceb945`，已评审，见第 4.1 节）。**下一轮继续在这个分支上做（或从它拉 `feature/v01-office-renderer-2`）**，做第 5 节的 N0–N8；Windows 实机测试清单在第 5B 节，由用户在真机上跑。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
+> **代码基线（重要，第 3 版）**：你上一轮的成果在分支 `feature/v01-office-renderer`（头提交 `7ceb945`，已评审，见第 4.1 节）。**下一轮继续在这个分支上做（或从它拉 `feature/v01-office-renderer-2`）**，做第 5 节任务（**先做 N2，再做 N0**，然后 N1 / N3–N8）；Windows 实机测试清单在第 5B 节，由用户在真机上跑——**N2 合入之前不要重跑 5B**（上一轮冒烟已因 B8 挂死）。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
 > **环境已确认（用户实测，2026-11-20）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel），不是 Office 2021。策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑。**
-> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最重要的两件事：** ① 全量 `pytest` 在没装 Office 的机器上是红的（N0）；② python-pptx 仍在默认生成路径里（N7）；另外环境是 Microsoft 365 而不是 2021（已确认，B12/N1 只剩文档与 doctor 的整改）。
+> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最要紧的事先做 N2：** 上一轮真实 Windows 冒烟因 B8（`GetActiveObject` 附着到用户已打开的 PowerPoint，且无超时）挂死，必须先隔离实例并加上看门狗，然后才是 N0（全量 `pytest` 在没装 Office 的机器上是红的）。python-pptx 仍在默认生成路径里（N7，须等 5B 通过）。环境是 Microsoft 365 而不是 2021（已确认，B12/N1 只剩文档与 doctor 的整改）。
 
 ---
 ## 1. 项目目标与现状
@@ -231,24 +231,35 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 第 3 轮任务清单（N0–N8；按顺序做，每项一个小批次）
+## 5. 第 3 轮任务清单（先做 N2，再做 N0，然后 N1 / N3–N8；每项一个小批次）
 
 > **基线：** 继续在 `feature/v01-office-renderer`（头 `7ceb945`）上做，或从它再拉 `feature/v01-office-renderer-2`；只推你自己的分支。规则（第 2 节）全部照旧。
-> **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器。** N0–N4 可以马上做（大部分 Linux 就能测）。
+> **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器。** **N2 未合入之前，不要再跑 5B 的 doctor / `windows_com` / Smoke 4**（上一轮真实 Windows 冒烟已因 B8 挂死）。N0、N1、N3、N4 大部分 Linux 就能测，可与 N2 分开提交，但 **推送顺序以 N2 为先**。
 
-### N0 全量 `pytest` 在 Linux/没装 Office 的机器上必须绿（修 B17）
+### 紧急：先做 N2（COM 会话必须隔离，否则冒烟会再挂死）
+
+上一轮用户在真机跑 Smoke 4 时进程挂死。最可能的原因：用户当时开着 PowerPoint（在「文件 → 账户」里核对版本），COM 会话通过 `GetActiveObject` 连上了这个正在运行的实例（B8），和/或弹出了模态对话框，而代码没有超时看门狗，于是一直等下去。**在修好 B8 并推送之前，不要重跑 5B。**
+
+要求（修 B8，规则 11；这是本轮**第一项**任务）：
+
+- **自己的独立实例：** 只用 `win32com.client.DispatchEx("PowerPoint.Application")`（或等价的「新进程」启动方式）拉起**新的 PowerPoint 进程**，记下自己启动的 PID。Excel 同理（图表路径需要时）。
+- **绝不**调用 `GetActiveObject` / `GetObject`，也**不要**用可能附着到已有实例的普通 `Dispatch`。文档字符串里写 `DispatchEx`、代码里却 `GetActiveObject` 的写法必须删掉。
+- **绝不** `Quit`、关闭、最小化或以任何方式操作**用户已运行的 PowerPoint 实例**或**用户已打开的演示文稿**。只操作、只关闭、只终止自己启动的那个 PID。
+- 会话开始即设 `DisplayAlerts = False`（以及规则 11 已要求的禁用宏 `AutomationSecurity`）。失败不得吞异常后报成功。
+- **超时看门狗：** 每个 COM 调用有超时，整个 `preflight` / `build` / `export` / `measure` 会话有总超时。到期必须**中止并抛出明确错误**（写明卡在哪一步、自己启动的 PID、已等待多久），**禁止挂死**。超时后只终止自己启动的 PID（含因此拉起的 Excel），不得动用户的进程。
+- **清理：** `__exit__` / `finally` 只杀自己启动的 PID；即使用户中途 Ctrl+C，也只清理自己的进程。
+- **测试（fake COM，Linux 可跑）：** （1）用户已开着 PowerPoint（有已打开文稿 / 只有空窗口）时，我们既不附着、也不 `Quit` 它；（2）模拟某个 COM 调用挂起，看门狗在时限内触发、抛明确错误、只终止「自己启动」的假 PID。Windows 实机回归放到 N2 合入之后的 5B，而不是现在。
+
+验收：上述 fake COM 测试全绿；代码里用 `rg GetActiveObject` 应为 0 命中（测试夹具模拟「用户已有实例」的除外，且测试必须断言生产代码没有去附着）。
+
+### N0 全量 `pytest` 在 Linux/没装 Office 的机器上必须绿（修 B17；N2 之后立刻做）
 - 在 `tests/conftest.py` 给 `windows_com` 标记统一自动跳过：非 Windows、`pywin32` 缺失或起不来 `PowerPoint.Application` 时 skip，原因写进 skip 信息；删除各测试里零散重复的守卫。
-- 验收：Linux 上清环境 `pytest -o addopts="" -rs` 退出码 0（宝特会复核，当前是 2 failed）；Windows 上 `pytest` 与 `pytest -m windows_com` 各给退出码。
+- 验收：Linux 上清环境 `pytest -o addopts="" -rs` 退出码 0（宝特会复核，当前是 2 failed）；Windows 上 `pytest` 与 `pytest -m windows_com` 各给退出码。注意：`windows_com` 实机测试也必须遵守 N2 的隔离与超时，否则会再次挂死。
 
 ### N1 doctor 如实报告 Office 版本类型，并清掉文档里写死的"2021"（B12 已确认：Microsoft 365 Build 20257.20196）
 - `pptv01 doctor` 读 `HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration`（`ProductReleaseIds`、`VersionToReport`、`UpdateChannel`、`Platform`），再加 `Application.Version/Build`，输出"产品类型：Microsoft 365 订阅 / Office 2021·LTSC / 其他 / 未知"；`--json` 里也有。
 - 文档与测试 docstring 里不要再写死"Office 2021"：改成"在 Microsoft 365 Build 20257.20196 上实测；仅使用 Office 2021 基线 API"（`windows-testing.md` §1、`stage-f-layout-calibration.md`、`test_r*_com_windows.py`）。
 - **已确认环境**：Microsoft 365 桌面版，Version 16.0，Build 20257.20196（Current Channel）。把"AddChart2 需要窗口"等 COM 结论统一标注"已在 Microsoft 365 Build 20257.20196 上验证；Office 2021 基线未实测"。**API 约束不变**：凡新用到的 COM 成员，先查它在 Office 2021/Office 16 基线里是否存在（微软文档的 "Applies to" / 引入版本），在代码注释里写出；不确定就不用，或写成可降级路径。
-
-### N2 COM 会话安全（修 B8，规则 11）
-- 始终 `DispatchEx` 独立实例，记录自己启动的 PID；**绝不**连上用户已运行的 PowerPoint；只 `Quit`/终止自己启动的实例。
-- 所有 COM 调用有超时/看门狗（卡住时终止自己启动的 PID，抛明确错误），不吞异常。
-- fake COM 测试：用户已开着 PowerPoint（有/无已打开文稿）时我们不碰它；模拟挂起触发超时。
 
 ### N3 H 修复循环与协议整洁（修 B10、B11）
 - 修复循环重新编译时传 `template_path`；加"带模板 + 修复一轮后仍用模板母版"测试。
@@ -280,6 +291,37 @@ Office.js add-in、macOS/Linux 渲染、云端批量（用户已说"以后再用
 
 > 目的：把"只在 fake COM 里验证过"的东西，在**真实 PowerPoint** 上验证，并把结果发回给宝特。按顺序做，**每一步的输出都复制/保存**。
 > 约定：路径用你机器上的仓库路径（下面以 `F:\ggagy\ai-acadmic-ppt-sys\v01` 为例）；PowerShell 里**不要把 pytest 接管道**（会吞退出码）。贴中文命令时建议用 **PowerShell 7**，或先执行 `chcp 65001`。
+> **先决（2026-11-20 更新）：必须先合入 N2（COM 隔离 + 超时看门狗），再跑本节的 doctor / `windows_com` / Smoke 4。** 上一轮冒烟在用户开着「文件 → 账户」核对版本时挂死，根因就是 B8（`GetActiveObject` 附着到已运行实例，且无超时）。N2 未到之前不要重跑。
+
+### 冒烟前检查单（doctor、`windows_com`、Smoke 4 之前都要做；每一步都做一遍）
+
+上一轮挂死就是因为核对版本时 PowerPoint 还开着。按下面做，再开始任何会调 COM 的命令：
+
+1. **先关掉所有 PowerPoint 窗口**（包括「文件 → 账户」那一个，以及任何恢复文档/受保护视图窗口）。Excel 若不是你正在用的，也关掉。
+2. 打开**任务管理器**，在「详细信息」里看有没有残留的 `POWERPNT.EXE`、`EXCEL.EXE`。有就结束这些进程（结束前可截一张图留档）。PowerShell 等价命令：
+```powershell
+Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue |
+  Select-Object Id, ProcessName, StartTime | Format-Table
+# 确认没有你还要保留的窗口之后：
+Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue | Stop-Process -Force
+```
+3. **冒烟/测试跑起来之后，不要再去碰 PowerPoint**（不要打开、不要点「文件 → 账户」、不要手动改正在生成的 deck）。需要看版本时，只在步骤 1 做，看完立刻按上面 1–2 关干净，再进入 doctor / 测试 / Smoke 4。
+4. 跑之前先记一下当前的 PID 列表（上面的 `Get-Process`），方便对照「哪些是本次跑出来的」。
+
+### 挂了怎么恢复
+
+若命令长时间没有任何输出（例如超过 2–3 分钟还停在 `preflight` / `build` / `export`），按下面做，**不要强制关机**：
+
+1. 在跑测试的 PowerShell 里按 **Ctrl+C** 中断。
+2. 再看任务管理器 / `Get-Process POWERPNT,EXCEL`：只结束**本次跑起来的** `POWERPNT.EXE` / `EXCEL.EXE`（对照跑之前记下的 PID；不要杀你后来自己打开、且确认属于你正在编辑的文稿的进程）。
+```powershell
+Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue |
+  Select-Object Id, ProcessName, StartTime | Format-Table
+# 确认是本次残留后再结束：
+Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue | Stop-Process -Force
+```
+3. 把挂死时的最后一段终端输出、是否弹出过激活/登录/安全模式对话框、任务管理器截图，一起回传给宝特。**修好 N2 之前不要立刻重跑。**
+
 
 **0. 拿到最新代码和冒烟答案（不要 commit 这些）**
 ```powershell
@@ -301,7 +343,7 @@ Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" |
 $ppt = "C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE"
 if (Test-Path $ppt) { (Get-Item $ppt).VersionInfo | Format-List ProductVersion, FileVersion }
 ```
-再打开 PowerPoint → **文件 → 账户**，截图（或抄下「产品信息」里那一行，如"Microsoft 365 应用版/ Office 2021 专业增强版"，以及"关于 PowerPoint"里的版本号）。
+再打开 PowerPoint → **文件 → 账户**，截图（或抄下「产品信息」里那一行，如"Microsoft 365 应用版/ Office 2021 专业增强版"，以及"关于 PowerPoint"里的版本号）。**看完立刻关掉 PowerPoint，并按上面的「冒烟前检查单」确认任务管理器里没有 `POWERPNT.EXE` 残留，然后再做第 2 步。不要开着账户页跑 doctor / 测试 / 冒烟。**
 
 **2. doctor**
 ```powershell
@@ -326,6 +368,7 @@ Get-ChildItem Env:PPTV01_* -ErrorAction SilentlyContinue | Remove-Item
 **回传：** 三个 txt 文件和三个退出码；特别注意**最后一行摘要**（`N passed, N failed, N skipped`）。跑完后看任务管理器里有没有残留的 `POWERPNT.EXE`/`EXCEL.EXE`（有就记下数量，别手动关之前先截图）。
 
 **4. Smoke 4：在真 PowerPoint 上跑 T02/T12/T26/T36**
+> **先再走一遍「冒烟前检查单」**：所有 PowerPoint 窗口已关，任务管理器里没有残留 `POWERPNT.EXE`/`EXCEL.EXE`，跑的过程中不要去碰 PowerPoint。若挂死，按「挂了怎么恢复」处理。
 > 用宝特手写的 A–C/E 答案（标注 `agent:宝特 (manual, not an API model)`）和冻结的 `research_brief.json` 回放。D 会联网取素材（Wikimedia/Wikidata/OpenAlex 等）；**如果你所在网络访问不了，会在 D 的报告里如实写出，把输出发回即可，别绕。**
 ```powershell
 $env:PPTV01_LLM_BACKEND = "agent"
