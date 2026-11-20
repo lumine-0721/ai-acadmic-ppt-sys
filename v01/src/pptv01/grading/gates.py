@@ -26,6 +26,7 @@ from pptv01.contracts import (
     UserRequestStatus,
     load_contract,
 )
+from pptv01.d_retrieve.license import needs_attribution
 
 STAGE_FILES = [
     "production_plan",
@@ -54,6 +55,9 @@ def _check_pptx_visual_gates(
         return [
             GateResult(gate="no_fabricated_visuals", status="not_run", detail="deck.pptx absent (stage G not run)"),
             GateResult(gate="placeholders_marked", status="not_run", detail="deck.pptx absent (stage G not run)"),
+            GateResult(gate="pptx_opens", status="not_run", detail="deck.pptx absent (stage G not run)"),
+            GateResult(gate="native_content_not_screenshots", status="not_run", detail="deck.pptx absent (stage G not run)"),
+            GateResult(gate="attribution_present", status="not_run", detail="deck.pptx absent (stage G not run)"),
         ]
     try:
         prs = Presentation(str(deck_path))
@@ -62,6 +66,9 @@ def _check_pptx_visual_gates(
         return [
             GateResult(gate="no_fabricated_visuals", status="fail", detail=msg),
             GateResult(gate="placeholders_marked", status="fail", detail=msg),
+            GateResult(gate="pptx_opens", status="fail", detail=msg),
+            GateResult(gate="native_content_not_screenshots", status="fail", detail=msg),
+            GateResult(gate="attribution_present", status="fail", detail=msg),
         ]
 
     valid_assets: set[str] = set()
@@ -73,11 +80,11 @@ def _check_pptx_visual_gates(
         }
     valid_inputs: set[str] = set()
     if uir is not None:
-        valid_inputs = {
-            r.request_id
-            for r in uir.requests
-            if r.status is UserRequestStatus.provided and r.provided and (run_dir / r.provided.file).is_file()
-        }
+        for r in uir.requests:
+            if r.status is UserRequestStatus.provided and r.provided and (run_dir / r.provided.file).is_file():
+                valid_inputs.add(r.request_id)
+                if r.asset_id:
+                    valid_assets.add(r.asset_id)
 
     unbound: list[str] = []
     for idx, slide in enumerate(prs.slides, 1):
@@ -154,7 +161,85 @@ def _check_pptx_visual_gates(
                 status="fail" if missing_ph else "pass",
                 detail=f"missing marked placeholder/note for: {missing_ph}" if missing_ph else f"{len(need_ph)} placeholder(s) properly marked",
             )
-    return [fab_res, ph_res]
+
+    # pptx_opens
+    n_slides = len(prs.slides)
+    if n_slides == 0:
+        opens_res = GateResult(gate="pptx_opens", status="fail", detail="deck.pptx has 0 slides")
+    elif sp is not None and n_slides != len(sp.pages):
+        opens_res = GateResult(
+            gate="pptx_opens",
+            status="fail",
+            detail=f"deck.pptx has {n_slides} slides, planned {len(sp.pages)}",
+        )
+    else:
+        opens_res = GateResult(gate="pptx_opens", status="pass", detail=f"opened deck.pptx with {n_slides} slides")
+
+    # native_content_not_screenshots
+    slide_area = float(prs.slide_width) * float(prs.slide_height)
+    screenshot_slides: list[str] = []
+    for idx, slide in enumerate(prs.slides, 1):
+        native_text_count = sum(
+            1
+            for sh in slide.shapes
+            if (getattr(sh, "has_text_frame", False) and sh.text_frame.text.strip())
+            or getattr(sh, "has_chart", False)
+            or getattr(sh, "has_table", False)
+        )
+        big_pics = [
+            sh
+            for sh in slide.shapes
+            if sh.shape_type is MSO_SHAPE_TYPE.PICTURE
+            and (float(sh.width) * float(sh.height)) >= 0.85 * slide_area
+        ]
+        if len(slide.shapes) == 0 or (big_pics and native_text_count == 0):
+            screenshot_slides.append(f"slide {idx}")
+    native_res = GateResult(
+        gate="native_content_not_screenshots",
+        status="fail" if screenshot_slides else "pass",
+        detail=(
+            f"slide(s) look like full-page screenshots or empty: {', '.join(screenshot_slides)}"
+            if screenshot_slides
+            else f"all {n_slides} slide(s) contain native text/shapes"
+        ),
+    )
+
+    # attribution_present: any CC BY / BY-SA asset embedded in deck.pptx must have attribution on slide or notes
+    if reg is None:
+        attr_res = GateResult(gate="attribution_present", status="not_run", detail="asset_registry.json absent")
+    else:
+        reg_by_id = {a.asset_id: a for a in reg.assets}
+        missing_attr: list[str] = []
+        for idx, slide in enumerate(prs.slides, 1):
+            slide_text = "\n".join(
+                sh.text_frame.text
+                for sh in slide.shapes
+                if getattr(sh, "has_text_frame", False)
+            )
+            notes_text = ""
+            if slide.has_notes_slide and slide.notes_slide.notes_text_frame is not None:
+                notes_text = slide.notes_slide.notes_text_frame.text
+            combined = f"{slide_text}\n{notes_text}"
+            for sh in slide.shapes:
+                m_a = _ASSET_BIND_RE.match(sh.name or "")
+                if not m_a:
+                    continue
+                aid = m_a.group(1)
+                a = reg_by_id.get(aid)
+                if a and needs_attribution(a.license_or_terms or ""):
+                    credit_ok = bool(
+                        (a.attribution and a.attribution in combined)
+                        or (a.author and a.author in combined)
+                    )
+                    if not credit_ok:
+                        missing_attr.append(f"slide {idx}:{aid}")
+        attr_res = GateResult(
+            gate="attribution_present",
+            status="fail" if missing_attr else "pass",
+            detail=f"missing attribution on slide/notes for: {missing_attr}" if missing_attr else "all attribution-required assets credited",
+        )
+
+    return [fab_res, ph_res, opens_res, native_res, attr_res]
 
 
 def check_gates(run_dir: Path) -> GateReport:
@@ -210,8 +295,6 @@ def check_gates(run_dir: Path) -> GateReport:
             sp if isinstance(sp, SlidePlan) else None,
         )
     )
-    for g in ("pptx_opens", "native_content_not_screenshots"):
-        results.append(GateResult(gate=g, status="not_run", detail="stages G/H not implemented in V0.1 so far"))
     st = {r.status for r in results}
     overall = "fail" if "fail" in st else ("incomplete" if "not_run" in st else "pass")
     return GateReport(run_id=run_id if run_id != "unknown" else "unknown-run", results=results, overall=overall)

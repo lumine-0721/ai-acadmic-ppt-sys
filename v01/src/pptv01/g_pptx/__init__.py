@@ -1,7 +1,8 @@
-"""Stage G (pptx): NOT IMPLEMENTED in this batch.
+from .stage import ARTIFACT, AttributionMissingError, DeckGenerationError, run_stage_g
 
-The runner reports this stage as not_implemented; nothing is faked.
-See docs/V0.1-技术方案.md section 2.3 / 6 for the contract and development order.
-"""
-
-IMPLEMENTED = False
+__all__ = [
+    "ARTIFACT",
+    "AttributionMissingError",
+    "DeckGenerationError",
+    "run_stage_g",
+]

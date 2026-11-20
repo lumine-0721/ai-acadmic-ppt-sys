@@ -40,6 +40,7 @@ from pptv01.contracts import (
 from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env
 from pptv01.e_mapping import ARTIFACT as E_FILE, run_stage_e
 from pptv01.f_layout import ARTIFACT as F_FILE, run_stage_f
+from pptv01.g_pptx import ARTIFACT as G_FILE, run_stage_g
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval import ResearchProvider, research_from_env
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, summarize_requests
@@ -54,7 +55,7 @@ STAGE_NAMES = {
     "G": "pptx_generation",
     "H": "render_qa_repair",
 }
-IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E", "F")
+IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E", "F", "G")
 
 
 def _now() -> datetime:
@@ -354,7 +355,35 @@ def run_pipeline(
             error="skipped: stage E did not produce a slide asset mapping",
         )
 
-    for code in "GH":
+    # ---- Stage G (python-pptx generation of deck.pptx)
+    deck_path: Path | None = None
+    if waiting_for_input:
+        records["G"] = StageRecord(
+            stage="G", name=STAGE_NAMES["G"], status=StageStatus.skipped,
+            error="skipped: waiting for user input (see user_input_requests.json)",
+        )
+    elif design is not None and reg is not None and slide_plan is not None and not failure:
+        t0 = clock()
+        if resume and (run_dir / G_FILE).is_file():
+            deck_path = run_dir / G_FILE
+            record("G", StageStatus.done, t0, [G_FILE])
+        else:
+            try:
+                deck_path = run_stage_g(slide_plan, design, reg, uir, run_dir)
+                if (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
+                    uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
+                    uir_summary = summarize_requests(uir)
+                record("G", StageStatus.done, t0, [G_FILE])
+            except (OSError, ValueError) as e:
+                failure = f"stage G failed: {type(e).__name__}: {str(e)[:500]}"
+                record("G", StageStatus.failed, t0, [], failure)
+    else:
+        records["G"] = StageRecord(
+            stage="G", name=STAGE_NAMES["G"], status=StageStatus.skipped,
+            error="skipped: stage F did not produce page_design.json",
+        )
+
+    for code in "H":
         if waiting_for_input:
             records[code] = StageRecord(
                 stage=code, name=STAGE_NAMES[code], status=StageStatus.skipped,

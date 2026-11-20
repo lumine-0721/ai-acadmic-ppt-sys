@@ -21,15 +21,15 @@ def test_runner_writes_files_and_honest_report(tmp_path):
     assert load_contract(SlidePlan, run_dir / "slide_plan.json").status.value == "provisional"
     rep = load_contract(RunReport, run_dir / "run_report.json")
     st = {s.stage: s.status for s in rep.stages}
-    assert [st[c] for c in "ABCDEF"] == [StageStatus.done] * 6
-    assert all(st[c] is StageStatus.not_implemented for c in "GH")
-    assert rep.overall.value == "incomplete"          # never "complete" while G-H are missing
+    assert [st[c] for c in "ABCDEFG"] == [StageStatus.done] * 7
+    assert st["H"] is StageStatus.not_implemented
+    assert rep.overall.value == "incomplete"          # never "complete" while H is missing
     assert rep.model_id == "fake-model-for-unit-tests"
     assert rep.code_commit and rep.started_at <= rep.finished_at
     assert rep.defaults_summary
-    # no phantom deliverables
-    for f in ("deck.pptx", "qa_report.json"):
-        assert not (run_dir / f).exists()
+    assert (run_dir / "deck.pptx").is_file()
+    # no phantom deliverables for H
+    assert not (run_dir / "qa_report.json").exists()
 
 
 def test_stage_a_failure_is_reported_and_b_skipped(tmp_path):
