@@ -12,6 +12,7 @@ replay canned HTTP responses.
 from __future__ import annotations
 
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Protocol
@@ -53,17 +54,36 @@ def make_http(timeout_s: float, contact: str, transport: httpx.BaseTransport | N
     return httpx.Client(timeout=timeout_s, transport=transport, headers={"User-Agent": ua}, follow_redirects=True)
 
 
+_sleep = time.sleep          # indirection so unit tests can skip the waits
+RETRIES = 2                  # extra attempts after the first (429 / 5xx / timeouts are transient)
+
+
 def _get_json(http: httpx.Client, url: str, params: dict) -> dict:
-    try:
-        r = http.get(url, params=params)
-    except httpx.HTTPError as e:
-        raise BackendError(f"{type(e).__name__}: {str(e)[:120]}") from None
-    if r.status_code != 200:
-        raise BackendError(f"HTTP {r.status_code} from {httpx.URL(url).host}")
-    try:
-        return r.json()
-    except ValueError:
-        raise BackendError(f"non-JSON response from {httpx.URL(url).host}") from None
+    host = httpx.URL(url).host
+    last = "unknown error"
+    for attempt in range(RETRIES + 1):
+        wait = 1.0 * (2 ** attempt)
+        try:
+            r = http.get(url, params=params)
+        except httpx.HTTPError as e:
+            last = f"{type(e).__name__}: {str(e)[:120]}"
+        else:
+            if r.status_code == 200:
+                try:
+                    return r.json()
+                except ValueError:
+                    raise BackendError(f"non-JSON response from {host}") from None
+            last = f"HTTP {r.status_code} from {host}"
+            if r.status_code == 429 or r.status_code >= 500:
+                try:
+                    wait = min(float(r.headers.get("Retry-After", wait)), 10.0)
+                except ValueError:
+                    pass
+            else:
+                raise BackendError(last)          # 4xx other than 429: retrying will not help
+        if attempt < RETRIES:
+            _sleep(wait)
+    raise BackendError(f"{last} (after {RETRIES + 1} attempts)")
 
 
 class WikipediaBackend:

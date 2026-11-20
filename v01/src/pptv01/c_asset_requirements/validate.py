@@ -17,7 +17,7 @@ from pptv01.contracts import (
     Verification,
 )
 
-GENERIC_PURPOSE = re.compile(r"装饰|美化|点缀|增加美观|丰富页面|配几张图|配图|相关图片|相关素材|随便|示意即可|占位")
+GENERIC_PURPOSE = re.compile(r"装饰(?!艺术|风格|主义|性|构件|元素|纹)|美化|点缀|增加美观|丰富页面|配几张图|配图|相关图片|相关素材|随便|示意即可|占位")
 GENERIC_HINTS = {"图片", "图", "素材", "照片", "相关图片", "相关素材", "image", "images", "picture", "photo", "photos"}
 LICENSE_RE = re.compile(r"许可|授权|license|licence|合法|版权|可商用|CC\b|公有领域|public domain|来源明确", re.I)
 PROVENANCE_RE = re.compile(r"来源|出处|DOI|可核验|可追溯|稳定链接|source", re.I)

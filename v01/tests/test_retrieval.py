@@ -231,3 +231,36 @@ def test_resume_reuses_saved_research_instead_of_requerying(tmp_path):
         run_stage_b(PLAN, FakeClient([GOOD_B]), tmp_path, failed)
     plan, _, rec = run_stage_b(PLAN, FakeClient([with_refs()]), tmp_path, FakeResearch(NOTES), reuse_research=True)
     assert rec.status is ResearchStatus.ok
+
+
+def test_transient_errors_are_retried_then_succeed():
+    calls = {"n": 0}
+
+    def flaky(r):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return httpx.Response(429, headers={"Retry-After": "0"})
+        if calls["n"] == 2:
+            raise httpx.ConnectTimeout("handshake timed out")
+        return httpx.Response(200, json=CROSSREF)
+    hits = CrossrefBackend(make_http(5, "x", transport(flaky))).search("uhi", "en", 3)
+    assert calls["n"] == 3 and len(hits) == 1
+
+
+def test_persistent_429_fails_after_bounded_retries_and_404_is_not_retried():
+    n = {"c": 0}
+
+    def always429(r):
+        n["c"] += 1
+        return httpx.Response(429)
+    with pytest.raises(BackendError, match=r"429.*3 attempts"):
+        CrossrefBackend(make_http(5, "x", transport(always429))).search("q", "en", 1)
+    assert n["c"] == 3
+    n["c"] = 0
+
+    def nf(r):
+        n["c"] += 1
+        return httpx.Response(404)
+    with pytest.raises(BackendError, match="404"):
+        WikipediaBackend(make_http(5, "x", transport(nf))).search("q", "zh", 1)
+    assert n["c"] == 1

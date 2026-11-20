@@ -191,3 +191,15 @@ def test_runner_skips_c_when_b_fails(tmp_path):
     report, _ = run_pipeline(U, tmp_path, FakeClient([GOOD_A, badb, badb]), run_id="t-cs")
     st = {s.stage: s.status for s in report.stages}
     assert st["B"] is StageStatus.failed and st["C"] is StageStatus.skipped
+
+
+@pytest.mark.parametrize("purpose,flagged", [
+    ("展示一座装饰艺术风格摩天楼的外观，与现代主义形成对照", False),
+    ("展示一座 Art Deco 风格摩天楼的外观，对照现代主义的简洁", False),
+    ("装饰页面，让这一页更好看一些", True),
+    ("美化这一页的版面效果", True),
+    ("作为配图使用即可", True),
+])
+def test_generic_purpose_check_does_not_flag_art_deco(purpose, flagged):
+    from pptv01.c_asset_requirements.validate import GENERIC_PURPOSE
+    assert bool(GENERIC_PURPOSE.search(purpose)) is flagged

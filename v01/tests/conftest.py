@@ -65,3 +65,9 @@ def _clean_env(monkeypatch):
         if k.startswith("PPTV01_"):
             monkeypatch.delenv(k)
     monkeypatch.setenv("PPTV01_RESEARCH", "none")
+
+
+@pytest.fixture(autouse=True)
+def _no_sleep(monkeypatch):
+    import pptv01.retrieval.backends as b
+    monkeypatch.setattr(b, "_sleep", lambda s: None)
