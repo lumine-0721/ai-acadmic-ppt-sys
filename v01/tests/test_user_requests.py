@@ -193,7 +193,17 @@ def test_on_missing_wait_exits_4_then_provide_and_resume(tmp_path, monkeypatch, 
     assert uir.requests[0].provided is not None and uir.requests[0].provided.file == expected_rel
     assert (run_dir / expected_rel).is_file()
 
-    # --resume preserves provided inputs and switches to placeholder when requested
+    # Provide E_response_1.json since U001 is now in the usable pool, then --resume
+    (io_dir / "E_response_1.json").write_text(json.dumps({
+        "mappings": [{
+            "page_id": first_req.page_ids[0],
+            "asset_id": first_req.asset_id,
+            "request_id": first_req.request_id,
+            "usage": "置于页面右侧展示用户提供的城市热岛实测图",
+            "accepted": True,
+        }],
+        "unused_assets": [],
+    }, ensure_ascii=False), encoding="utf-8")
     rc2 = cli.main(["run", U, "--out", str(runs_root), "--run-id", "w1", "--resume", "--on-missing", "placeholder"])
     assert rc2 == 0
     uir_after = load_contract(UserInputRequests, run_dir / "user_input_requests.json")

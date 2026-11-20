@@ -1,7 +1,12 @@
-"""Stage E (mapping): NOT IMPLEMENTED in this batch.
+from .stage import ARTIFACT, MappingRuleError, run_stage_e, vision_client_from_env
+from .validate import UsableAsset, build_usable_pool, validate_mapping
 
-The runner reports this stage as not_implemented; nothing is faked.
-See docs/V0.1-技术方案.md section 2.3 / 6 for the contract and development order.
-"""
-
-IMPLEMENTED = False
+__all__ = [
+    "ARTIFACT",
+    "MappingRuleError",
+    "UsableAsset",
+    "build_usable_pool",
+    "run_stage_e",
+    "validate_mapping",
+    "vision_client_from_env",
+]

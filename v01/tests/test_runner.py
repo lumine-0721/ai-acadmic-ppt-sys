@@ -21,9 +21,9 @@ def test_runner_writes_files_and_honest_report(tmp_path):
     assert load_contract(SlidePlan, run_dir / "slide_plan.json").status.value == "provisional"
     rep = load_contract(RunReport, run_dir / "run_report.json")
     st = {s.stage: s.status for s in rep.stages}
-    assert [st[c] for c in "ABCD"] == [StageStatus.done] * 4
-    assert all(st[c] is StageStatus.not_implemented for c in "EFGH")
-    assert rep.overall.value == "incomplete"          # never "complete" while E-H are missing
+    assert [st[c] for c in "ABCDE"] == [StageStatus.done] * 5
+    assert all(st[c] is StageStatus.not_implemented for c in "FGH")
+    assert rep.overall.value == "incomplete"          # never "complete" while F-H are missing
     assert rep.model_id == "fake-model-for-unit-tests"
     assert rep.code_commit and rep.started_at <= rep.finished_at
     assert rep.defaults_summary

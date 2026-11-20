@@ -525,14 +525,30 @@ class AssetRegistry(_RunFile):
 # --------------------------------------------------------------------- 3.5 E
 class MappingEntry(_Contract):
     page_id: PageId
-    asset_id: AssetId
+    asset_id: AssetId | None = None
+    request_id: RequestId | None = None
     usage: NonEmptyStr
     accepted: bool
+    relevance: Literal["relevant", "weak", "irrelevant", "not_assessed"] = "not_assessed"
+    relevance_note: str = ""
+
+    @model_validator(mode="after")
+    def _has_ref(self) -> "MappingEntry":
+        if not self.asset_id and not self.request_id:
+            raise ValueError("mapping entry must identify asset_id or request_id")
+        return self
 
 
 class UnusedAsset(_Contract):
-    asset_id: AssetId
+    asset_id: AssetId | None = None
+    request_id: RequestId | None = None
     reason: NonEmptyStr
+
+    @model_validator(mode="after")
+    def _has_ref(self) -> "UnusedAsset":
+        if not self.asset_id and not self.request_id:
+            raise ValueError("unused asset must identify asset_id or request_id")
+        return self
 
 
 class SlideAssetMapping(_RunFile):
@@ -541,13 +557,15 @@ class SlideAssetMapping(_RunFile):
 
     @model_validator(mode="after")
     def _rules(self) -> "SlideAssetMapping":
-        pairs = [(m.page_id, m.asset_id) for m in self.mappings]
+        pairs = [(m.page_id, m.asset_id, m.request_id) for m in self.mappings]
         if len(set(pairs)) != len(pairs):
-            raise ValueError("duplicate (page_id, asset_id) mapping")
-        used = {m.asset_id for m in self.mappings if m.accepted}
-        clash = used & {u.asset_id for u in self.unused_assets}
-        if clash:
-            raise ValueError(f"assets both accepted on a page and listed unused: {sorted(clash)}")
+            raise ValueError("duplicate (page_id, asset_id, request_id) mapping")
+        used_a = {m.asset_id for m in self.mappings if m.accepted and m.asset_id}
+        used_u = {m.request_id for m in self.mappings if m.accepted and m.request_id}
+        clash_a = used_a & {u.asset_id for u in self.unused_assets if u.asset_id}
+        clash_u = used_u & {u.request_id for u in self.unused_assets if u.request_id}
+        if clash_a or clash_u:
+            raise ValueError(f"assets both accepted on a page and listed unused: {sorted(clash_a | clash_u)}")
         return self
 
 

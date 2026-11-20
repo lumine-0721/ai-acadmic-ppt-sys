@@ -8,14 +8,51 @@
           "type": "boolean"
         },
         "asset_id": {
-          "pattern": "^A\\d{3,}$",
-          "title": "Asset Id",
-          "type": "string"
+          "anyOf": [
+            {
+              "pattern": "^A\\d{3,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
         },
         "page_id": {
           "pattern": "^S\\d{3,}$",
           "title": "Page Id",
           "type": "string"
+        },
+        "relevance": {
+          "default": "not_assessed",
+          "enum": [
+            "relevant",
+            "weak",
+            "irrelevant",
+            "not_assessed"
+          ],
+          "title": "Relevance",
+          "type": "string"
+        },
+        "relevance_note": {
+          "default": "",
+          "title": "Relevance Note",
+          "type": "string"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "pattern": "^U\\d{3,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
         },
         "usage": {
           "minLength": 1,
@@ -25,7 +62,6 @@
       },
       "required": [
         "page_id",
-        "asset_id",
         "usage",
         "accepted"
       ],
@@ -36,18 +72,38 @@
       "additionalProperties": false,
       "properties": {
         "asset_id": {
-          "pattern": "^A\\d{3,}$",
-          "title": "Asset Id",
-          "type": "string"
+          "anyOf": [
+            {
+              "pattern": "^A\\d{3,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
         },
         "reason": {
           "minLength": 1,
           "title": "Reason",
           "type": "string"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "pattern": "^U\\d{3,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
         }
       },
       "required": [
-        "asset_id",
         "reason"
       ],
       "title": "UnusedAsset",

@@ -28,6 +28,7 @@ from pptv01.contracts import (
     SlidePlan,
     RunOverall,
     RunReport,
+    SlideAssetMapping,
     StageRecord,
     StageStatus,
     UserInputRequests,
@@ -36,6 +37,7 @@ from pptv01.contracts import (
     write_contract,
 )
 from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env
+from pptv01.e_mapping import ARTIFACT as E_FILE, run_stage_e
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval import ResearchProvider, research_from_env
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, summarize_requests
@@ -50,7 +52,7 @@ STAGE_NAMES = {
     "G": "pptx_generation",
     "H": "render_qa_repair",
 }
-IMPLEMENTED_STAGES = ("A", "B", "C", "D")
+IMPLEMENTED_STAGES = ("A", "B", "C", "D", "E")
 
 
 def _now() -> datetime:
@@ -123,6 +125,7 @@ def run_pipeline(
     on_missing: Literal["placeholder", "wait"] = "placeholder",
     research: ResearchProvider | None = None,
     assets: DServices | None = None,
+    vision_client: ChatClient | None = None,
     clock: Callable[[], datetime] = _now,
 ) -> tuple[RunReport, Path]:
     """Run implemented stages for one utterance. Returns (report, run_dir).
@@ -234,6 +237,7 @@ def run_pipeline(
     # ---- Stage D (asset registry: real retrieval; no LLM involved)
     assets_summary: dict[str, Any] = {}
     missing_assets: list[str] = []
+    reg: AssetRegistry | None = None
     uir: UserInputRequests | None = None
     if reqs is not None:
         t0 = clock()
@@ -282,7 +286,40 @@ def run_pipeline(
     waiting_for_input = bool(
         not failure and on_missing == "wait" and uir_summary is not None and uir_summary.open_count > 0
     )
-    for code in "EFGH":
+
+    # ---- Stage E (slide asset mapping)
+    mapping: SlideAssetMapping | None = None
+    if waiting_for_input:
+        records["E"] = StageRecord(
+            stage="E", name=STAGE_NAMES["E"], status=StageStatus.skipped,
+            error="skipped: waiting for user input (see user_input_requests.json)",
+        )
+    elif reg is not None and slide_plan is not None and plan is not None and not failure:
+        t0 = clock()
+        if resume and (run_dir / E_FILE).is_file():
+            mapping = load_contract(SlideAssetMapping, run_dir / E_FILE)
+            e_files = [E_FILE] + (["llm_trace/E.json"] if (run_dir / "llm_trace/E.json").is_file() else [])
+            record("E", StageStatus.done, t0, e_files)
+        else:
+            client.set_stage("E")
+            try:
+                mapping, attempts = run_stage_e(
+                    plan, slide_plan, reqs, reg, uir, client, run_dir, vision_client=vision_client
+                )
+                e_files = [E_FILE] + ([_write_trace(run_dir, "E", attempts, client.model_id)] if attempts else [])
+                record("E", StageStatus.done, t0, e_files)
+            except (LLMError, LLMConfigError, ValueError) as e:
+                trace = getattr(e, "attempts", None)
+                e_files = [_write_trace(run_dir, "E", trace, client.model_id)] if trace else []
+                failure = f"stage E failed: {type(e).__name__}: {str(e)[:500]}"
+                record("E", StageStatus.failed, t0, e_files, failure)
+    else:
+        records["E"] = StageRecord(
+            stage="E", name=STAGE_NAMES["E"], status=StageStatus.skipped,
+            error="skipped: stage D did not produce an asset registry",
+        )
+
+    for code in "FGH":
         if waiting_for_input:
             records[code] = StageRecord(
                 stage=code, name=STAGE_NAMES[code], status=StageStatus.skipped,
