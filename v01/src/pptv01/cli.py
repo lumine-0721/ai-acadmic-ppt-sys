@@ -31,6 +31,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
             run_id=args.run_id,
             resume=args.resume,
             on_missing=args.on_missing,
+            cross_render=getattr(args, "cross_render", False),
         )
     except AwaitingAgentResponse as e:
         print(str(e), file=sys.stderr)
@@ -168,6 +169,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--resume", action="store_true", help="re-enter an existing run dir (agent backend: replays answered prompts)")
     r.add_argument("--on-missing", choices=["placeholder", "wait"], default="placeholder",
                    help="wait: pause after D (exit 4) when assets are missing; placeholder: mark explicit placeholders")
+    r.add_argument("--cross-render", action="store_true",
+                   help="also run secondary LibreOffice cross-render check in render_cross_check/ (never primary)")
     r.set_defaults(fn=_cmd_run)
     e = sub.add_parser("export-schemas", help="write JSON Schemas from the Pydantic contracts")
     e.add_argument("--out", default="contracts")

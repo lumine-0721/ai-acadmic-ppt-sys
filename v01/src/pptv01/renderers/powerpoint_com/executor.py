@@ -69,6 +69,10 @@ def _apply_text_style(
 ) -> None:
     tf2 = shape.TextFrame2
     try:
+        tf2.AutoSize = 0  # msoAutoSizeNone: preserve PageDesign box height so BoundHeight overflow is measurable
+    except Exception:
+        pass
+    try:
         tf2.WordWrap = MSO_TRUE
     except Exception:
         pass

@@ -167,6 +167,7 @@ def run_pipeline(
     render_fn: RenderFn | None = None,
     renderer: DeckRenderer | None = None,
     compile_only: bool = False,
+    cross_render: bool = False,
     clock: Callable[[], datetime] = _now,
 ) -> tuple[RunReport, Path]:
     """Run implemented stages for one utterance. Returns (report, run_dir).
@@ -569,8 +570,12 @@ def run_pipeline(
                     uir=uir,
                     mapping=mapping,
                     render_fn=render_fn,
+                    deck_renderer=renderer,
+                    cross_render=cross_render,
                 )
                 h_files = [H_FILE] + [p.relative_to(run_dir).as_posix() for p in rendered_pngs]
+                if (run_dir / "render" / "deck.pdf").is_file():
+                    h_files.append("render/deck.pdf")
                 # Sync hashes if H's bounded repair updated page_design.json or deck.pptx
                 if (run_dir / F_FILE).is_file():
                     post_f_sha = _file_sha256(run_dir / F_FILE)
@@ -580,7 +585,14 @@ def run_pipeline(
                 if (run_dir / G_FILE).is_file():
                     h_inputs[G_FILE] = _file_sha256(run_dir / G_FILE)
                 record("H", StageStatus.done, t0, h_files, input_hashes=h_inputs)
-            except (RendererUnavailableError, RenderExecutionError, OSError, ValueError) as e:
+            except (
+                RendererUnavailableError,
+                RenderExecutionError,
+                DeckRendererUnavailableError,
+                DeckRenderExecutionError,
+                OSError,
+                ValueError,
+            ) as e:
                 h_files = [H_FILE] if (run_dir / H_FILE).is_file() else []
                 failure = f"stage H failed: {type(e).__name__}: {str(e)[:500]}"
                 record("H", StageStatus.failed, t0, h_files, failure, input_hashes=h_inputs)

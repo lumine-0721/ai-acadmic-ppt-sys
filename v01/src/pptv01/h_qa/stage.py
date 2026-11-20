@@ -1,9 +1,13 @@
-"""Stage H: LibreOffice headless rendering -> QA inspection -> bounded repair + recheck (qa_report.json)."""
+"""Stage H: PowerPoint COM render + live measurement QA + bounded PageDesign repair/recheck.
+
+Optional LibreOffice headless rendering is kept only as a secondary cross-render
+compatibility check (--cross-render) or legacy fallback when no DeckRenderer is passed.
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from pptv01.contracts import (
     AssetRegistry,
@@ -19,13 +23,21 @@ from pptv01.contracts import (
     UserInputRequests,
     write_contract,
 )
+from pptv01.g_build import compile_deck_ops
+from pptv01.renderers.protocol import (
+    DeckRenderer,
+    MeasureResult,
+    RenderExecutionError as DeckRenderExecutionError,
+    RendererUnavailableError as DeckRendererUnavailableError,
+)
 
 from .inspect import inspect_deck
 from .render import RendererUnavailableError, render_pptx_to_pngs
-from .repair import apply_repairs
+from .repair import apply_repairs, repair_page_design
 
 ARTIFACT = "qa_report.json"
 RENDER_DIR = "render"
+CROSS_RENDER_DIR = "render_cross_check"
 MAX_REPAIR_ROUNDS = 2
 
 
@@ -34,6 +46,14 @@ RenderFn = Callable[[Path, Path], list[Path]]
 
 def _issue_key(i: QAIssue):
     return (i.page_id, i.kind, i.element_id)
+
+
+def _format_provenance(name: str, version: str, build: str) -> str:
+    if version and build:
+        return f"{name} {version} (build {build})"
+    if version:
+        return f"{name} {version}"
+    return name
 
 
 def run_stage_h(
@@ -46,37 +66,60 @@ def run_stage_h(
     uir: UserInputRequests | None = None,
     mapping: SlideAssetMapping | None = None,
     render_fn: RenderFn | None = None,
+    deck_renderer: DeckRenderer | None = None,
+    cross_render: bool = False,
+    installed_fonts: list[str] | None = None,
     max_repair_rounds: int = MAX_REPAIR_ROUNDS,
 ) -> tuple[QAReport, list[Path]]:
-    """Render deck.pptx to render/slide_*.png, run QA, apply bounded repairs + recheck, write qa_report.json.
-
-    If LibreOffice/pdftoppm are missing (and no render_fn is injected), still inspects deck.pptx,
-    writes qa_report.json with rendered_pages=[] and the honest renderer error, then raises
-    RendererUnavailableError so the pipeline never claims rendering succeeded.
-    """
+    """Render deck.pptx to render/slide_*.png, measure, inspect QA, run bounded repairs + recheck."""
     pptx_path = Path(pptx_path)
     run_dir = Path(run_dir)
     render_out = run_dir / RENDER_DIR
-    renderer = render_fn or render_pptx_to_pngs
     page_ids: list[PageId] = [p.page_id for p in slide_plan.pages]
 
-    render_err: RendererUnavailableError | None = None
+    render_err: Exception | None = None
     rendered_pngs: list[Path] = []
-    renderer_label = "libreoffice-headless"
+    measure_res: MeasureResult | None = None
+    renderer_label = deck_renderer.name if deck_renderer is not None else "libreoffice-headless"
+    render_provenance = renderer_label
+    sys_fonts = installed_fonts
+
+    def _export_and_measure(cur_pptx: Path) -> tuple[list[Path], MeasureResult | None, str]:
+        if deck_renderer is not None:
+            exp = deck_renderer.export(cur_pptx, render_out)
+            meas = deck_renderer.measure(cur_pptx, page_ids=page_ids) if "page_ids" in deck_renderer.measure.__code__.co_varnames else deck_renderer.measure(cur_pptx)
+            prov = _format_provenance(exp.renderer_name, exp.renderer_version, exp.renderer_build)
+            return exp.png_paths, meas, prov
+        fn = render_fn or render_pptx_to_pngs
+        pngs = fn(cur_pptx, render_out)
+        return pngs, None, "libreoffice-headless"
+
     try:
-        rendered_pngs = renderer(pptx_path, render_out)
-    except RendererUnavailableError as e:
+        if deck_renderer is not None and sys_fonts is None:
+            info = deck_renderer.preflight()
+            sys_fonts = info.fonts or None
+        rendered_pngs, measure_res, render_provenance = _export_and_measure(pptx_path)
+    except (RendererUnavailableError, DeckRendererUnavailableError, DeckRenderExecutionError) as e:
         render_err = e
-        renderer_label = f"libreoffice-headless (unavailable: {str(e)[:120]})"
+        renderer_label = f"{renderer_label} (unavailable: {str(e)[:120]})"
+        render_provenance = renderer_label
+
+    capacity_log: list[dict[str, Any]] = []
+    missing_fonts: list[str] = []
+    current_design = design
 
     current_issues = inspect_deck(
         pptx_path,
         slide_plan=slide_plan,
-        design=design,
+        design=current_design,
         reg=reg,
         uir=uir,
         mapping=mapping,
         rendered_pngs=rendered_pngs or None,
+        measure_result=measure_res,
+        installed_fonts=sys_fonts,
+        capacity_log=capacity_log,
+        missing_fonts_out=missing_fonts,
     )
 
     recorded_fixes: dict[tuple, tuple[QAIssue, str]] = {}
@@ -84,24 +127,40 @@ def run_stage_h(
         actionable = [i for i in current_issues if i.severity in (Severity.blocker, Severity.major)]
         if not actionable:
             break
-        applied = apply_repairs(pptx_path, actionable, page_ids)
-        if not applied:
-            break
 
-        # Re-render if renderer is available before recheck
-        if render_err is None:
-            rendered_pngs = renderer(pptx_path, render_out)
+        if deck_renderer is not None and current_design is not None and reg is not None and render_err is None:
+            # R3 rule: repair edits page_design.json -> recompile deck_ops.json -> COM rebuild -> re-export & re-measure
+            repaired_design, applied = repair_page_design(current_design, actionable, measure_result=measure_res)
+            if not applied:
+                break
+            current_design = repaired_design
+            write_contract(current_design, run_dir / "page_design.json")
+            new_ops = compile_deck_ops(slide_plan, current_design, reg, uir, run_dir)
+            build_res = deck_renderer.build(new_ops, run_dir)
+            pptx_path = build_res.pptx_path
+            rendered_pngs, measure_res, render_provenance = _export_and_measure(pptx_path)
+        else:
+            applied = apply_repairs(pptx_path, actionable, page_ids)
+            if not applied:
+                break
+            if render_err is None:
+                rendered_pngs, measure_res, render_provenance = _export_and_measure(pptx_path)
 
+        capacity_log = []
+        missing_fonts = []
         rechecked_issues = inspect_deck(
             pptx_path,
             slide_plan=slide_plan,
-            design=design,
+            design=current_design,
             reg=reg,
             uir=uir,
             mapping=mapping,
             rendered_pngs=rendered_pngs or None,
+            measure_result=measure_res,
+            installed_fonts=sys_fonts,
+            capacity_log=capacity_log,
+            missing_fonts_out=missing_fonts,
         )
-        still_present = {_issue_key(i) for i in rechecked_issues}
 
         for i in actionable:
             k = _issue_key(i)
@@ -115,6 +174,15 @@ def run_stage_h(
         current_issues = rechecked_issues
         if not any(i.severity in (Severity.blocker, Severity.major) for i in current_issues):
             break
+
+    # Optional secondary LibreOffice cross-render check (never replaces PowerPoint primary evidence)
+    cross_notes: list[str] = []
+    if cross_render and deck_renderer is not None and render_err is None:
+        try:
+            lo_pngs = render_pptx_to_pngs(pptx_path, run_dir / CROSS_RENDER_DIR)
+            cross_notes.append(f"libreoffice cross-render produced {len(lo_pngs)} PNG(s) in {CROSS_RENDER_DIR}/")
+        except (RendererUnavailableError, Exception) as e:
+            cross_notes.append(f"libreoffice cross-render skipped/unavailable: {str(e)[:160]}")
 
     # Build final QAReport issues list: all fixed issues with recheck outcome + any remaining unfixed issues
     remaining_keys = {_issue_key(i) for i in current_issues}
@@ -145,6 +213,8 @@ def run_stage_h(
     summary_parts = [
         f"{len(final_issues)} issue(s) recorded ({n_fixed_ok} fixed & passed recheck, {n_unfixed} unresolved blocker/major)",
     ]
+    if missing_fonts:
+        summary_parts.append(f"missing fonts: {', '.join(missing_fonts)}")
     if render_err is not None:
         summary_parts.append(f"RENDER FAILED: {render_err}")
 
@@ -152,8 +222,12 @@ def run_stage_h(
         schema_version=SCHEMA_VERSION,
         run_id=slide_plan.run_id,
         renderer=renderer_label,
+        render_provenance=render_provenance,
         rendered_pages=page_ids[:len(rendered_pngs)] if rendered_pngs else [],
         issues=final_issues,
+        missing_fonts=missing_fonts,
+        capacity_vs_measured=capacity_log,
+        cross_render_notes=cross_notes,
         summary="; ".join(summary_parts),
     )
     write_contract(report, run_dir / ARTIFACT)

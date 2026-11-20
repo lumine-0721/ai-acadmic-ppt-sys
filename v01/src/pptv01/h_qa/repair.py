@@ -10,11 +10,12 @@ from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.util import Emu, Pt
 
-from pptv01.contracts import QAIssue, QAIssueKind
+from pptv01.contracts import DesignElement, ElementKind, PageDesign, QAIssue, QAIssueKind
 from pptv01.f_layout.capacity import fit_text_to_box
 from pptv01.f_layout.validate import MIN_FONT_PT
+from pptv01.renderers.protocol import MeasureResult
 
-from .inspect import EMU_PER_IN, _element_kind_guess, _is_background_shape, _overlap_area, _shape_font_pt
+from .inspect import EMU_PER_IN, PT_PER_IN, _element_kind_guess, _is_background_shape, _overlap_area, _shape_font_pt
 
 
 def _set_run_font_pt(shape, new_pt: float) -> None:
@@ -162,3 +163,127 @@ def apply_repairs(
     if applied:
         prs.save(str(pptx_path))
     return applied
+
+
+def repair_page_design(
+    design: PageDesign,
+    issues: list[QAIssue],
+    *,
+    measure_result: MeasureResult | None = None,
+) -> tuple[PageDesign, dict[tuple[str, QAIssueKind, str | None], str]]:
+    """Apply bounded repairs directly to PageDesign (for recompile -> COM rebuild -> recheck).
+
+    Never mutates deck.pptx directly; all edits stay in the declarative PageDesign contract.
+    """
+    updated = PageDesign.model_validate(design.model_dump())
+    page_by_id = {p.page_id: p for p in updated.pages}
+    meas_by_key = (
+        {(m.page_id, m.shape_name): m for m in measure_result.measurements}
+        if measure_result is not None
+        else {}
+    )
+    applied: dict[tuple[str, QAIssueKind, str | None], str] = {}
+
+    def _find_el(page, eid: str | None) -> DesignElement | None:
+        if not eid:
+            return None
+        for el in page.elements:
+            if el.element_id == eid or eid.endswith(f"__{el.element_id}"):
+                return el
+        return None
+
+    for issue in issues:
+        page = page_by_id.get(issue.page_id)
+        if page is None:
+            continue
+        el = _find_el(page, issue.element_id)
+        if el is None:
+            continue
+        slide_w = page.canvas_width_in
+        slide_h = page.canvas_height_in
+
+        if issue.kind is QAIssueKind.text_overflow and el.text:
+            floor = MIN_FONT_PT.get(el.kind, 12.0)
+            cur_pt = float(el.font_size_pt or 16.0)
+            notes: list[str] = []
+            m = meas_by_key.get((issue.page_id, issue.element_id or "")) or meas_by_key.get((issue.page_id, el.element_id))
+
+            # Step down font size toward floor
+            new_pt = cur_pt
+            if cur_pt > floor + 0.1:
+                if m and m.bound_h_pt > m.allocated_h_pt > 0:
+                    ratio = max(0.65, (m.allocated_h_pt / m.bound_h_pt) ** 0.75)
+                    new_pt = max(floor, round(cur_pt * ratio, 1))
+                    if new_pt >= cur_pt:
+                        new_pt = max(floor, round(cur_pt - 2.0, 1))
+                else:
+                    fit = fit_text_to_box(el.text, el.w_in, el.h_in, cur_pt, min_font_pt=floor)
+                    new_pt = fit.font_size_pt if fit.font_size_pt < cur_pt else max(floor, round(cur_pt - 2.0, 1))
+                if new_pt < cur_pt:
+                    el.font_size_pt = new_pt
+                    notes.append(f"font {cur_pt:g}pt->{new_pt:g}pt")
+
+            # Also expand height if measured overflow exceeds what font shrink alone handles
+            if m and m.overflow_h_pt > 4.0:
+                needed_h = round((m.bound_h_pt + 10.0) / PT_PER_IN, 3)
+                max_h = round(max(el.h_in, slide_h - el.y_in - 0.15), 3)
+                new_h = min(max_h, max(el.h_in, needed_h))
+                if new_h > el.h_in + 0.05:
+                    notes.append(f"height {el.h_in:.2f}in->{new_h:.2f}in")
+                    el.h_in = new_h
+            elif new_pt <= floor + 0.1:
+                max_h = round(max(el.h_in, slide_h - el.y_in - 0.15), 3)
+                new_h = min(max_h, round(el.h_in * 1.35, 3))
+                if new_h > el.h_in + 0.05:
+                    notes.append(f"height {el.h_in:.2f}in->{new_h:.2f}in")
+                    el.h_in = new_h
+
+            if notes:
+                applied[(issue.page_id, issue.kind, issue.element_id)] = "page_design: " + "; ".join(notes)
+
+        elif issue.kind is QAIssueKind.font_or_ratio and el.font_size_pt is not None:
+            floor = MIN_FONT_PT.get(el.kind, 12.0)
+            if el.font_size_pt < floor:
+                old = el.font_size_pt
+                el.font_size_pt = floor
+                applied[(issue.page_id, issue.kind, issue.element_id)] = f"page_design: raised font {old:g}pt->{floor:g}pt"
+
+        elif issue.kind is QAIssueKind.layout_anomaly:
+            if "empty" in issue.description.lower() or "low fill ratio" in issue.description.lower():
+                # Remove an empty decorative card rather than leaving an empty box
+                if el.kind is ElementKind.shape and "card" in el.element_id.lower():
+                    page.elements = [e for e in page.elements if e.element_id != el.element_id]
+                    applied[(issue.page_id, issue.kind, issue.element_id)] = f"page_design: removed under-filled card {el.element_id}"
+            else:
+                margin = 0.12
+                nx = max(margin, el.x_in)
+                ny = max(margin, el.y_in)
+                nw = min(el.w_in, slide_w - 2 * margin)
+                nh = min(el.h_in, slide_h - 2 * margin)
+                if nx + nw > slide_w - margin:
+                    nx = max(margin, slide_w - margin - nw)
+                if ny + nh > slide_h - margin:
+                    ny = max(margin, slide_h - margin - nh)
+                el.x_in, el.y_in, el.w_in, el.h_in = round(nx, 3), round(ny, 3), round(nw, 3), round(nh, 3)
+                applied[(issue.page_id, issue.kind, issue.element_id)] = "page_design: clamped within canvas margins"
+
+        elif issue.kind is QAIssueKind.occlusion:
+            gap = 0.12
+            fg = [e for e in page.elements if e.kind is not ElementKind.shape and e.element_id != el.element_id]
+            for other in fg:
+                if _overlap_area((other.x_in, other.y_in, other.w_in, other.h_in), (el.x_in, el.y_in, el.w_in, el.h_in)) <= 0:
+                    continue
+                if el.y_in >= other.y_in and other.y_in + other.h_in + gap + 0.5 <= slide_h - 0.12:
+                    new_y = round(other.y_in + other.h_in + gap, 3)
+                    el.y_in = new_y
+                    el.h_in = round(max(0.45, min(el.h_in, slide_h - 0.12 - new_y)), 3)
+                    applied[(issue.page_id, issue.kind, issue.element_id)] = f"page_design: shifted to y={new_y:.2f}in"
+                    break
+                if el.x_in >= other.x_in and other.x_in + other.w_in + gap + 0.8 <= slide_w - 0.12:
+                    new_x = round(other.x_in + other.w_in + gap, 3)
+                    el.x_in = new_x
+                    el.w_in = round(max(0.8, min(el.w_in, slide_w - 0.12 - new_x)), 3)
+                    applied[(issue.page_id, issue.kind, issue.element_id)] = f"page_design: shifted to x={new_x:.2f}in"
+                    break
+
+    return updated, applied

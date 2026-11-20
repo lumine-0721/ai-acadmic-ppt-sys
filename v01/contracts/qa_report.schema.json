@@ -89,12 +89,39 @@
   },
   "additionalProperties": false,
   "properties": {
+    "capacity_vs_measured": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Capacity Vs Measured",
+      "type": "array"
+    },
+    "cross_render_notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Cross Render Notes",
+      "type": "array"
+    },
     "issues": {
       "items": {
         "$ref": "#/$defs/QAIssue"
       },
       "title": "Issues",
       "type": "array"
+    },
+    "missing_fonts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Fonts",
+      "type": "array"
+    },
+    "render_provenance": {
+      "default": "",
+      "title": "Render Provenance",
+      "type": "string"
     },
     "rendered_pages": {
       "items": {

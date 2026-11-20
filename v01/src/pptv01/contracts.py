@@ -849,8 +849,12 @@ class QAIssue(_Contract):
 
 class QAReport(_RunFile):
     renderer: NonEmptyStr
+    render_provenance: str = ""
     rendered_pages: list[PageId]
     issues: list[QAIssue] = Field(default_factory=list)
+    missing_fonts: list[str] = Field(default_factory=list)
+    capacity_vs_measured: list[dict[str, Any]] = Field(default_factory=list)
+    cross_render_notes: list[str] = Field(default_factory=list)
     summary: str = ""
 
 

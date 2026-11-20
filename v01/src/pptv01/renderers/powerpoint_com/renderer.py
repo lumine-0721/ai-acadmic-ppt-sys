@@ -29,16 +29,19 @@ def _probe_installed_windows_fonts() -> list[str]:
     found: list[str] = []
     # Map well-known Windows font filenames to family names
     file_map = {
-        "msyh.ttc": "Microsoft YaHei",
-        "deng.ttf": "DengXian",
-        "simhei.ttf": "SimHei",
-        "simsun.ttc": "SimSun",
-        "calibri.ttf": "Calibri",
-        "arial.ttf": "Arial",
+        "msyh.ttc": ("Microsoft YaHei", "微软雅黑"),
+        "deng.ttf": ("DengXian", "等线"),
+        "dengl.ttf": ("DengXian Light", "等线 Light"),
+        "simhei.ttf": ("SimHei", "黑体"),
+        "simsun.ttc": ("SimSun", "宋体"),
+        "calibri.ttf": ("Calibri",),
+        "arial.ttf": ("Arial",),
     }
-    for fname, family in file_map.items():
-        if (fonts_dir / fname).is_file() and family not in found:
-            found.append(family)
+    for fname, families in file_map.items():
+        if (fonts_dir / fname).is_file():
+            for family in families:
+                if family not in found:
+                    found.append(family)
     return found
 
 

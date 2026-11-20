@@ -1,10 +1,14 @@
-"""Mechanical & visual QA checks over deck.pptx and rendered slide PNGs (Stage H)."""
+"""Mechanical, measured-COM, and visual QA checks over deck.pptx and rendered slide PNGs (Stage H).
+
+NOTE: python-pptx is used here strictly READ-ONLY (never writes PPTX files).
+"""
 
 from __future__ import annotations
 
 import io
 import re
 from pathlib import Path
+from typing import Any
 
 from PIL import Image, ImageStat
 from pptx import Presentation
@@ -25,8 +29,12 @@ from pptv01.contracts import (
 )
 from pptv01.f_layout.capacity import estimate_slot_capacity, wrap_mixed_text
 from pptv01.f_layout.validate import MIN_FONT_PT
+from pptv01.renderers.protocol import MeasureResult, TextMeasurement
+
+from .geometry import GeoBox, find_edge_misalignments, find_empty_cards
 
 EMU_PER_IN = 914400.0
+PT_PER_IN = 72.0
 _BG_NAMES = {"bg_header", "accent_bar", "card_main", "card_text"}
 _ASSET_BIND_RE = re.compile(r"^(?:ASSET|CHART|TABLE|DIAGRAM|ICON)_(A\d{3,})(?:__|$)")
 _INPUT_BIND_RE = re.compile(r"^(?:INPUT|CHART_INPUT|TABLE_INPUT|DIAGRAM_INPUT)_(U\d{3,})(?:__|$)")
@@ -91,8 +99,13 @@ def inspect_deck(
     uir: UserInputRequests | None = None,
     mapping: SlideAssetMapping | None = None,
     rendered_pngs: list[Path] | None = None,
+    *,
+    measure_result: MeasureResult | None = None,
+    installed_fonts: list[str] | None = None,
+    capacity_log: list[dict[str, Any]] | None = None,
+    missing_fonts_out: list[str] | None = None,
 ) -> list[QAIssue]:
-    """Detect all 6 QAIssueKind categories across the generated deck and rendered PNGs."""
+    """Detect QA issues across deck.pptx, PowerPoint COM measurements, and rendered PNGs."""
     issues: list[QAIssue] = []
     prs = Presentation(str(pptx_path))
     slide_w = prs.slide_width / EMU_PER_IN
@@ -100,6 +113,25 @@ def inspect_deck(
 
     page_ids = [p.page_id for p in slide_plan.pages] if slide_plan else [f"S{i:03d}" for i in range(1, len(prs.slides) + 1)]
     design_by_id = {p.page_id: p for p in design.pages} if design else {}
+
+    meas_map: dict[tuple[str, str], TextMeasurement] = {}
+    if measure_result is not None:
+        for m in measure_result.measurements:
+            meas_map[(m.page_id, m.shape_name)] = m
+        if installed_fonts is not None and measure_result.presentation_fonts:
+            inst_cf = {f.casefold() for f in installed_fonts}
+            for pf in measure_result.presentation_fonts:
+                if pf.casefold() not in inst_cf:
+                    if missing_fonts_out is not None and pf not in missing_fonts_out:
+                        missing_fonts_out.append(pf)
+                    issues.append(
+                        QAIssue(
+                            page_id=page_ids[0] if page_ids else "S001",
+                            kind=QAIssueKind.font_or_ratio,
+                            severity=Severity.minor,
+                            description=f"presentation font {pf!r} not found among installed system fonts",
+                        )
+                    )
 
     valid_assets = (
         {a.asset_id for a in reg.assets if a.status in (AssetStatus.acquired, AssetStatus.drawn, AssetStatus.substituted)}
@@ -134,6 +166,8 @@ def inspect_deck(
     for idx, slide in enumerate(prs.slides):
         pid = page_ids[idx] if idx < len(page_ids) else f"S{idx + 1:03d}"
         fg_boxes: list[tuple[str, tuple[float, float, float, float]]] = []
+        geo_boxes: list[GeoBox] = []
+        bound_h_by_name: dict[str, float] = {}
         pic_count = 0
 
         for s_i, sh in enumerate(slide.shapes):
@@ -142,9 +176,27 @@ def inspect_deck(
             w = sh.width / EMU_PER_IN
             h = sh.height / EMU_PER_IN
             eid = (sh.name or f"shape_{s_i}")[:64]
+            is_conn = sh.shape_type is MSO_SHAPE_TYPE.LINE
+            is_bg = _is_background_shape(sh, slide_w, slide_h)
+            has_txt = bool(getattr(sh, "has_text_frame", False) and sh.text_frame.text.strip())
+            txt_len = len(sh.text_frame.text.strip()) if has_txt else 0
+            geo_boxes.append(
+                GeoBox(
+                    element_id=eid,
+                    x_pt=round(x * PT_PER_IN, 2),
+                    y_pt=round(y * PT_PER_IN, 2),
+                    w_pt=round(w * PT_PER_IN, 2),
+                    h_pt=round(h * PT_PER_IN, 2),
+                    is_background=is_bg,
+                    is_connector=is_conn,
+                    is_picture=(sh.shape_type is MSO_SHAPE_TYPE.PICTURE),
+                    has_text=has_txt,
+                    text_len=txt_len,
+                )
+            )
 
             # 1) layout_anomaly: out of slide canvas bounds
-            if x < -0.02 or y < -0.02 or x + w > slide_w + 0.02 or y + h > slide_h + 0.02:
+            if not is_conn and (x < -0.02 or y < -0.02 or x + w > slide_w + 0.02 or y + h > slide_h + 0.02):
                 sev = Severity.blocker if (x < -0.5 or y < -0.5 or x + w > slide_w + 0.5 or y + h > slide_h + 0.5) else Severity.major
                 issues.append(QAIssue(
                     page_id=pid,
@@ -154,9 +206,10 @@ def inspect_deck(
                     description=f"element {eid} extends outside slide bounds ({x:.2f},{y:.2f},{w:.2f}x{h:.2f})",
                 ))
 
-            # 2) text_overflow & font_or_ratio (font floor)
-            if getattr(sh, "has_text_frame", False) and sh.text_frame.text.strip():
-                pt = _shape_font_pt(sh) or 14.0
+            # 2) text_overflow & font_or_ratio (prefer live PowerPoint COM measurement when available)
+            if has_txt:
+                m_live = meas_map.get((pid, sh.name or "")) or meas_map.get((pid, eid))
+                pt = (m_live.font_size_pt if (m_live and m_live.font_size_pt) else None) or _shape_font_pt(sh) or 14.0
                 kind_guess = _element_kind_guess(sh)
                 floor = MIN_FONT_PT.get(kind_guess, 12.0)
                 if pt < floor - 0.1:
@@ -169,7 +222,32 @@ def inspect_deck(
                     ))
                 cap = estimate_slot_capacity(w, h, pt)
                 lines = wrap_mixed_text(sh.text_frame.text, w, pt)
-                if len(lines) > cap.max_lines:
+                if m_live is not None:
+                    bound_h_by_name[eid] = m_live.bound_h_pt
+                    if capacity_log is not None:
+                        capacity_log.append({
+                            "page_id": pid,
+                            "element_id": eid,
+                            "font_size_pt": pt,
+                            "estimated_lines": len(lines),
+                            "capacity_max_lines": cap.max_lines,
+                            "allocated_h_pt": m_live.allocated_h_pt,
+                            "bound_h_pt": m_live.bound_h_pt,
+                            "overflow_h_pt": m_live.overflow_h_pt,
+                            "font_name_fareast": m_live.font_name_fareast,
+                        })
+                    if m_live.overflow_h_pt > 6.0 or m_live.overflow_w_pt > 6.0:
+                        issues.append(QAIssue(
+                            page_id=pid,
+                            kind=QAIssueKind.text_overflow,
+                            severity=Severity.major,
+                            element_id=eid,
+                            description=(
+                                f"measured PowerPoint BoundHeight={m_live.bound_h_pt:.1f}pt > allocated "
+                                f"{m_live.allocated_h_pt:.1f}pt (overflow {m_live.overflow_h_pt:.1f}pt at {pt:g}pt)"
+                            ),
+                        ))
+                elif len(lines) > cap.max_lines:
                     issues.append(QAIssue(
                         page_id=pid,
                         kind=QAIssueKind.text_overflow,
@@ -178,15 +256,21 @@ def inspect_deck(
                         description=f"text overflows box ({len(lines)} lines > capacity {cap.max_lines} at {pt:g}pt)",
                     ))
 
-            # 3) missing_image, font_or_ratio (aspect distortion), content_asset_mismatch
+            # 3) missing_image, font_or_ratio (aspect distortion accounting for crop_fill), content_asset_mismatch
             if sh.shape_type is MSO_SHAPE_TYPE.PICTURE:
                 pic_count += 1
                 try:
                     blob = sh.image.blob
                     with Image.open(io.BytesIO(blob)) as im:
                         iw, ih = im.size
+                    crop_l = float(getattr(sh, "crop_left", 0.0) or 0.0)
+                    crop_r = float(getattr(sh, "crop_right", 0.0) or 0.0)
+                    crop_t = float(getattr(sh, "crop_top", 0.0) or 0.0)
+                    crop_b = float(getattr(sh, "crop_bottom", 0.0) or 0.0)
+                    vis_w = max(1.0, iw * max(0.05, 1.0 - crop_l - crop_r))
+                    vis_h = max(1.0, ih * max(0.05, 1.0 - crop_t - crop_b))
                     shape_ar = w / max(h, 1e-6)
-                    img_ar = iw / max(ih, 1e-6)
+                    img_ar = vis_w / max(vis_h, 1e-6)
                     if abs(shape_ar - img_ar) / max(img_ar, 1e-6) > 0.15:
                         issues.append(QAIssue(
                             page_id=pid,
@@ -225,8 +309,30 @@ def inspect_deck(
                         description=f"asset {bound_id} was marked irrelevant to {pid}",
                     ))
 
-            if not _is_background_shape(sh, slide_w, slide_h):
+            if not is_bg and not is_conn:
                 fg_boxes.append((eid, (x, y, w, h)))
+
+        # Pure-arithmetic empty card & edge-alignment checks (B6 / pptlive geometry lint)
+        for card_id, detail in find_empty_cards(geo_boxes, bound_heights_pt=bound_h_by_name):
+            issues.append(
+                QAIssue(
+                    page_id=pid,
+                    kind=QAIssueKind.layout_anomaly,
+                    severity=Severity.major,
+                    element_id=card_id,
+                    description=detail,
+                )
+            )
+        for id_a, id_b, edge, delta in find_edge_misalignments(geo_boxes):
+            issues.append(
+                QAIssue(
+                    page_id=pid,
+                    kind=QAIssueKind.layout_anomaly,
+                    severity=Severity.minor,
+                    element_id=id_b,
+                    description=f"edge alignment drift ({edge}): {id_a} vs {id_b} differ by {delta:.1f}pt",
+                )
+            )
 
         # Check expected images from design actually exist on slide
         if pid in design_by_id:
