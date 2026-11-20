@@ -15,7 +15,30 @@
       "content_summary": "用定义和对比说明现象本身。",
       "visual_intent": "一张对比示意，而不是装饰图",
       "asset_needs": [
-        "需要一张可解释的对比图或简明数据"
+        {
+          "type": "image",
+          "description": "并排展示城区与郊区的地表温度分布，说明“城区相对周边更热”",
+          "targets": [
+            {
+              "name": "某大城市的地表温度热像图（待选城市）",
+              "entity_type": "dataset",
+              "verification": "to_verify",
+              "source_refs": []
+            }
+          ]
+        },
+        {
+          "type": "reference",
+          "description": "为“热岛不同于热浪”的区分提供可核验的定义出处",
+          "targets": [
+            {
+              "name": "城市热岛的权威定义条目或综述",
+              "entity_type": "publication",
+              "verification": "to_verify",
+              "source_refs": []
+            }
+          ]
+        }
       ],
       "status": "provisional"
     },
@@ -31,7 +54,18 @@
       "content_summary": "逐个成因讲机制，并说明哪些需要数据佐证。",
       "visual_intent": "成因关系示意图",
       "asset_needs": [
-        "一张成因机制示意图"
+        {
+          "type": "diagram",
+          "description": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
+          "targets": [
+            {
+              "name": "城市热岛成因关系",
+              "entity_type": "concept",
+              "verification": "to_verify",
+              "source_refs": []
+            }
+          ]
+        }
       ],
       "status": "provisional"
     }

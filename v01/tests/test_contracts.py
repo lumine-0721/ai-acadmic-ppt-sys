@@ -183,3 +183,49 @@ def test_run_report_stage_rules(fx):
     d = fx("run_report"); d["stages"][1]["status"] = "failed"
     with pytest.raises(ValidationError, match="error"):
         RunReport.model_validate(d)
+
+
+# ---- structured asset_needs (stage B -> C)
+def _need(**kw):
+    base = {"type": "image", "description": "并排展示城区与郊区温度分布",
+            "targets": [{"name": "某城市热像图", "entity_type": "dataset"}]}
+    return {**base, **kw}
+
+
+def test_asset_need_uses_the_stage_c_asset_type_enum(fx):
+    from pptv01.contracts import AssetNeed, AssetType
+    assert AssetNeed.model_validate(_need()).type is AssetType.image
+    for ok in AssetType:
+        tg = [] if ok.value in ("diagram", "icon") else [{"name": "x"}]
+        AssetNeed.model_validate(_need(type=ok.value, targets=tg))
+    with pytest.raises(ValidationError):
+        AssetNeed.model_validate(_need(type="video"))
+
+
+@pytest.mark.parametrize("t", ["image", "chart_data", "table", "reference", "statistic"])
+def test_concrete_types_need_a_named_target(t):
+    from pptv01.contracts import AssetNeed
+    with pytest.raises(ValidationError, match="concrete target"):
+        AssetNeed.model_validate(_need(type=t, targets=[]))
+
+
+def test_diagram_and_icon_may_be_conceptual():
+    from pptv01.contracts import AssetNeed
+    AssetNeed.model_validate(_need(type="diagram", targets=[]))
+    AssetNeed.model_validate(_need(type="icon", targets=[]))
+
+
+def test_candidate_targets_default_to_verify_and_verified_needs_sources():
+    from pptv01.contracts import AssetTarget, Verification
+    assert AssetTarget(name="帕特农神庙").verification is Verification.to_verify
+    with pytest.raises(ValidationError, match="verified but cites no"):
+        AssetTarget(name="帕特农神庙", verification="verified")
+    assert AssetTarget(name="帕特农神庙", verification="verified", source_refs=["R001"]).source_refs == ["R001"]
+    with pytest.raises(ValidationError, match="still marked to_verify"):
+        AssetTarget(name="帕特农神庙", source_refs=["R001"])
+
+
+def test_free_text_asset_needs_are_rejected(fx):
+    d = fx("slide_plan_provisional"); d["pages"][0]["asset_needs"] = ["配几张图"]
+    with pytest.raises(ValidationError):
+        SlidePlan.model_validate(d)

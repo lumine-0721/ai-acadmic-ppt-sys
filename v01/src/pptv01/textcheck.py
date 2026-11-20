@@ -78,7 +78,7 @@ _STAT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("quantity", re.compile(
         rf"(?<![第\d.]){_NUMV}\s*(?:摄氏度|华氏度|℃|°\s*[CF]|公里|千米|公顷|平方公里|平方米|立方米|毫米|厘米|公斤|千克|吨|"
         rf"千瓦时|千瓦|兆瓦|吉瓦|美元|欧元|人民币|万元|亿元|万人|亿人|万吨|亿吨|ppm|km|kg|kwh|gw|mw)", re.I)),
-    ("quantity", re.compile(rf"(?<![第\d.]){_NUMV}\s*(?:米|元)(?![\w])")),
+    ("quantity", re.compile(rf"(?<![第\d.]){_NUMV}\s*(?:米(?![饭粉糠色])|元(?![对素论化组函数]))")),
 ]
 _CLAIM_PHRASES = (
     "研究表明", "研究证明", "研究发现", "研究显示", "调查显示", "调查发现", "报告显示", "数据表明", "数据显示",

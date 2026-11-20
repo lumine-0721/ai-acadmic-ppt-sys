@@ -85,3 +85,33 @@ def test_duplicate_titles_rejected():
     d = b(); d["pages"][1]["title"] = d["pages"][0]["title"]
     with pytest.raises(SlidePlanRuleError, match="duplicate"):
         build_slide_plan(d, PLAN, has_research=False)
+
+
+def test_b_rejects_verified_target_without_research():
+    d = b(); d["pages"][0]["asset_needs"][0]["targets"][0]["verification"] = "verified"
+    with pytest.raises(ValueError, match="verified"):
+        build_slide_plan(d, PLAN, has_research=False)
+    d = b(); d["pages"][0]["asset_needs"][0]["targets"][0].update(verification="verified", source_refs=["R001"])
+    with pytest.raises(SlidePlanRuleError, match="no research was performed"):
+        build_slide_plan(d, PLAN, has_research=False)
+
+
+def test_b_rejects_unstructured_or_vague_needs():
+    d = b(); d["pages"][0]["asset_needs"] = ["配几张图"]
+    with pytest.raises(ValueError):
+        build_slide_plan(d, PLAN, has_research=False)
+    d = b(); d["pages"][0]["asset_needs"][0]["targets"] = []
+    with pytest.raises(ValueError, match="concrete target"):
+        build_slide_plan(d, PLAN, has_research=False)
+
+
+def test_b_rejects_invented_numbers_in_targets_and_descriptions():
+    d = b(); d["pages"][0]["asset_needs"][0]["targets"][0]["name"] = "高 324 米的某塔"
+    with pytest.raises(SlidePlanRuleError, match="unsourced"):
+        build_slide_plan(d, PLAN, has_research=False)
+
+
+def test_b_candidates_are_marked_to_verify(tmp_path):
+    plan, _ = run_stage_b(PLAN, FakeClient([GOOD_B]), tmp_path)
+    tgs = [t for p in plan.pages for n in p.asset_needs for t in n.targets]
+    assert tgs and all(t.verification.value == "to_verify" for t in tgs)

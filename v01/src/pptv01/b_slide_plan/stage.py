@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from pptv01.contracts import (
+    AssetNeed,
     SCHEMA_VERSION,
     NonEmptyStr,
     ProductionPlan,
@@ -30,7 +31,7 @@ class DraftPage(BaseModel):
     key_points: list[NonEmptyStr] = Field(min_length=1)
     content_summary: NonEmptyStr
     visual_intent: NonEmptyStr
-    asset_needs: list[NonEmptyStr] = Field(default_factory=list)
+    asset_needs: list[AssetNeed] = Field(default_factory=list)
 
 
 class DraftSlidePlan(BaseModel):

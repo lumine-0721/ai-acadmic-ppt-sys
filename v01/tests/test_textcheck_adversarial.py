@@ -126,3 +126,9 @@ def test_per_page_pace_is_not_total_duration(text):
 def test_invented_total_duration_still_flagged():
     assert t.ungrounded_counts("整场约20分钟", "帮我做个PPT")
     assert not t.ungrounded_counts("约10分钟", "我明天要讲10分钟的芯片")
+
+
+@pytest.mark.parametrize("text", ["高 324 米的某塔", "三米高的围墙", "标价九十九元的咖啡", "二元对立的叙事", "三元素周期"])
+def test_metre_and_yuan_edge_cases(text):
+    flagged = bool(t.unsourced_claims(text))
+    assert flagged == (text in ("高 324 米的某塔", "三米高的围墙", "标价九十九元的咖啡")), text

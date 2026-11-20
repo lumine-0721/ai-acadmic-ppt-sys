@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pptv01 import textcheck
-from pptv01.contracts import ProductionPlan, SlidePlan, SlideStatus
+from pptv01.contracts import ProductionPlan, SlidePlan, SlideStatus, Verification
 
 MAX_PAGES = 60
 
@@ -34,7 +34,14 @@ def validate_slide_plan(plan: SlidePlan, production: ProductionPlan, *, has_rese
         for i, k_ in enumerate(p.key_points):
             texts[f"{p.page_id}.key_points[{i}]"] = k_
         for i, a in enumerate(p.asset_needs):
-            texts[f"{p.page_id}.asset_needs[{i}]"] = a
+            texts[f"{p.page_id}.asset_needs[{i}].description"] = a.description
+            for j, tg in enumerate(a.targets):
+                texts[f"{p.page_id}.asset_needs[{i}].targets[{j}]"] = tg.name
+                if not has_research and (tg.verification is Verification.verified or tg.source_refs):
+                    problems.append(
+                        f"{p.page_id}.asset_needs[{i}].targets[{j}] {tg.name!r}: cannot be 'verified' / cite "
+                        "sources when no research was performed; candidates stay to_verify"
+                    )
 
     for where, text in texts.items():
         for pr in textcheck.ungrounded_counts(text, utter):

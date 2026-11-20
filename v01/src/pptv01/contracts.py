@@ -104,6 +104,69 @@ class SlideStatus(str, Enum):
     revised = "revised"
 
 
+SourceRef = Annotated[str, StringConstraints(pattern=r"^R\d{3,}$")]  # research note id (stage B retrieval)
+
+
+class AssetType(str, Enum):
+    """Asset kinds shared by stage B (asset_needs) and stage C (requirements)."""
+
+    image = "image"
+    icon = "icon"
+    diagram = "diagram"
+    chart_data = "chart_data"
+    table = "table"
+    reference = "reference"
+    statistic = "statistic"
+
+
+class Verification(str, Enum):
+    """Has this concrete target been checked against a retrieved source?
+
+    to_verify (待核实): a candidate that came from model background knowledge only.
+    verified  (已核实): backed by at least one retrieved source (source_refs).
+    """
+
+    to_verify = "to_verify"
+    verified = "verified"
+
+
+# types for which a concrete target (entity/dataset/publication...) is mandatory;
+# diagrams and icons may be about a concept and need no named target.
+TARGET_OPTIONAL_TYPES = {AssetType.diagram, AssetType.icon}
+
+
+class AssetTarget(_Contract):
+    name: NonEmptyStr
+    entity_type: NonEmptyStr = "entity"   # building / city / dataset / publication / concept ...
+    verification: Verification = Verification.to_verify
+    source_refs: list[SourceRef] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _verified_needs_source(self) -> "AssetTarget":
+        if self.verification is Verification.verified and not self.source_refs:
+            raise ValueError(f"target {self.name!r} is marked verified but cites no source_refs")
+        if self.verification is Verification.to_verify and self.source_refs:
+            raise ValueError(f"target {self.name!r} cites sources but is still marked to_verify")
+        return self
+
+
+class AssetNeed(_Contract):
+    """What a page needs, in terms stage C can turn into a requirement."""
+
+    type: AssetType
+    description: NonEmptyStr
+    targets: list[AssetTarget] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _targets_for_concrete_types(self) -> "AssetNeed":
+        if self.type not in TARGET_OPTIONAL_TYPES and not self.targets:
+            raise ValueError(
+                f"{self.type.value} need {self.description!r} must name at least one concrete target "
+                "(candidate entities are allowed and marked to_verify)"
+            )
+        return self
+
+
 class SlidePage(_Contract):
     page_id: PageId
     title: NonEmptyStr
@@ -111,7 +174,7 @@ class SlidePage(_Contract):
     key_points: list[NonEmptyStr] = Field(min_length=1)
     content_summary: NonEmptyStr
     visual_intent: NonEmptyStr
-    asset_needs: list[NonEmptyStr] = Field(default_factory=list)
+    asset_needs: list[AssetNeed] = Field(default_factory=list)
     status: SlideStatus = SlideStatus.provisional
 
 
@@ -155,16 +218,6 @@ class SlidePlan(_RunFile):
 
 
 # --------------------------------------------------------------------- 3.3 C
-class AssetType(str, Enum):
-    image = "image"
-    icon = "icon"
-    diagram = "diagram"
-    chart_data = "chart_data"
-    table = "table"
-    reference = "reference"
-    statistic = "statistic"
-
-
 class Priority(str, Enum):
     required = "required"
     optional = "optional"

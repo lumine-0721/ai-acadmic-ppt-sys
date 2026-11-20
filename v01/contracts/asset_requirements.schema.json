@@ -60,6 +60,7 @@
       "type": "object"
     },
     "AssetType": {
+      "description": "Asset kinds shared by stage B (asset_needs) and stage C (requirements).",
       "enum": [
         "image",
         "icon",

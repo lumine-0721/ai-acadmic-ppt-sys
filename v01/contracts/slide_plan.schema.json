@@ -1,5 +1,79 @@
 {
   "$defs": {
+    "AssetNeed": {
+      "additionalProperties": false,
+      "description": "What a page needs, in terms stage C can turn into a requirement.",
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/AssetTarget"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "type": {
+          "$ref": "#/$defs/AssetType"
+        }
+      },
+      "required": [
+        "type",
+        "description"
+      ],
+      "title": "AssetNeed",
+      "type": "object"
+    },
+    "AssetTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "entity_type": {
+          "default": "entity",
+          "minLength": 1,
+          "title": "Entity Type",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "pattern": "^R\\d{3,}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "verification": {
+          "$ref": "#/$defs/Verification",
+          "default": "to_verify"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "AssetTarget",
+      "type": "object"
+    },
+    "AssetType": {
+      "description": "Asset kinds shared by stage B (asset_needs) and stage C (requirements).",
+      "enum": [
+        "image",
+        "icon",
+        "diagram",
+        "chart_data",
+        "table",
+        "reference",
+        "statistic"
+      ],
+      "title": "AssetType",
+      "type": "string"
+    },
     "RevisionEntry": {
       "additionalProperties": false,
       "description": "One edit of the slide plan after real assets came back.",
@@ -53,8 +127,7 @@
       "properties": {
         "asset_needs": {
           "items": {
-            "minLength": 1,
-            "type": "string"
+            "$ref": "#/$defs/AssetNeed"
           },
           "title": "Asset Needs",
           "type": "array"
@@ -115,6 +188,15 @@
         "revised"
       ],
       "title": "SlideStatus",
+      "type": "string"
+    },
+    "Verification": {
+      "description": "Has this concrete target been checked against a retrieved source?\n\nto_verify (待核实): a candidate that came from model background knowledge only.\nverified  (已核实): backed by at least one retrieved source (source_refs).",
+      "enum": [
+        "to_verify",
+        "verified"
+      ],
+      "title": "Verification",
       "type": "string"
     }
   },
