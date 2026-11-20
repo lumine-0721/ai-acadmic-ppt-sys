@@ -105,6 +105,13 @@
         },
         "status": {
           "$ref": "#/$defs/StageStatus"
+        },
+        "substeps": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Substeps",
+          "type": "object"
         }
       },
       "required": [

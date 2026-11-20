@@ -684,6 +684,128 @@ class PageDesign(_RunFile):
         return self
 
 
+# ------------------------------------------------------------------ 3.6.5 G (DeckOps)
+OpId = Annotated[str, StringConstraints(pattern=r"^OP\d{4}$")]
+
+
+class DeckOpKind(str, Enum):
+    add_slide = "add_slide"
+    set_placeholder_text = "set_placeholder_text"
+    add_textbox = "add_textbox"
+    add_shape = "add_shape"
+    add_picture = "add_picture"
+    add_table = "add_table"
+    add_chart = "add_chart"
+    add_diagram = "add_diagram"
+    add_connector = "add_connector"
+    add_placeholder_box = "add_placeholder_box"
+    set_notes = "set_notes"
+    set_alt_text = "set_alt_text"
+    set_name = "set_name"
+
+
+BOUND_VISUAL_OP_KINDS = {
+    DeckOpKind.add_picture,
+    DeckOpKind.add_table,
+    DeckOpKind.add_chart,
+    DeckOpKind.add_diagram,
+    DeckOpKind.add_connector,
+}
+
+
+class DeckOp(_Contract):
+    op_id: OpId
+    page_id: PageId
+    kind: DeckOpKind
+    element_id: ElementId | None = None
+    asset_id: AssetId | None = None
+    request_id: RequestId | None = None
+    source_refs: list[NonEmptyStr] = Field(default_factory=list)
+    params: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _rules(self) -> "DeckOp":
+        fp = self.params.get("file_path")
+        if fp is not None:
+            if not isinstance(fp, str):
+                raise ValueError(f"{self.op_id}: params.file_path must be a string")
+            _check_relative_path(fp)
+
+        if self.kind in BOUND_VISUAL_OP_KINDS:
+            if not (self.asset_id or self.request_id):
+                raise ValueError(
+                    f"{self.op_id} ({self.kind.value}): visual op must be bound to an asset_id (A###) or request_id (U###)"
+                )
+            if not self.source_refs:
+                raise ValueError(
+                    f"{self.op_id} ({self.kind.value}): visual op must carry at least one provenance entry in source_refs"
+                )
+
+        if self.kind is DeckOpKind.add_picture:
+            if not self.params.get("file_path"):
+                raise ValueError(f"{self.op_id}: add_picture requires params.file_path")
+            crop = self.params.get("crop_mode", "crop_fill")
+            if crop not in ("fit", "crop_fill"):
+                raise ValueError(f"{self.op_id}: add_picture crop_mode must be 'fit' or 'crop_fill'")
+
+        if self.kind is DeckOpKind.add_table:
+            cols = self.params.get("columns")
+            rows = self.params.get("rows")
+            if not isinstance(cols, list) or not cols or not isinstance(rows, list) or not rows:
+                raise ValueError(f"{self.op_id}: add_table requires non-empty params.columns and params.rows")
+
+        if self.kind is DeckOpKind.add_chart:
+            cats = self.params.get("categories")
+            series = self.params.get("series")
+            if not isinstance(cats, list) or not cats or not isinstance(series, list) or not series:
+                raise ValueError(f"{self.op_id}: add_chart requires non-empty params.categories and params.series")
+
+        if self.kind is DeckOpKind.add_connector:
+            if not self.params.get("from_element_id") or not self.params.get("to_element_id"):
+                raise ValueError(f"{self.op_id}: add_connector requires params.from_element_id and params.to_element_id")
+
+        if self.kind is DeckOpKind.add_placeholder_box:
+            if not self.request_id:
+                raise ValueError(f"{self.op_id}: add_placeholder_box requires request_id (U###)")
+            name = str(self.params.get("shape_name") or self.element_id or "")
+            if not name.startswith(f"PLACEHOLDER_{self.request_id}"):
+                raise ValueError(f"{self.op_id}: placeholder shape_name must start with PLACEHOLDER_{self.request_id}")
+            txt = str(self.params.get("text") or "")
+            if "待补充：" not in txt or self.request_id not in txt:
+                raise ValueError(f"{self.op_id}: placeholder text must contain '待补充：' and {self.request_id}")
+
+        return self
+
+
+class DeckOps(_RunFile):
+    """Backend-agnostic deterministic operation list compiled from PageDesign for Office renderers."""
+
+    canvas_width_in: float = CANVAS_W_IN
+    canvas_height_in: float = CANVAS_H_IN
+    template_path: RelPath | None = None
+    page_ids: list[PageId] = Field(min_length=1)
+    ops: list[DeckOp] = Field(min_length=1)
+
+    @field_validator("template_path")
+    @classmethod
+    def _rel_tpl(cls, v: str | None) -> str | None:
+        return None if v is None else _check_relative_path(v)
+
+    @model_validator(mode="after")
+    def _rules(self) -> "DeckOps":
+        op_ids = [o.op_id for o in self.ops]
+        if len(set(op_ids)) != len(op_ids):
+            raise ValueError("duplicate op_id in deck_ops")
+        slide_pages = [o.page_id for o in self.ops if o.kind is DeckOpKind.add_slide]
+        if slide_pages != self.page_ids:
+            raise ValueError(f"add_slide page sequence {slide_pages} must match page_ids {self.page_ids}")
+        known_pages = set(self.page_ids)
+        for o in self.ops:
+            if o.page_id not in known_pages:
+                raise ValueError(f"{o.op_id}: unknown page_id {o.page_id}")
+        return self
+
+
 # --------------------------------------------------------------------- 3.7 H
 class QAIssueKind(str, Enum):
     text_overflow = "text_overflow"
@@ -747,6 +869,7 @@ class StageRecord(_Contract):
     started_at: datetime | None = None
     finished_at: datetime | None = None
     output_files: list[RelPath] = Field(default_factory=list)
+    substeps: dict[str, str] = Field(default_factory=dict)
     input_hashes: dict[str, str] = Field(default_factory=dict)
     stale: bool = False
     stale_reason: str | None = None
@@ -1013,6 +1136,7 @@ CONTRACT_FILES: dict[str, type[_RunFile]] = {
     "user_input_requests": UserInputRequests,
     "slide_asset_mapping": SlideAssetMapping,
     "page_design": PageDesign,
+    "deck_ops": DeckOps,
     "qa_report": QAReport,
     "run_report": RunReport,
     "grade_report": GradeReport,

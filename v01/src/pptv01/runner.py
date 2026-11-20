@@ -24,6 +24,8 @@ from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchF
 from pptv01.contracts import (
     AssetRegistry,
     AssetRequirements,
+    DeckOpKind,
+    DeckOps,
     PageDesign,
     ProductionPlan,
     QAReport,
@@ -42,12 +44,18 @@ from pptv01.contracts import (
 from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env
 from pptv01.e_mapping import ARTIFACT as E_FILE, run_stage_e
 from pptv01.f_layout import ARTIFACT as F_FILE, run_stage_f
+from pptv01.g_build import ARTIFACT_OPS, OpsCompileError, compile_deck_ops
 from pptv01.g_pptx import ARTIFACT as G_FILE, run_stage_g
 from pptv01.h_qa import ARTIFACT as H_FILE, RenderExecutionError, RendererUnavailableError, run_stage_h
 from pptv01.h_qa.stage import RenderFn
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
+from pptv01.renderers import (
+    DeckRenderer,
+    RenderExecutionError as DeckRenderExecutionError,
+    RendererUnavailableError as DeckRendererUnavailableError,
+)
 from pptv01.retrieval import ResearchProvider, research_from_env
-from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, summarize_requests
+from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, mark_placeholders_rendered, summarize_requests
 
 STAGE_NAMES = {
     "A": "production_plan",
@@ -157,6 +165,8 @@ def run_pipeline(
     assets: DServices | None = None,
     vision_client: ChatClient | None = None,
     render_fn: RenderFn | None = None,
+    renderer: DeckRenderer | None = None,
+    compile_only: bool = False,
     clock: Callable[[], datetime] = _now,
 ) -> tuple[RunReport, Path]:
     """Run implemented stages for one utterance. Returns (report, run_dir).
@@ -213,10 +223,12 @@ def run_pipeline(
         error: str | None = None,
         *,
         input_hashes: dict[str, str] | None = None,
+        substeps: dict[str, str] | None = None,
     ) -> None:
         records[stage] = StageRecord(
             stage=stage, name=STAGE_NAMES[stage], status=status,
             started_at=t0, finished_at=clock() if t0 else None, output_files=files,
+            substeps=dict(substeps or {}),
             input_hashes=dict(input_hashes or {}), stale=False, stale_reason=None, error=error,
         )
 
@@ -434,8 +446,9 @@ def run_pipeline(
             error="skipped: stage E did not produce a slide asset mapping",
         )
 
-    # ---- Stage G (deck generation)
+    # ---- Stage G (compile deck_ops.json -> build deck.pptx via DeckRenderer or legacy fallback)
     deck_path: Path | None = None
+    deck_ops: DeckOps | None = None
     if waiting_for_input:
         records["G"] = StageRecord(
             stage="G", name=STAGE_NAMES["G"], status=StageStatus.skipped,
@@ -446,25 +459,81 @@ def run_pipeline(
         g_inputs = _input_hashes(
             run_dir, [B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, F_FILE, *_provided_input_files(uir)]
         )
-        if _can_reuse("G", [G_FILE], g_inputs):
+        if not compile_only and _can_reuse("G", [ARTIFACT_OPS, G_FILE], g_inputs):
+            deck_ops = load_contract(DeckOps, run_dir / ARTIFACT_OPS)
             deck_path = run_dir / G_FILE
-            record("G", StageStatus.done, t0, [G_FILE], input_hashes=g_inputs)
+            g_files = [ARTIFACT_OPS, G_FILE] + (["deck_dump.json"] if (run_dir / "deck_dump.json").is_file() else [])
+            record("G", StageStatus.done, t0, g_files, input_hashes=g_inputs,
+                   substeps={"compile_ops": "done", "render_pptx": "done"})
         else:
             invalidated = True
             try:
-                deck_path = run_stage_g(slide_plan, design, reg, uir, run_dir)
-                if (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
-                    uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
-                    uir_summary = summarize_requests(uir)
-                    post_g_uir_sha = _file_sha256(run_dir / USER_INPUT_REQUESTS_FILE)
-                    g_inputs[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
-                    for st_code in ("E", "F"):
-                        if st_code in records and USER_INPUT_REQUESTS_FILE in records[st_code].input_hashes:
-                            records[st_code].input_hashes[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
-                record("G", StageStatus.done, t0, [G_FILE], input_hashes=g_inputs)
-            except (OSError, ValueError) as e:
+                deck_ops = compile_deck_ops(slide_plan, design, reg, uir, run_dir)
+                if compile_only:
+                    record(
+                        "G", StageStatus.skipped, t0, [ARTIFACT_OPS],
+                        error="render_pptx not_run: compile_only mode (deck_ops.json compiled, deck.pptx not built)",
+                        input_hashes=g_inputs,
+                        substeps={"compile_ops": "done", "render_pptx": "not_run"},
+                    )
+                elif renderer is not None:
+                    try:
+                        renderer.preflight()
+                        build_res = renderer.build(deck_ops, run_dir)
+                        deck_path = build_res.pptx_path
+                        rendered_ph = {
+                            op.request_id
+                            for op in deck_ops.ops
+                            if op.kind is DeckOpKind.add_placeholder_box and op.request_id
+                        }
+                        if rendered_ph:
+                            mark_placeholders_rendered(run_dir, rendered_ph)
+                        if (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
+                            uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
+                            uir_summary = summarize_requests(uir)
+                            post_g_uir_sha = _file_sha256(run_dir / USER_INPUT_REQUESTS_FILE)
+                            g_inputs[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
+                            for st_code in ("E", "F"):
+                                if st_code in records and USER_INPUT_REQUESTS_FILE in records[st_code].input_hashes:
+                                    records[st_code].input_hashes[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
+                        g_files = [ARTIFACT_OPS, G_FILE]
+                        if build_res.dump_path.is_file():
+                            g_files.append(build_res.dump_path.relative_to(run_dir).as_posix())
+                        record(
+                            "G", StageStatus.done, t0, g_files,
+                            input_hashes=g_inputs,
+                            substeps={"compile_ops": "done", "render_pptx": "done"},
+                        )
+                    except DeckRendererUnavailableError as e:
+                        record(
+                            "G", StageStatus.skipped, t0, [ARTIFACT_OPS],
+                            error=f"render_pptx not_run: {e}",
+                            input_hashes=g_inputs,
+                            substeps={"compile_ops": "done", "render_pptx": "not_run"},
+                        )
+                else:
+                    deck_path = run_stage_g(slide_plan, design, reg, uir, run_dir)
+                    if (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
+                        uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
+                        uir_summary = summarize_requests(uir)
+                        post_g_uir_sha = _file_sha256(run_dir / USER_INPUT_REQUESTS_FILE)
+                        g_inputs[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
+                        for st_code in ("E", "F"):
+                            if st_code in records and USER_INPUT_REQUESTS_FILE in records[st_code].input_hashes:
+                                records[st_code].input_hashes[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
+                    record(
+                        "G", StageStatus.done, t0, [ARTIFACT_OPS, G_FILE],
+                        input_hashes=g_inputs,
+                        substeps={"compile_ops": "done", "render_pptx": "done"},
+                    )
+            except (OpsCompileError, DeckRenderExecutionError, OSError, ValueError) as e:
+                g_err_files = [ARTIFACT_OPS] if (run_dir / ARTIFACT_OPS).is_file() else []
                 failure = f"stage G failed: {type(e).__name__}: {str(e)[:500]}"
-                record("G", StageStatus.failed, t0, [], failure, input_hashes=g_inputs)
+                record(
+                    "G", StageStatus.failed, t0, g_err_files, failure,
+                    input_hashes=g_inputs,
+                    substeps={"compile_ops": "done" if g_err_files else "failed", "render_pptx": "failed" if g_err_files else "not_run"},
+                )
     else:
         records["G"] = StageRecord(
             stage="G", name=STAGE_NAMES["G"], status=StageStatus.skipped,

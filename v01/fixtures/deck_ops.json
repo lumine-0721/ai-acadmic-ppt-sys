@@ -1,0 +1,140 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "canvas_width_in": 13.333,
+  "canvas_height_in": 7.5,
+  "template_path": null,
+  "page_ids": [
+    "S001"
+  ],
+  "ops": [
+    {
+      "op_id": "OP0001",
+      "page_id": "S001",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_and_content",
+        "layout_name": "split_text_left"
+      }
+    },
+    {
+      "op_id": "OP0002",
+      "page_id": "S001",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "text": "什么是城市热岛效应",
+        "x_in": 0.65,
+        "y_in": 0.22,
+        "w_in": 12.0,
+        "h_in": 0.88,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 28.0,
+        "bold": true,
+        "color_hex": "#1E3A8A",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0003",
+      "page_id": "S001",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 城区气温持续高于周边郊区",
+        "x_in": 0.85,
+        "y_in": 1.7,
+        "w_in": 5.35,
+        "h_in": 4.8,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 18.0,
+        "bold": false,
+        "color_hex": "#1E293B",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0004",
+      "page_id": "S001",
+      "kind": "add_picture",
+      "element_id": "vis_1",
+      "asset_id": "A001",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Example_UHI.png"
+      ],
+      "params": {
+        "shape_name": "ASSET_A001__vis_1",
+        "file_path": "assets/A001.png",
+        "x_in": 6.65,
+        "y_in": 1.5,
+        "w_in": 6.0,
+        "h_in": 4.5,
+        "crop_mode": "crop_fill"
+      }
+    },
+    {
+      "op_id": "OP0005",
+      "page_id": "S001",
+      "kind": "set_alt_text",
+      "element_id": "vis_1",
+      "asset_id": "A001",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Example_UHI.png"
+      ],
+      "params": {
+        "target_element_id": "vis_1",
+        "shape_name": "ASSET_A001__vis_1",
+        "alt_text": "Asset A001 (CC BY-SA 4.0)"
+      }
+    },
+    {
+      "op_id": "OP0006",
+      "page_id": "S001",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U001",
+      "asset_id": "A003",
+      "request_id": "U001",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U001",
+        "text": "待补充：温度测量对比示意图（U001）",
+        "x_in": 6.65,
+        "y_in": 6.1,
+        "w_in": 6.0,
+        "h_in": 0.9,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 13.0,
+        "fill_hex": "#FEF3C7",
+        "line_hex": "#D97706"
+      }
+    },
+    {
+      "op_id": "OP0007",
+      "page_id": "S001",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Example_UHI.png"
+      ],
+      "params": {
+        "text": "Page S001\n[A001] Author, CC BY-SA 4.0 | 来源: https://commons.wikimedia.org/wiki/File:Example_UHI.png"
+      }
+    }
+  ]
+}
