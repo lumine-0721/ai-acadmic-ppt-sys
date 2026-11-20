@@ -23,6 +23,7 @@ LICENSE_RE = re.compile(r"许可|授权|license|licence|合法|版权|可商用|
 PROVENANCE_RE = re.compile(r"来源|出处|DOI|可核验|可追溯|稳定链接|source", re.I)
 RELEVANCE_RE = re.compile(r"相关|对应|匹配|直接|能(?:看出|说明|支撑|解释)|relevan|match", re.I)
 VERIFY_RE = re.compile(r"核实|核验|确认|确实|真实存在|verify|verified", re.I)
+SELF_DRAW_RE = re.compile(r"自绘|自行绘制|凭空绘制|drawn\s+natively|draw\s+natively", re.I)
 VISUAL_TYPES = {AssetType.image, AssetType.icon, AssetType.diagram, AssetType.chart_data, AssetType.table}
 MAX_REQUIREMENTS = 80
 
@@ -97,6 +98,11 @@ def validate_requirements(
             problems.append(f"{w}: acceptance must include a relevance criterion tied to the page")
         if any(t.verification is Verification.to_verify for t in r.targets) and not VERIFY_RE.search(acc):
             problems.append(f"{w}: has to_verify targets, so acceptance must require verifying them (核实)")
+        if SELF_DRAW_RE.search(r.purpose) or SELF_DRAW_RE.search(acc):
+            problems.append(
+                f"{w}: acceptance/purpose must not suggest self-drawing (自绘/drawn natively); "
+                "missing assets must be supplied or cited, never fabricated"
+            )
 
         for where, text in [(f"{w}.purpose", r.purpose), *((f"{w}.query_hints[{i}]", h) for i, h in enumerate(r.query_hints)),
                             *((f"{w}.acceptance[{i}]", a) for i, a in enumerate(r.acceptance))]:

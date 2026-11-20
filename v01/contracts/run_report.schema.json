@@ -39,6 +39,13 @@
           "default": null,
           "title": "Finished At"
         },
+        "input_hashes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Input Hashes",
+          "type": "object"
+        },
         "name": {
           "minLength": 1,
           "title": "Name",
@@ -65,6 +72,23 @@
           ],
           "title": "Stage",
           "type": "string"
+        },
+        "stale": {
+          "default": false,
+          "title": "Stale",
+          "type": "boolean"
+        },
+        "stale_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stale Reason"
         },
         "started_at": {
           "anyOf": [

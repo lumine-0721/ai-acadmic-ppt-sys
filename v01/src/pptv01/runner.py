@@ -6,6 +6,7 @@ C-H are reported as ``not_implemented`` — never faked, never mocked.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import platform
 import re
@@ -110,6 +111,29 @@ def _assets_summary(reg: AssetRegistry) -> dict[str, Any]:
     }
 
 
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _input_hashes(run_dir: Path, rel_paths: list[str]) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for rel in sorted(set(rel_paths)):
+        p = run_dir / rel
+        if p.is_file():
+            out[rel] = _file_sha256(p)
+    return out
+
+
+def _provided_input_files(uir: UserInputRequests | None) -> list[str]:
+    if uir is None:
+        return []
+    return sorted(
+        r.provided.file
+        for r in uir.requests
+        if r.provided is not None and r.provided.file
+    )
+
+
 def _write_trace(run_dir: Path, stage: str, attempts: list[dict[str, Any]], model_id: str) -> str:
     rel = f"llm_trace/{stage}.json"
     p = run_dir / rel
@@ -158,43 +182,80 @@ def run_pipeline(
     failure: str | None = None
     defaults_summary: list[str] = []
 
-    def record(stage: str, status: StageStatus, t0: datetime | None, files: list[str], error: str | None = None) -> None:
+    prev_records: dict[str, StageRecord] = {}
+    if resume and (run_dir / "run_report.json").is_file():
+        try:
+            prev_rep = load_contract(RunReport, run_dir / "run_report.json")
+            prev_records = {s.stage: s for s in prev_rep.stages}
+        except Exception:
+            prev_records = {}
+
+    invalidated = False
+
+    def _can_reuse(stage: str, req_files: list[str], current_inputs: dict[str, str]) -> bool:
+        if not resume or invalidated:
+            return False
+        if not all((run_dir / rel).is_file() for rel in req_files):
+            return False
+        prev = prev_records.get(stage)
+        if prev is not None:
+            if prev.stale or prev.status is not StageStatus.done:
+                return False
+            if prev.input_hashes != current_inputs:
+                return False
+        return True
+
+    def record(
+        stage: str,
+        status: StageStatus,
+        t0: datetime | None,
+        files: list[str],
+        error: str | None = None,
+        *,
+        input_hashes: dict[str, str] | None = None,
+    ) -> None:
         records[stage] = StageRecord(
             stage=stage, name=STAGE_NAMES[stage], status=status,
-            started_at=t0, finished_at=clock() if t0 else None, output_files=files, error=error,
+            started_at=t0, finished_at=clock() if t0 else None, output_files=files,
+            input_hashes=dict(input_hashes or {}), stale=False, stale_reason=None, error=error,
         )
 
     # ---- Stage A
     t0 = clock()
-    if resume and (run_dir / A_FILE).is_file():
+    a_inputs = {"utterance_sha256": hashlib.sha256(utterance.encode("utf-8")).hexdigest()}
+    if _can_reuse("A", [A_FILE], a_inputs):
         plan = load_contract(ProductionPlan, run_dir / A_FILE)
         files = [A_FILE] + (["llm_trace/A.json"] if (run_dir / "llm_trace/A.json").is_file() else [])
-        record("A", StageStatus.done, t0, files)
+        record("A", StageStatus.done, t0, files, input_hashes=a_inputs)
         defaults_summary = [f"{d.field}={d.value}: {d.rationale}" for d in plan.defaults_applied]
     else:
+        invalidated = True
         client.set_stage("A")
         try:
             plan, attempts = run_stage_a(utterance, run_id, client, run_dir)
-            record("A", StageStatus.done, t0, [A_FILE, _write_trace(run_dir, "A", attempts, client.model_id)])
+            record("A", StageStatus.done, t0, [A_FILE, _write_trace(run_dir, "A", attempts, client.model_id)],
+                   input_hashes=a_inputs)
             defaults_summary = [f"{d.field}={d.value}: {d.rationale}" for d in plan.defaults_applied]
         except (LLMError, ValueError) as e:
             trace = getattr(e, "attempts", None)
             files = [_write_trace(run_dir, "A", trace, client.model_id)] if trace else []
             failure = f"stage A failed: {type(e).__name__}: {str(e)[:500]}"
-            record("A", StageStatus.failed, t0, files, failure)
+            record("A", StageStatus.failed, t0, files, failure, input_hashes=a_inputs)
 
     # ---- Stage B (research per A's retrieval_brief, then provisional slide plan)
     research_summary: dict[str, Any] = {}
     if plan is not None:
         t0 = clock()
-        if resume and (run_dir / B_FILE).is_file() and (run_dir / RESEARCH_ARTIFACT).is_file():
+        b_inputs = _input_hashes(run_dir, [A_FILE])
+        if _can_reuse("B", [B_FILE, RESEARCH_ARTIFACT], b_inputs):
             rec = load_contract(ResearchRecord, run_dir / RESEARCH_ARTIFACT)
             slide_plan = load_contract(SlidePlan, run_dir / B_FILE)
             notes = {n.note_id: n for n in rec.notes}
             research_summary = _research_summary(rec)
             files = [RESEARCH_ARTIFACT, B_FILE] + (["llm_trace/B.json"] if (run_dir / "llm_trace/B.json").is_file() else [])
-            record("B", StageStatus.done, t0, files)
+            record("B", StageStatus.done, t0, files, input_hashes=b_inputs)
         else:
+            invalidated = True
             client.set_stage("B")
             try:
                 provider = research if research is not None else research_from_env()
@@ -202,11 +263,12 @@ def run_pipeline(
                 notes = {n.note_id: n for n in rec.notes}
                 research_summary = _research_summary(rec)
                 record("B", StageStatus.done, t0,
-                       [RESEARCH_ARTIFACT, B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
+                       [RESEARCH_ARTIFACT, B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)],
+                       input_hashes=b_inputs)
             except ResearchFailed as e:
                 research_summary = _research_summary(e.record)
                 failure = f"stage B failed: {e}"[:600]
-                record("B", StageStatus.failed, t0, [RESEARCH_ARTIFACT], failure)
+                record("B", StageStatus.failed, t0, [RESEARCH_ARTIFACT], failure, input_hashes=b_inputs)
             except (LLMError, ValueError) as e:
                 trace = getattr(e, "attempts", None)
                 files = [RESEARCH_ARTIFACT] if (run_dir / RESEARCH_ARTIFACT).exists() else []
@@ -215,7 +277,7 @@ def run_pipeline(
                 if trace:
                     files.append(_write_trace(run_dir, "B", trace, client.model_id))
                 failure = f"stage B failed: {type(e).__name__}: {str(e)[:500]}"
-                record("B", StageStatus.failed, t0, files, failure)
+                record("B", StageStatus.failed, t0, files, failure, input_hashes=b_inputs)
     else:
         records["B"] = StageRecord(stage="B", name=STAGE_NAMES["B"], status=StageStatus.skipped,
                                    error="skipped: stage A failed")
@@ -223,20 +285,23 @@ def run_pipeline(
     # ---- Stage C (asset requirements from the provisional slide plan)
     if slide_plan is not None:
         t0 = clock()
-        if resume and (run_dir / C_FILE).is_file():
+        c_inputs = _input_hashes(run_dir, [A_FILE, RESEARCH_ARTIFACT, B_FILE])
+        if _can_reuse("C", [C_FILE], c_inputs):
             reqs = load_contract(AssetRequirements, run_dir / C_FILE)
             files = [C_FILE] + (["llm_trace/C.json"] if (run_dir / "llm_trace/C.json").is_file() else [])
-            record("C", StageStatus.done, t0, files)
+            record("C", StageStatus.done, t0, files, input_hashes=c_inputs)
         else:
+            invalidated = True
             client.set_stage("C")
             try:
                 reqs, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
-                record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)])
+                record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)],
+                       input_hashes=c_inputs)
             except (LLMError, ValueError) as e:
                 trace = getattr(e, "attempts", None)
                 files = [_write_trace(run_dir, "C", trace, client.model_id)] if trace else []
                 failure = f"stage C failed: {type(e).__name__}: {str(e)[:500]}"
-                record("C", StageStatus.failed, t0, files, failure)
+                record("C", StageStatus.failed, t0, files, failure, input_hashes=c_inputs)
     else:
         records["C"] = StageRecord(stage="C", name=STAGE_NAMES["C"], status=StageStatus.skipped,
                                    error="skipped: stage B did not produce a slide plan")
@@ -248,7 +313,8 @@ def run_pipeline(
     uir: UserInputRequests | None = None
     if reqs is not None:
         t0 = clock()
-        if resume and (run_dir / REGISTRY_FILE).is_file() and (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
+        d_inputs = _input_hashes(run_dir, [A_FILE, B_FILE, C_FILE])
+        if _can_reuse("D", [REGISTRY_FILE, USER_INPUT_REQUESTS_FILE], d_inputs):
             reg = load_contract(AssetRegistry, run_dir / REGISTRY_FILE)
             uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
             missing_assets = [a.asset_id for a in reg.assets if a.status.value == "missing"]
@@ -257,8 +323,9 @@ def run_pipeline(
                 str(p.relative_to(run_dir)).replace("\\", "/")
                 for p in (run_dir / "assets").glob("*") if p.is_file()
             )
-            record("D", StageStatus.done, t0, d_files)
+            record("D", StageStatus.done, t0, d_files, input_hashes=d_inputs)
         else:
+            invalidated = True
             svc = None
             try:
                 svc = assets if assets is not None else services_from_env()
@@ -270,7 +337,7 @@ def run_pipeline(
                     str(p.relative_to(run_dir)).replace("\\", "/")
                     for p in (run_dir / "assets").glob("*") if p.is_file()
                 )
-                record("D", StageStatus.done, t0, d_files)
+                record("D", StageStatus.done, t0, d_files, input_hashes=d_inputs)
             except AssetRetrievalFailed as e:
                 assets_summary = _assets_summary(e.registry)
                 missing_assets = [a.asset_id for a in e.registry.assets]
@@ -278,10 +345,10 @@ def run_pipeline(
                     uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
                 failure = f"stage D failed: {e}"[:600]
                 d_err_files = [REGISTRY_FILE] + ([USER_INPUT_REQUESTS_FILE] if uir is not None else [])
-                record("D", StageStatus.failed, t0, d_err_files, failure)
+                record("D", StageStatus.failed, t0, d_err_files, failure, input_hashes=d_inputs)
             except (LLMConfigError, ValueError) as e:
                 failure = f"stage D failed: {type(e).__name__}: {str(e)[:500]}"
-                record("D", StageStatus.failed, t0, [], failure)
+                record("D", StageStatus.failed, t0, [], failure, input_hashes=d_inputs)
             finally:
                 if svc is not None and assets is None:
                     svc.close()
@@ -303,23 +370,27 @@ def run_pipeline(
         )
     elif reg is not None and slide_plan is not None and plan is not None and not failure:
         t0 = clock()
-        if resume and (run_dir / E_FILE).is_file():
+        e_inputs = _input_hashes(
+            run_dir, [A_FILE, B_FILE, C_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, *_provided_input_files(uir)]
+        )
+        if _can_reuse("E", [E_FILE], e_inputs):
             mapping = load_contract(SlideAssetMapping, run_dir / E_FILE)
             e_files = [E_FILE] + (["llm_trace/E.json"] if (run_dir / "llm_trace/E.json").is_file() else [])
-            record("E", StageStatus.done, t0, e_files)
+            record("E", StageStatus.done, t0, e_files, input_hashes=e_inputs)
         else:
+            invalidated = True
             client.set_stage("E")
             try:
                 mapping, attempts = run_stage_e(
                     plan, slide_plan, reqs, reg, uir, client, run_dir, vision_client=vision_client
                 )
                 e_files = [E_FILE] + ([_write_trace(run_dir, "E", attempts, client.model_id)] if attempts else [])
-                record("E", StageStatus.done, t0, e_files)
+                record("E", StageStatus.done, t0, e_files, input_hashes=e_inputs)
             except (LLMError, LLMConfigError, ValueError) as e:
                 trace = getattr(e, "attempts", None)
                 e_files = [_write_trace(run_dir, "E", trace, client.model_id)] if trace else []
                 failure = f"stage E failed: {type(e).__name__}: {str(e)[:500]}"
-                record("E", StageStatus.failed, t0, e_files, failure)
+                record("E", StageStatus.failed, t0, e_files, failure, input_hashes=e_inputs)
     else:
         records["E"] = StageRecord(
             stage="E", name=STAGE_NAMES["E"], status=StageStatus.skipped,
@@ -335,31 +406,35 @@ def run_pipeline(
         )
     elif mapping is not None and reg is not None and slide_plan is not None and plan is not None and not failure:
         t0 = clock()
-        if resume and (run_dir / F_FILE).is_file():
+        f_inputs = _input_hashes(
+            run_dir, [A_FILE, B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, E_FILE, *_provided_input_files(uir)]
+        )
+        if _can_reuse("F", [F_FILE], f_inputs):
             design = load_contract(PageDesign, run_dir / F_FILE)
             f_files = [F_FILE] + sorted(
                 p.relative_to(run_dir).as_posix()
                 for p in (run_dir / "previews").glob("*.png") if p.is_file()
             )
-            record("F", StageStatus.done, t0, f_files)
+            record("F", StageStatus.done, t0, f_files, input_hashes=f_inputs)
         else:
+            invalidated = True
             try:
                 design = run_stage_f(plan, slide_plan, reg, uir, mapping, run_dir)
                 f_files = [F_FILE] + sorted(
                     p.relative_to(run_dir).as_posix()
                     for p in (run_dir / "previews").glob("*.png") if p.is_file()
                 )
-                record("F", StageStatus.done, t0, f_files)
+                record("F", StageStatus.done, t0, f_files, input_hashes=f_inputs)
             except ValueError as e:
                 failure = f"stage F failed: {type(e).__name__}: {str(e)[:500]}"
-                record("F", StageStatus.failed, t0, [], failure)
+                record("F", StageStatus.failed, t0, [], failure, input_hashes=f_inputs)
     else:
         records["F"] = StageRecord(
             stage="F", name=STAGE_NAMES["F"], status=StageStatus.skipped,
             error="skipped: stage E did not produce a slide asset mapping",
         )
 
-    # ---- Stage G (python-pptx generation of deck.pptx)
+    # ---- Stage G (deck generation)
     deck_path: Path | None = None
     if waiting_for_input:
         records["G"] = StageRecord(
@@ -368,26 +443,35 @@ def run_pipeline(
         )
     elif design is not None and reg is not None and slide_plan is not None and not failure:
         t0 = clock()
-        if resume and (run_dir / G_FILE).is_file():
+        g_inputs = _input_hashes(
+            run_dir, [B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, F_FILE, *_provided_input_files(uir)]
+        )
+        if _can_reuse("G", [G_FILE], g_inputs):
             deck_path = run_dir / G_FILE
-            record("G", StageStatus.done, t0, [G_FILE])
+            record("G", StageStatus.done, t0, [G_FILE], input_hashes=g_inputs)
         else:
+            invalidated = True
             try:
                 deck_path = run_stage_g(slide_plan, design, reg, uir, run_dir)
                 if (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
                     uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
                     uir_summary = summarize_requests(uir)
-                record("G", StageStatus.done, t0, [G_FILE])
+                    post_g_uir_sha = _file_sha256(run_dir / USER_INPUT_REQUESTS_FILE)
+                    g_inputs[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
+                    for st_code in ("E", "F"):
+                        if st_code in records and USER_INPUT_REQUESTS_FILE in records[st_code].input_hashes:
+                            records[st_code].input_hashes[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
+                record("G", StageStatus.done, t0, [G_FILE], input_hashes=g_inputs)
             except (OSError, ValueError) as e:
                 failure = f"stage G failed: {type(e).__name__}: {str(e)[:500]}"
-                record("G", StageStatus.failed, t0, [], failure)
+                record("G", StageStatus.failed, t0, [], failure, input_hashes=g_inputs)
     else:
         records["G"] = StageRecord(
             stage="G", name=STAGE_NAMES["G"], status=StageStatus.skipped,
             error="skipped: stage F did not produce page_design.json",
         )
 
-    # ---- Stage H (LibreOffice render + QA + bounded repair)
+    # ---- Stage H (render + QA + bounded repair)
     if waiting_for_input:
         records["H"] = StageRecord(
             stage="H", name=STAGE_NAMES["H"], status=StageStatus.skipped,
@@ -395,13 +479,17 @@ def run_pipeline(
         )
     elif deck_path is not None and slide_plan is not None and not failure:
         t0 = clock()
-        if resume and (run_dir / H_FILE).is_file() and list((run_dir / "render").glob("slide_*.png")):
+        h_inputs = _input_hashes(
+            run_dir, [B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, F_FILE, G_FILE, *_provided_input_files(uir)]
+        )
+        if _can_reuse("H", [H_FILE], h_inputs) and list((run_dir / "render").glob("slide_*.png")):
             h_files = [H_FILE] + sorted(
                 p.relative_to(run_dir).as_posix()
                 for p in (run_dir / "render").glob("slide_*.png") if p.is_file()
             )
-            record("H", StageStatus.done, t0, h_files)
+            record("H", StageStatus.done, t0, h_files, input_hashes=h_inputs)
         else:
+            invalidated = True
             try:
                 _qa_rep, rendered_pngs = run_stage_h(
                     deck_path,
@@ -414,11 +502,19 @@ def run_pipeline(
                     render_fn=render_fn,
                 )
                 h_files = [H_FILE] + [p.relative_to(run_dir).as_posix() for p in rendered_pngs]
-                record("H", StageStatus.done, t0, h_files)
+                # Sync hashes if H's bounded repair updated page_design.json or deck.pptx
+                if (run_dir / F_FILE).is_file():
+                    post_f_sha = _file_sha256(run_dir / F_FILE)
+                    h_inputs[F_FILE] = post_f_sha
+                    if "G" in records and F_FILE in records["G"].input_hashes:
+                        records["G"].input_hashes[F_FILE] = post_f_sha
+                if (run_dir / G_FILE).is_file():
+                    h_inputs[G_FILE] = _file_sha256(run_dir / G_FILE)
+                record("H", StageStatus.done, t0, h_files, input_hashes=h_inputs)
             except (RendererUnavailableError, RenderExecutionError, OSError, ValueError) as e:
                 h_files = [H_FILE] if (run_dir / H_FILE).is_file() else []
                 failure = f"stage H failed: {type(e).__name__}: {str(e)[:500]}"
-                record("H", StageStatus.failed, t0, h_files, failure)
+                record("H", StageStatus.failed, t0, h_files, failure, input_hashes=h_inputs)
     else:
         records["H"] = StageRecord(
             stage="H", name=STAGE_NAMES["H"], status=StageStatus.skipped,

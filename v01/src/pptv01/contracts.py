@@ -747,6 +747,9 @@ class StageRecord(_Contract):
     started_at: datetime | None = None
     finished_at: datetime | None = None
     output_files: list[RelPath] = Field(default_factory=list)
+    input_hashes: dict[str, str] = Field(default_factory=dict)
+    stale: bool = False
+    stale_reason: str | None = None
     error: str | None = None
 
     @model_validator(mode="after")

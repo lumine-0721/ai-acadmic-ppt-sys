@@ -504,8 +504,8 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
 
 # ------------------------------------------------------------------------------------------ orchestrator
 _MISSING_WHY = {
-    AssetType.diagram: "diagram: nothing to retrieve; to be drawn natively in a later stage (F/G)",
-    AssetType.icon: "icon: not retrieved in D V0.1; to be drawn natively or picked from an open icon set later",
+    AssetType.diagram: "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+    AssetType.icon: "D 未找到可标来源的现成图标；不允许凭空绘制，请用户提供开源或有授权的图标文件",
     AssetType.statistic: "statistic: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
     AssetType.chart_data: "chart_data: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
     AssetType.table: "table: content must be authored or sourced from a cited dataset; not retrievable in D V0.1",

@@ -13,7 +13,7 @@ You are the editor-in-chief. Stage C: turn the slide plan's asset_needs into con
   - targets：从对应 need 的 targets 里挑出这条 requirement 要找的对象名称（只写名称，原样抄，不要改字）。image / chart_data / table / reference / statistic 至少要有一个 target；diagram / icon 可以为空。
   - query_hints：检索线索（不是唯一查询），2 到 5 条，中英文都可以；要具体，不能只是“图片”“素材”。英文关键词有助于国际图库和文献。
   - priority：required（缺了这页讲不清）或 optional。整份里至少有一条 required。
-  - acceptance：什么样算合格，至少 2 条，必须包含：①相关性（与这页要说明的事直接对应）；②对 image/icon/diagram/chart_data/table：可合法使用（许可/授权明确，如 CC 许可或公有领域）；对 reference/statistic：来源可核验（DOI 或稳定链接、可追溯出处）；③如果 targets 里有待核实（to_verify）的对象，要写“须核实该对象确实存在/确实对应”。还可以加清晰度、格式、可读性等。
+  - acceptance：什么样算合格，至少 2 条，必须包含：①相关性（与这页要说明的事直接对应）；②对 image/icon/diagram/chart_data/table：可合法使用（许可/授权明确，如 CC 许可或公有领域）；对 reference/statistic：来源可核验（DOI 或稳定链接、可追溯出处）；③如果 targets 里有待核实（to_verify）的对象，要写“须核实该对象确实存在/确实对应”。还可以加清晰度、格式、可读性等。不要写“自绘”“自行绘制”等表述（未找到素材时不允许凭空绘制，只能标注缺失并向用户请求）。
 - 不要写没有来源的具体数字、百分比、“研究表明”之类；不要写页数或时长。
 
 ## 输出

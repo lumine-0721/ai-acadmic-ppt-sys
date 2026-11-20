@@ -51,7 +51,7 @@ GOOD_C = {
         {"need_refs": ["S002#1"], "page_ids": ["S002"], "type": "diagram",
          "purpose": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
          "targets": [], "query_hints": ["urban heat island causes diagram"], "priority": "optional",
-         "acceptance": ["与三类成因直接对应", "取用现成图须许可明确，否则自绘"]},
+         "acceptance": ["与三类成因直接对应", "取用现成图须许可明确，或由用户提供带来源的结构化图"]},
     ],
     "dropped_needs": [],
 }

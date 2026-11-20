@@ -315,7 +315,31 @@ def provide_user_input(
     uir.requests = [updated if r.request_id == target.request_id else r for r in uir.requests]
     uir.summary = _format_summary(uir.requests)
     write_contract(uir, req_path)
+    _mark_downstream_stages_stale(
+        run_dir,
+        stages=("E", "F", "G", "H"),
+        reason=f"user provided {target.request_id} ({rel}); downstream stages must re-run on --resume",
+    )
     return uir
+
+
+def _mark_downstream_stages_stale(run_dir: Path, *, stages: tuple[str, ...], reason: str) -> None:
+    """Mark downstream stages in run_report.json as stale so --resume re-executes them."""
+    from pptv01.contracts import RunReport
+
+    rep_path = Path(run_dir) / "run_report.json"
+    if not rep_path.is_file():
+        return
+    report = load_contract(RunReport, rep_path)
+    changed = False
+    stage_set = set(stages)
+    for rec in report.stages:
+        if rec.stage in stage_set:
+            rec.stale = True
+            rec.stale_reason = reason
+            changed = True
+    if changed:
+        write_contract(report, rep_path)
 
 
 def mark_placeholders_rendered(run_dir: Path, rendered_ids: set[str]) -> UserInputRequests | None:

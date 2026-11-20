@@ -489,7 +489,10 @@ def _design_single_page(
         page_notes=notes,
     ))
 
-    # Prepare main text content (honoring concise-text constraint when present)
+    # Prepare main text content (honoring concise-text constraint when present).
+    # B2 rule: page.content_summary is a planning note for speakers/designers, NEVER slide body text.
+    if page.content_summary.strip():
+        notes.append(f"planning summary (notes only): {page.content_summary.strip()}")
     if concise_budget is not None:
         bullet_text, condensed = _condense_text_for_budget(page.key_points, concise_budget)
         if condensed:
@@ -498,7 +501,7 @@ def _design_single_page(
         body_start_pt = 20.0
     else:
         bullet_text = "\n".join(f"• {p}" for p in page.key_points)
-        body_text = page.content_summary.strip() if page.content_summary.strip() and page.content_summary.strip() not in bullet_text else None
+        body_text = None
         body_start_pt = 18.0
 
     # Reserve footer strip if citations exist

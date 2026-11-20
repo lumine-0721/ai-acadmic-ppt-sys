@@ -120,11 +120,29 @@ def validate_page_design(
     }
 
     page_by_id = {p.page_id: p for p in design.pages}
+    sp_by_id = {p.page_id: p for p in slide_plan.pages}
 
-    # Check geometry & bound visuals on each page
+    # Check geometry, bound visuals, and no planning-prompt (content_summary) leak on each page
     for page in design.pages:
         problems.extend(validate_page_geometry(page))
+        sp_page = sp_by_id.get(page.page_id)
+        summary_txt = sp_page.content_summary.strip() if sp_page else ""
+        allowed_verbatim = (
+            {sp_page.title.strip()} | {kp.strip() for kp in sp_page.key_points}
+            if sp_page
+            else set()
+        )
         for e in page.elements:
+            if (
+                summary_txt
+                and summary_txt not in allowed_verbatim
+                and e.kind is not ElementKind.placeholder
+                and e.text
+                and summary_txt in e.text
+            ):
+                problems.append(
+                    f"{page.page_id}.{e.element_id}: content_summary planning text must not be rendered on slide"
+                )
             if e.kind in BOUND_VISUAL_KINDS:
                 ok_asset = e.asset_id in valid_assets and valid_assets[e.asset_id].file_path == e.asset_path
                 ok_input = e.request_id in valid_inputs and valid_inputs[e.request_id].provided.file == e.asset_path

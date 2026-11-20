@@ -311,7 +311,7 @@ def test_unsupported_types_are_missing_with_reason_and_no_file(tmp_path):
             req("A005", "icon", hints=("x",))]
     reg, net, _ = run(tmp_path, reqs)
     assert [a.status for a in reg.assets] == [AssetStatus.missing] * 5 and all(a.notes for a in reg.assets)
-    assert "drawn natively" in reg.assets[0].notes and "not invented" in reg.assets[1].notes
+    assert "不允许凭空绘制" in reg.assets[0].notes and "drawn natively" not in reg.assets[0].notes and "not invented" in reg.assets[1].notes
     assert not (tmp_path / "assets").exists() and not net.log
 
 

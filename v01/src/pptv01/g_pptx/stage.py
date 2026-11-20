@@ -335,10 +335,14 @@ def run_stage_g(
     blank_layout = prs.slide_layouts[6]
 
     rendered_placeholders: set[str] = set()
+    sp_by_id = {p.page_id: p for p in slide_plan.pages}
 
     for page in design.pages:
         slide = prs.slides.add_slide(blank_layout)
         note_lines: list[str] = [f"Page {page.page_id}"]
+        sp_page = sp_by_id.get(page.page_id)
+        if sp_page and sp_page.content_summary.strip():
+            note_lines.append(f"Speaker/planning summary: {sp_page.content_summary.strip()}")
         if page.notes:
             note_lines.append(f"Layout notes: {page.notes}")
 
