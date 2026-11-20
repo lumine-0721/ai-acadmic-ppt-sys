@@ -25,7 +25,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     try:
         report, run_dir = run_pipeline(args.utterance, Path(args.out), client, run_id=args.run_id, resume=args.resume)
     except AwaitingAgentResponse as e:
-        print(f"awaiting agent response: {e}", file=sys.stderr)
+        print(str(e), file=sys.stderr)
         return 3
     except (ValueError, FileExistsError, LLMError) as e:
         print(f"error: {e}", file=sys.stderr)
