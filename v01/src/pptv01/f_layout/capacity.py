@@ -11,10 +11,10 @@ import math
 import re
 from dataclasses import dataclass
 
-# Average glyph advance ratios relative to font_size_pt (calibrated on Office 2021 Build 20527, Microsoft YaHei)
+# Average glyph advance ratios relative to font_size_pt (calibrated on desktop PowerPoint 16.0, Microsoft YaHei)
 LATIN_AVG_ADVANCE_FACTOR = 0.54
 CJK_FULLWIDTH_ADVANCE_FACTOR = 1.02
-# Empirically calibrated on Microsoft PowerPoint 16.0 Build 20527 TextFrame2.BoundHeight (+8.3% -> 0.0% error)
+# Empirically calibrated on desktop Microsoft PowerPoint 16.0 TextFrame2.BoundHeight (+8.3% -> 0.0% error; Office 2021 baseline API)
 DEFAULT_LINE_HEIGHT_FACTOR = 1.20
 DEFAULT_PADDING_PT = 7.2
 

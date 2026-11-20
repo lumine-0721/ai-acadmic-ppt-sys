@@ -4,8 +4,9 @@ Adapted from:
   - thomas-villani/pptlive (MIT, 4b33e69217ba): _charts.py (SetSourceData string range + _safe_close),
     _tables.py (HasTable / Cell.Shape.TextFrame2).
   - ykuwai/ppt-mcp (MIT, 2155ecc9050e): charts.py (finally wb.Close(False)), connectors.py (BeginConnect/EndConnect).
-  - Internal Office 2021 empirical finding (docs/stage-g-office-research.md): AddChart2 requires
-    WithWindow=msoTrue (minimized) on Office 2021 Build 20527; non-chart decks use WithWindow=msoFalse.
+  - Internal desktop PowerPoint 16.0 empirical finding (docs/stage-g-office-research.md): AddChart2
+    (Office 2013+ / Office 2021 baseline API) requires WithWindow=msoTrue (minimized) on tested
+    ClickToRun Current Channel PowerPoint 16.0; non-chart decks use WithWindow=msoFalse.
 """
 
 from __future__ import annotations

@@ -20,8 +20,10 @@ import platform
 import shutil
 import subprocess
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Callable
+
+_CLICK_TO_RUN_KEY = r"SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
 
 
 @dataclass(frozen=True)
@@ -31,6 +33,47 @@ class DoctorCheck:
     ok: bool
     detail: str
     fix_hint: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+def classify_office_edition(product_release_ids: str) -> str:
+    """Classify Office ClickToRun ProductReleaseIds into a human-readable edition label.
+
+    Never raises or rejects an edition; COM compatibility is governed by using only Office 2021 / Office 16 baseline APIs.
+    """
+    raw = (product_release_ids or "").strip()
+    if not raw:
+        return "未知"
+    low = raw.lower()
+    if any(tok in low for tok in ("o365", "m365", "365")):
+        return "Microsoft 365 订阅"
+    if any(tok in low for tok in ("2021", "2024", "ltsc")):
+        return "Office 2021·LTSC"
+    return "其他"
+
+
+def read_office_click_to_run_config() -> dict[str, str]:
+    """Read HKLM\\SOFTWARE\\Microsoft\\Office\\ClickToRun\\Configuration on Windows (empty dict on non-Windows/missing)."""
+    if sys.platform != "win32":
+        return {}
+    try:
+        import winreg
+    except ImportError:
+        return {}
+    wanted = ("ProductReleaseIds", "VersionToReport", "UpdateChannel", "Platform")
+    out: dict[str, str] = {}
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, _CLICK_TO_RUN_KEY) as key:
+            for field_name in wanted:
+                try:
+                    val, _ = winreg.QueryValueEx(key, field_name)
+                    if val is not None:
+                        out[field_name] = str(val)
+                except OSError:
+                    continue
+    except OSError:
+        return {}
+    return out
 
 
 @dataclass(frozen=True)
@@ -123,11 +166,37 @@ def _probe_powerpoint() -> DoctorCheck:
             detail=f"{type(e).__name__}: {e}",
             fix_hint="Close blocking PowerPoint dialogs, restart PowerPoint once, and retry `pptv01 doctor`.",
         )
+    c2r = read_office_click_to_run_config()
+    release_ids = c2r.get("ProductReleaseIds", "")
+    edition = classify_office_edition(release_ids)
+    ver_report = c2r.get("VersionToReport", "")
+    channel = c2r.get("UpdateChannel", "")
+    plat = c2r.get("Platform", "")
+
+    parts = [f"Microsoft PowerPoint {info.version} (Build {info.build})", f"产品类型：{edition}"]
+    if release_ids:
+        parts.append(f"ProductReleaseIds={release_ids}")
+    if ver_report:
+        parts.append(f"VersionToReport={ver_report}")
+    if plat:
+        parts.append(f"Platform={plat}")
+    if channel:
+        parts.append(f"UpdateChannel={channel}")
+
     return DoctorCheck(
         "powerpoint_com",
         required=True,
         ok=True,
-        detail=f"Microsoft PowerPoint {info.version} (Build {info.build})",
+        detail=" | ".join(parts),
+        metadata={
+            "version": info.version,
+            "build": info.build,
+            "product_edition": edition,
+            "ProductReleaseIds": release_ids,
+            "VersionToReport": ver_report,
+            "UpdateChannel": channel,
+            "Platform": plat,
+        },
     )
 
 

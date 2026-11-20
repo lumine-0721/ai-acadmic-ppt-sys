@@ -1,4 +1,4 @@
-"""R7 tests: pptv01 doctor diagnostics, CLI renderer resolution, and real Windows Office 2021 check."""
+"""R7 / N1 tests: pptv01 doctor diagnostics, Office ClickToRun edition classification, and real Windows check."""
 
 from __future__ import annotations
 
@@ -7,7 +7,23 @@ import json
 import pytest
 
 from pptv01 import cli
-from pptv01.doctor import DoctorCheck, format_doctor_report, run_doctor
+from pptv01.doctor import DoctorCheck, classify_office_edition, format_doctor_report, run_doctor
+
+
+@pytest.mark.parametrize(
+    "release_ids,expected",
+    [
+        ("O365ProPlusRetail", "Microsoft 365 订阅"),
+        ("OneNoteFreeRetail,M365BusinessRetail", "Microsoft 365 订阅"),
+        ("HomeStudent2021Retail", "Office 2021·LTSC"),
+        ("ProPlus2021Volume", "Office 2021·LTSC"),
+        ("StandardLTSCVolume", "Office 2021·LTSC"),
+        ("ProPlus2019Retail", "其他"),
+        ("", "未知"),
+    ],
+)
+def test_n1_classify_office_edition(release_ids, expected):
+    assert classify_office_edition(release_ids) == expected
 
 
 def test_r7_doctor_reports_ready_when_required_checks_pass_and_optional_missing():
@@ -76,7 +92,7 @@ def test_r7_cli_doctor_exit_code_reflects_report(monkeypatch, capsys):
 
 @pytest.mark.windows_com
 def test_r7_windows_real_doctor_all_required_green(capsys):
-    """Run real `pptv01 doctor` on this Windows Office 2021 machine and verify all required checks pass."""
+    """Run real `pptv01 doctor` on this Windows desktop machine and verify edition metadata + required checks pass."""
     rc = cli.main(["doctor", "--json"])
     captured = capsys.readouterr().out
     data = json.loads(captured)
@@ -86,4 +102,7 @@ def test_r7_windows_real_doctor_all_required_green(capsys):
     for req in ("windows_os", "python", "pywin32", "powerpoint_com", "excel_com", "cjk_fonts"):
         assert by_name[req]["ok"] is True, f"{req} failed: {by_name[req]}"
     assert "16.0" in by_name["powerpoint_com"]["detail"]
+    assert "产品类型：" in by_name["powerpoint_com"]["detail"]
+    meta = by_name["powerpoint_com"]["metadata"]
+    assert meta["product_edition"] in ("Microsoft 365 订阅", "Office 2021·LTSC", "其他", "未知")
     assert "16.0" in by_name["excel_com"]["detail"]

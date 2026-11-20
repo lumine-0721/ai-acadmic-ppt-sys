@@ -1,8 +1,10 @@
 # Stage F Layout & Capacity Calibration (R5)
 
-## 1. Empirical Calibration on Microsoft PowerPoint 2021 (16.0 Build 20527)
+## 1. Empirical Calibration on Desktop Microsoft PowerPoint 16.0 (Office 2021 / Office 16 Baseline APIs)
 
-Before R5, `f_layout/capacity.py` used `DEFAULT_LINE_HEIGHT_FACTOR = 1.30` and `DEFAULT_PADDING_PT = 6.0` (derived from SVG/LibreOffice heuristics). On real Windows **Microsoft PowerPoint 16.0 Build 20527** (`Microsoft YaHei`, `TextFrame2.AutoSize = msoAutoSizeNone`), we measured actual `TextFrame2.BoundHeight` across 6 CJK, Latin, and mixed-script academic text samples (12 pt – 28 pt):
+> **Environment & API Compatibility Note (B12 / N1):** Measurements below were recorded on local Windows desktop **PowerPoint 16.0** (ClickToRun Current Channel; confirmed user environment: Microsoft 365 / Office 16 desktop Build 20527.20196 / 20257.20196). Code uses **only Office 2021 / Office 16 baseline COM APIs** (`TextFrame2.TextRange.BoundHeight`, `TextFrame2.AutoSize`, `AddChart2`, `AddConnector`, `Presentation.Export`, `SaveAs(..., 32)`) and no Microsoft 365-exclusive features; standalone LTSC/perpetual Office 2021 machines have not yet been independently benchmarked.
+
+Before R5, `f_layout/capacity.py` used `DEFAULT_LINE_HEIGHT_FACTOR = 1.30` and `DEFAULT_PADDING_PT = 6.0` (derived from SVG/LibreOffice heuristics). On real Windows **Microsoft PowerPoint 16.0** (`Microsoft YaHei`, `TextFrame2.AutoSize = msoAutoSizeNone`), we measured actual `TextFrame2.BoundHeight` across 6 CJK, Latin, and mixed-script academic text samples (12 pt – 28 pt):
 
 | Sample | Box Width (in) | Font Size (pt) | Script | Wrapped Lines | PowerPoint `BoundHeight` (pt) | Pre-R5 Est (`1.30`, pt) | Pre-R5 Error | Post-R5 Est (`1.20`, pt) | Post-R5 Error |
 |---|---:|---:|---|---:|---:|---:|---:|---:|---:|

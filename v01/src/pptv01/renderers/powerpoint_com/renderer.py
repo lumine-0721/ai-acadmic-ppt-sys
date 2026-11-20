@@ -46,7 +46,7 @@ def _probe_installed_windows_fonts() -> list[str]:
 
 
 class PowerPointComRenderer:
-    """Real Windows desktop Microsoft PowerPoint COM renderer (Office 2021 / 16.0+)."""
+    """Real Windows desktop Microsoft PowerPoint COM renderer (Office 16.0+ / Office 2021 baseline APIs only)."""
 
     name: str = "powerpoint-com"
 

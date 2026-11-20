@@ -5,7 +5,7 @@ This guide walks through setting up and verifying the **Windows desktop Microsof
 ## 1. Prerequisites
 
 - **Windows 10 / 11** desktop session (interactive logged-in user — Microsoft KB257757 does not support unattended server/service COM automation).
-- **Microsoft PowerPoint & Microsoft Excel desktop** (Office 2021 / Office 365, genuine Microsoft Office — WPS Office is explicitly rejected).
+- **Microsoft PowerPoint & Microsoft Excel desktop (Office 16.0+)** — genuine Microsoft Office (Microsoft 365 desktop or Office 2021/LTSC; WPS Office is explicitly rejected). All COM automation uses **Office 2021 / Office 16 baseline APIs only** (no Microsoft 365-exclusive Designer/Copilot/dynamic-array features). Note: Current real-machine verification was executed on local ClickToRun Current Channel PowerPoint 16.0 (see `pptv01 doctor` output for exact `ProductReleaseIds`, `VersionToReport`, and `UpdateChannel`); standalone Office 2021 LTSC machines have not been separately verified.
 - **Python 3.11+** (verified on Python 3.13.6).
 - **CJK fonts installed** (`Microsoft YaHei` / `微软雅黑`, `DengXian` / `等线`, or `SimHei`).
 - *(Optional)* LibreOffice (`soffice`) + `pdftoppm` only if you want secondary `--cross-render` compatibility checks.
@@ -119,7 +119,7 @@ Compress-Archive -Path `
 |---|---|---|
 | `ImportError: DLL load failed while importing pywintypes` | `pywin32` post-install hooks missing | Run `.\.venv\Scripts\python.exe -m pywin32_postinstall -install` and reopen PowerShell. |
 | PowerPoint hangs during `preflight` or `build` | Modal activation / Sign-In / Safe-Mode recovery dialog open | Open PowerPoint manually once, dismiss any modal dialog, close cleanly, then re-run `pptv01 doctor`. |
-| `AddChart2` fails with `E_FAIL (-2147467259)` | Office 2021 requires a presentation window (`WithWindow=-1`) for `AddChart2` | Handled automatically by `executor.py` (opens minimized window when `ops` contains `add_chart`); ensure Excel is installed via `pptv01 doctor`. |
+| `AddChart2` fails with `E_FAIL (-2147467259)` | Desktop PowerPoint 16.0 requires a presentation window (`WithWindow=-1`) for `AddChart2` (verified on ClickToRun 16.0 Current Channel; Office 2021 LTSC unverified) | Handled automatically by `executor.py` (opens minimized window when `ops` contains `add_chart`); ensure Excel is installed via `pptv01 doctor`. |
 | Orphaned `EXCEL.EXE` or `POWERPNT.EXE` processes | Crash/interrupt during chart build | `executor.py` closes chart workbooks in `finally` and `session.py` only closes presentations it created (never touching user-opened decks). Check Task Manager if a previous process was force-killed. |
 | `RPC_S_UNKNOWN_IF (-2147023179)` / `RPC server unavailable` | Repeated `CoInitialize`/`CoUninitialize` thrashing or exiting PowerPoint mid-session | Handled automatically by thread-local `_ensure_com_initialized()` and fresh read-back session in `session.py`/`executor.py`. |
 | `ModuleNotFoundError: No module named 'tests'` | Bare `pytest.exe` omits working directory from `sys.path` | Use `.\.venv\Scripts\python.exe -m pytest` instead of `pytest.exe`. |

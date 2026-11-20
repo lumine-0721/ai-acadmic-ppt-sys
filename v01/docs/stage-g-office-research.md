@@ -1,6 +1,6 @@
-# Stage G / H 渲染层改用 Office 自动化：核对调研与 Office 2021 实测决定
+# Stage G / H 渲染层改用 Office 自动化：核对调研与桌面 PowerPoint 16.0 COM 实测决定
 
-日期：2026-11-20（在宝特 `docs/renderer-office-research.md` 基础上，由编码 Agent 独立核对上游仓库许可证/commit 并在用户本机 Windows + Office 2021 真机完成最小 COM 探针）。
+日期：2026-11-20（在宝特 `docs/renderer-office-research.md` 基础上，由编码 Agent 独立核对上游仓库许可证/commit 并在用户本机 Windows 桌面版 PowerPoint 16.0 上完成最小 COM 探针；所有实现仅使用 Office 2021 / Office 16 基线 API，不用 Microsoft 365 专属特性；独立 Office 2021 LTSC 机器尚未另行实测）。
 
 ## 1. 上游候选方案独立核对（2026-11-20 实查 GitHub API / LICENSE / PyPI）
 
@@ -14,7 +14,7 @@
 | `Ayushmaniar/powerpoint-mcp` | **无许可证** | — | — | **严禁复制代码**（仅作公开思路了解） |
 | Office.js (`PowerPointApi`) / VBA | Microsoft 官方接口 | — | Office.js 到 1.10 仍无图表创建/读写；VBA 无包管理与单测 | **不作为本轮渲染器**：VBA 仅作 COM 常量参考；Office.js 留作后续阶段 |
 
-## 2. 本机 Windows + Office 2021 真机最小 COM 实测（2026-11-20）
+## 2. 本机 Windows 桌面版 PowerPoint 16.0 真机最小 COM 实测（2026-11-20）
 
 在用户本机 Windows（Python 3.13.6 + `pywin32==312`）通过独立 `DispatchEx` 实例做只读/临时目录最小实测（不触碰用户任何已打开文稿）：
 
@@ -23,12 +23,12 @@
 - **中文与实测文字尺寸**：`TextFrame2.TextRange.Font.Name = "Calibri"` + `Font.NameFarEast = "Microsoft YaHei"` 生效；`BoundWidth=355.3pt`, `BoundHeight=24.0pt` 可直接读取，证实 R3 可用真实排版测量替代纯估算。
 - **流程图原生连接线**：`AddConnector(1, ...)` + `ConnectorFormat.BeginConnect(n1, 4)` + `EndConnect(n2, 2)` + `Line.EndArrowheadStyle = 2` 成功，`BeginConnected=-1`、`EndConnected=-1`（`msoTrue`），证实 R2 可彻底解决旧 G 的 B5 缺陷（不画边）。
 - **关键实测发现 — `AddChart2` 与 `WithWindow` 的行为差异**：
-  1. 当 `Presentations.Add(WithWindow=0)`（无窗口模式 `msoFalse`）时，调用 `slide.Shapes.AddChart2(-1, 51, ...)` 在 Office 2021 Build 20527 上抛出 `pywintypes.com_error: (-2147352567, '发生意外。', (0, None, None, None, 0, -2147467259), None)`（`E_FAIL`）。
+  1. 当 `Presentations.Add(WithWindow=0)`（无窗口模式 `msoFalse`）时，调用 `slide.Shapes.AddChart2(-1, 51, ...)` 在本机桌面版 PowerPoint 16.0（ClickToRun Current Channel；独立 Office 2021 LTSC 机器未实测）上抛出 `pywintypes.com_error: (-2147352567, '发生意外。', (0, None, None, None, 0, -2147467259), None)`（`E_FAIL`）。
   2. 当 `Presentations.Add(WithWindow=-1)`（带窗口 `msoTrue`，同时设置 `app.WindowState = 2` 最小化、不抢前台、结束时仅关闭自己创建的 `Presentation`）时：`AddChart2` → `ChartData.Activate()` → 写入 `Workbook.Worksheets(1)` 单元格 → `chart.SetSourceData("Sheet1!$A$1:$B$3")` → `finally: wb.Close(False)` → `pres.SaveAs()` → 关闭并用只读 `python-pptx` 重新打开，**全部成功**（`reopened slides=1, has_chart=True`）。
   3. **工程决策**：
      - 纯读取/导出/测量（`export`、`measure`）继续使用 `Presentations.Open(path, ReadOnly=-1, Untitled=0, WithWindow=0)`，全程无窗口；
-     - 构建含 `add_chart` 的文稿时，若无窗口 `AddChart2` 不可用（Office 2021 已实测证实），对含图表的构建会话自动以 `WithWindow=-1` + 最小化窗口创建该 `Presentation`（仍严格只操作和关闭自己创建的 `Presentation`，绝不触碰用户打开的其它文稿）；若环境中 Excel 缺失导致 `AddChart2` 失败，则显式报错，绝不静默画假图；
-     - **PDF 导出实测**：Office 2021 + `pywin32` 延迟绑定调用 2 参数 `ExportAsFixedFormat(path, 2)` 会因可选 `PrintRange` 封送报 `The Python instance can not be converted to a COM object`，改用 `Presentation.SaveAs(pdf_path, 32)`（`ppSaveAsPDF = 32`）实测稳定产出有效 PDF；
+     - 构建含 `add_chart` 的文稿时，若无窗口 `AddChart2` 不可用（已在桌面版 PowerPoint 16.0 实测证实；`AddChart2` 属 Office 2013+/2021 基线 API，Office 2021 LTSC 未单独实测），对含图表的构建会话自动以 `WithWindow=-1` + 最小化窗口创建该 `Presentation`（仍严格只操作和关闭自己创建的 `Presentation`，绝不触碰用户打开的其它文稿）；若环境中 Excel 缺失导致 `AddChart2` 失败，则显式报错，绝不静默画假图；
+     - **PDF 导出实测**：桌面版 PowerPoint 16.0 + `pywin32` 延迟绑定调用 2 参数 `ExportAsFixedFormat(path, 2)` 会因可选 `PrintRange` 封送报 `The Python instance can not be converted to a COM object`，改用 `Presentation.SaveAs(pdf_path, 32)`（`ppSaveAsPDF = 32`，Office 2007+/2021 基线 API）实测稳定产出有效 PDF；
      - **COM 生命周期实测**：关闭最后一个带窗口文稿可能触发 `POWERPNT.EXE` 自动退出，故读回 `deck_dump.json` 使用独立只读会话；同时 Windows 同一线程反复 `CoInitialize`/`CoUninitialize` 交替调用 PowerPoint 与 Excel 会破坏 Office 16.0 RPC 代理（`RPC_S_UNKNOWN_IF / -2147023179`），改用线程局部一次性 `CoInitialize()` + 退出时等待自启 PID 结束，彻底消除跨会话断连。
 
 ## 3. R1 融合架构与契约设计

@@ -46,10 +46,10 @@ def _png(w: int, h: int, color=(35, 95, 165)) -> bytes:
     return buf.getvalue()
 
 
-def test_r5_capacity_calibration_matches_office_2021_measurements():
-    """Verify calibrated line pitch (1.20x) matches empirical Office 2021 BoundHeight samples."""
+def test_r5_capacity_calibration_matches_powerpoint_measurements():
+    """Verify calibrated line pitch (1.20x) matches empirical desktop PowerPoint 16.0 BoundHeight samples."""
     assert DEFAULT_LINE_HEIGHT_FACTOR == pytest.approx(1.20, abs=0.01)
-    # 5 lines at 18pt on Office 2021 -> BoundHeight = 108.0pt + 2*7.2pt padding = 122.4pt = 1.700in
+    # 5 lines at 18pt on desktop PowerPoint 16.0 -> BoundHeight = 108.0pt + 2*7.2pt padding = 122.4pt = 1.700in
     est_in = estimate_text_height_in(["line"] * 5, 18.0)
     assert est_in == pytest.approx((5 * 18.0 * 1.20 + 14.4) / 72.0, abs=0.005)
     # 6 lines at 16pt -> BoundHeight = 115.2pt; should fit cleanly in 2.0in box
@@ -192,7 +192,7 @@ def test_r5_qa_catches_empty_card_and_undersized_image_slot(tmp_path):
 
 @pytest.mark.windows_com
 def test_r5_windows_com_redesigned_deck_clean_qa_and_gates(tmp_path):
-    """Real Office 2021 build + export + measure on an R5-redesigned deck passes QA & hard gates cleanly."""
+    """Real desktop PowerPoint 16.0 build + export + measure on an R5-redesigned deck passes QA & hard gates cleanly."""
     from pptv01.renderers.powerpoint_com import PowerPointComRenderer
 
     renderer = PowerPointComRenderer()
@@ -289,7 +289,7 @@ def test_r5_windows_com_redesigned_deck_clean_qa_and_gates(tmp_path):
     for row in qa.capacity_vs_measured:
         assert row["overflow_h_pt"] <= 6.0
 
-    # Verify visual hard gates pass on the R5 Office 2021 deck
+    # Verify visual hard gates pass on the R5 desktop PowerPoint deck
     from pptv01.contracts import UserInputRequests
     from pptv01.grading.gates import _check_pptx_visual_gates
     uir_empty = UserInputRequests(run_id=RID, requests=[], summary="0 open")
