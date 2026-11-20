@@ -24,9 +24,17 @@ python -m pip install --upgrade pip
 pip install -e ".[dev,windows,verify]"
 ```
 
-## 3. Run `pptv01 doctor`
+## 3. Pre-Run Checklist & `pptv01 doctor`
 
-Verify all required Office COM components, fonts, and optional tools before running tests:
+Before running `pptv01 doctor`, `pytest -m windows_com`, or Smoke 4:
+1. Close any interactive PowerPoint windows (including **File → Account**, Protected View, or Document Recovery panes) and check for lingering `POWERPNT.EXE` / `EXCEL.EXE` processes:
+   ```powershell
+   Get-Process POWERPNT, EXCEL -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, StartTime | Format-Table
+   ```
+2. Record pre-existing PIDs so you know which Office processes belong to you vs this run. Do not interact with PowerPoint windows while automated COM rendering is running.
+3. If a run is interrupted (`Ctrl+C`) or hits the COM watchdog timeout (`PPTV01_COM_TIMEOUT_S` / `PPTV01_COM_STEP_TIMEOUT_S`), `PowerPointSession` automatically closes only its own presentations and terminates only PIDs it spawned itself (never pre-existing user PowerPoint/Excel processes).
+
+Verify all required Office COM components, edition metadata, fonts, and optional tools before running tests:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pptv01.cli doctor

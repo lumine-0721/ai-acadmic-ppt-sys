@@ -34,7 +34,8 @@ def measure_presentation(
         version = str(getattr(app, "Version", ""))
         build = str(getattr(app, "Build", ""))
         try:
-            pres = sess.track_presentation(app.Presentations.Open(str(pptx_abs), MSO_TRUE, MSO_FALSE, MSO_FALSE))
+            with sess.step("measure:open"):
+                pres = sess.track_presentation(app.Presentations.Open(str(pptx_abs), MSO_TRUE, MSO_FALSE, MSO_FALSE))
         except Exception as e:
             raise RenderExecutionError(f"PowerPoint failed to open {pptx_abs} for measurement: {e}") from None
 

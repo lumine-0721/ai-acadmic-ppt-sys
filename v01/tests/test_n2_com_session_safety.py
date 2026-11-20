@@ -125,3 +125,68 @@ def test_n2_watchdog_timeout_never_kills_preexisting_user_powerpoint():
 
     assert terminated == []
     assert app.quit_called is False
+
+
+def test_n2_per_step_watchdog_reports_step_elapsed_and_kills_only_spawned_ppt_and_excel():
+    """Per-step timeout reports stuck step, elapsed time, and kills ONLY newly spawned PPT+Excel PIDs."""
+    app = FakePowerPointApp()
+    app.is_preexisting = False  # type: ignore[attr-defined]
+    app.spawned_pids = {55501}  # type: ignore[attr-defined]
+    terminated: list[set[int]] = []
+    # User already had Excel PID 10001 open; our chart op spawned Excel PID 88802
+    excel_state = [{10001}]
+
+    with pytest.raises(RenderExecutionError) as excinfo:
+        with open_powerpoint_session(
+            app_factory=lambda: app,
+            timeout_s=5.0,
+            step_timeout_s=0.12,
+            terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+            list_excel_pids_fn=lambda: set(excel_state[0]),
+        ) as sess:
+            with sess.step("build:add_chart:OP007"):
+                excel_state[0] = {10001, 88802}
+                sess._timeout_event.wait(timeout=1.5)
+                time.sleep(0.05)
+
+    msg = str(excinfo.value)
+    assert "step='build:add_chart:OP007'" in msg
+    assert "after waiting" in msg
+    assert "55501" in msg and "88802" in msg
+    # Pre-existing user Excel PID 10001 MUST NEVER be killed
+    killed_union = set().union(*terminated) if terminated else set()
+    assert 55501 in killed_union and 88802 in killed_union
+    assert 10001 not in killed_union
+
+
+def test_n2_keyboard_interrupt_cleans_only_owned_pids_and_leaves_user_deck_intact():
+    app = FakePowerPointApp()
+    app.is_preexisting = False  # type: ignore[attr-defined]
+    app.spawned_pids = {66601}  # type: ignore[attr-defined]
+    terminated: list[set[int]] = []
+
+    with pytest.raises(KeyboardInterrupt):
+        with open_powerpoint_session(
+            app_factory=lambda: app,
+            terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+        ) as sess:
+            sess.track_presentation(app.Presentations.Add(0))
+            raise KeyboardInterrupt()
+
+    assert app.Presentations.Count == 0
+    assert app.quit_called is True
+    assert terminated == [{66601}]
+
+
+def test_n2_no_getactiveobject_or_getobject_in_production_source():
+    """HANDOFF v3 §5 N2 acceptance: rg GetActiveObject must have 0 hits in src/pptv01/."""
+    from pathlib import Path
+    import re
+
+    src_root = Path(__file__).resolve().parents[1] / "src" / "pptv01"
+    bad_hits: list[str] = []
+    for py in src_root.rglob("*.py"):
+        text = py.read_text("utf-8", errors="ignore")
+        for m in re.finditer(r"\b(?:GetActiveObject|GetObject)\s*\(", text):
+            bad_hits.append(f"{py.relative_to(src_root)}:{m.group(0)}")
+    assert bad_hits == [], f"forbidden COM attach call(s) found in production code: {bad_hits}"

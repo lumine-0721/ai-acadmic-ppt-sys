@@ -57,7 +57,8 @@ def export_presentation(
             n_slides = int(pres.Slides.Count)
             # Export PNGs into a clean temporary directory so stale files cannot mix in
             with tempfile.TemporaryDirectory(dir=str(out_dir)) as tmp_png_dir:
-                pres.Export(str(Path(tmp_png_dir).resolve()), "PNG", int(width_px), int(height_px))
+                with sess.step("export:png"):
+                    pres.Export(str(Path(tmp_png_dir).resolve()), "PNG", int(width_px), int(height_px))
                 raw_pngs = sorted(
                     [p for p in Path(tmp_png_dir).iterdir() if p.is_file() and p.suffix.lower() == ".png"],
                     key=_slide_sort_key,
@@ -81,7 +82,8 @@ def export_presentation(
                 pdf_target = out_dir / "deck.pdf"
                 try:
                     # SaveAs(path, ppSaveAsPDF=32) avoids pywin32 late-binding PrintRange marshaling error
-                    pres.SaveAs(str(pdf_target), PP_SAVE_AS_PDF)
+                    with sess.step("export:pdf"):
+                        pres.SaveAs(str(pdf_target), PP_SAVE_AS_PDF)
                     if pdf_target.is_file():
                         pdf_path = pdf_target
                 except Exception as e:

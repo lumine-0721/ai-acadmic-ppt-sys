@@ -452,11 +452,13 @@ def _build_presentation_once(
             tpl_abs = (run_dir / ops.template_path).resolve()
             if not tpl_abs.is_file():
                 raise RenderExecutionError(f"template_path not found: {tpl_abs}")
-            pres = sess.track_presentation(app.Presentations.Open(str(tpl_abs), MSO_FALSE, MSO_TRUE, with_window))
+            with sess.step("build:open_template"):
+                pres = sess.track_presentation(app.Presentations.Open(str(tpl_abs), MSO_FALSE, MSO_TRUE, with_window))
         else:
-            pres = sess.track_presentation(app.Presentations.Add(with_window))
+            with sess.step("build:new_presentation"):
+                pres = sess.track_presentation(app.Presentations.Add(with_window))
 
-        if needs_chart_window:
+        if needs_chart_window and sess.owns_instance:
             try:
                 app.WindowState = PP_WINDOW_MINIMIZED
             except Exception:
@@ -629,7 +631,8 @@ def _build_presentation_once(
                     continue
 
                 if op.kind is DeckOpKind.add_chart:
-                    ch, ch_name = _add_chart_op(current_slide, op)
+                    with sess.step(f"build:add_chart:{op.op_id}"):
+                        ch, ch_name = _add_chart_op(current_slide, op)
                     if op.element_id:
                         slide_shapes[op.element_id] = ch
                     slide_shapes[ch_name] = ch
@@ -686,7 +689,8 @@ def _build_presentation_once(
                     _set_slide_notes(current_slide, str(p.get("text", "")))
                     continue
 
-            pres.SaveAs(str(out_pptx))
+            with sess.step("build:save_pptx"):
+                pres.SaveAs(str(out_pptx))
         finally:
             sess.close_presentation(pres)
 

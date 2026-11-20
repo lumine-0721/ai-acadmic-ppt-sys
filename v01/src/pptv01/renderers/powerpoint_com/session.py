@@ -1,16 +1,19 @@
 """Safe PowerPoint & Excel COM session management (Office 16.0 / Office 2021 baseline APIs).
 
-Politeness & safety guarantees (HANDOFF v3 Hard Rule 11 & B8 fix):
+Politeness & safety guarantees (HANDOFF v3 Hard Rule 11 & B8 / N2):
   - Always instantiates via ``win32com.client.DispatchEx("PowerPoint.Application")``
-    (NEVER calls ``GetActiveObject`` to attach to a user's session).
-  - Records PIDs spawned by this session (``_spawned_pids = post_pids - pre_pids``).
+    (NEVER calls ``GetActiveObject``, ``GetObject``, or plain ``Dispatch``).
+  - Records PIDs spawned by this session (``_spawned_pids = post_ppt_pids - pre_ppt_pids``)
+    and baseline Excel PIDs (``_pre_excel_pids``) so any spawned Excel child is also tracked.
   - Sets ``DisplayAlerts = ppAlertsNone`` and ``AutomationSecurity = msoAutomationSecurityForceDisable``.
   - Tracks ONLY presentations created/opened by this session and closes ONLY those.
-  - NEVER calls ``app.Quit()`` or terminates a process if PowerPoint was already running
-    before our session started (even if the user's PowerPoint has 0 open presentations).
-  - Arms a watchdog timer (``timeout_s``, default ``PPTV01_COM_TIMEOUT_S`` or 120s) that
-    terminates ONLY ``_spawned_pids`` if a COM call hangs on a modal dialog, and raises
-    a clear ``RenderExecutionError`` without swallowing exceptions.
+  - NEVER calls ``app.Quit()``, minimizes, or terminates a PowerPoint/Excel process that
+    was already running before our session started (even if it has 0 open presentations).
+  - Arms BOTH a per-session total watchdog (default ``PPTV01_COM_TIMEOUT_S`` or 120s) AND
+    per-step call watchdogs via ``with sess.step("build:add_chart")`` (default ``PPTV01_COM_STEP_TIMEOUT_S`` or 45s).
+  - On timeout, terminates ONLY our own spawned PowerPoint/Excel PIDs and raises a clear
+    ``RenderExecutionError`` stating the stuck step, elapsed time, and owned PIDs.
+  - Even on ``KeyboardInterrupt`` (Ctrl+C), cleans up ONLY our own presentations & spawned PIDs.
 """
 
 from __future__ import annotations
@@ -30,21 +33,23 @@ from pptv01.renderers.protocol import RenderExecutionError, RendererUnavailableE
 from .constants import MSO_AUTOMATION_SECURITY_FORCE_DISABLE, PP_ALERTS_NONE
 
 DEFAULT_COM_TIMEOUT_S = 120.0
+DEFAULT_COM_STEP_TIMEOUT_S = 45.0
 ENV_COM_TIMEOUT_S = "PPTV01_COM_TIMEOUT_S"
+ENV_COM_STEP_TIMEOUT_S = "PPTV01_COM_STEP_TIMEOUT_S"
 
 _COM_THREAD_STATE = threading.local()
 
 
-def _resolve_timeout_s(timeout_s: float | None) -> float:
+def _resolve_timeout_s(timeout_s: float | None, *, env_var: str = ENV_COM_TIMEOUT_S, default: float = DEFAULT_COM_TIMEOUT_S) -> float:
     if timeout_s is not None:
         return max(0.05, float(timeout_s))
-    raw = os.environ.get(ENV_COM_TIMEOUT_S, "").strip()
+    raw = os.environ.get(env_var, "").strip()
     if raw:
         try:
             return max(0.05, float(raw))
         except ValueError:
             pass
-    return DEFAULT_COM_TIMEOUT_S
+    return default
 
 
 def _ensure_com_initialized(pythoncom: Any) -> None:
@@ -102,7 +107,7 @@ def _terminate_pids(pids: set[int]) -> None:
 
 
 def _connect_powerpoint(win32_client: Any) -> Any:
-    """Launch PowerPoint via DispatchEx only (never GetActiveObject)."""
+    """Launch PowerPoint via DispatchEx only (never attaches to an existing user session)."""
     return win32_client.DispatchEx("PowerPoint.Application")
 
 
@@ -166,7 +171,9 @@ def probe_excel_com(excel_factory: Callable[[], Any] | None = None) -> tuple[boo
                 xl = None
             gc.collect()
             if spawned:
-                _wait_pids_exit(spawned, timeout_s=5.0, image_name="EXCEL.EXE")
+                exited = _wait_pids_exit(spawned, timeout_s=5.0, image_name="EXCEL.EXE")
+                if not exited:
+                    _terminate_pids(spawned)
 
     xl = None
     try:
@@ -185,34 +192,51 @@ def probe_excel_com(excel_factory: Callable[[], Any] | None = None) -> tuple[boo
 
 
 class PowerPointSession:
-    """Context manager wrapping a single PowerPoint COM session with PID ownership & watchdog timeout."""
+    """Context manager wrapping a single PowerPoint COM session with PID ownership & dual watchdogs."""
 
     def __init__(
         self,
         *,
         app_factory: Callable[[], Any] | None = None,
         timeout_s: float | None = None,
+        step_timeout_s: float | None = None,
         terminate_pids_fn: Callable[[set[int]], None] | None = None,
+        list_excel_pids_fn: Callable[[], set[int]] | None = None,
     ) -> None:
         self._app_factory = app_factory
-        self._timeout_s = _resolve_timeout_s(timeout_s)
+        self._timeout_s = _resolve_timeout_s(timeout_s, env_var=ENV_COM_TIMEOUT_S, default=DEFAULT_COM_TIMEOUT_S)
+        self._step_timeout_s = _resolve_timeout_s(
+            step_timeout_s, env_var=ENV_COM_STEP_TIMEOUT_S, default=DEFAULT_COM_STEP_TIMEOUT_S
+        )
         self._terminate_pids_fn = terminate_pids_fn or _terminate_pids
+        self._list_excel_pids_fn = list_excel_pids_fn or (lambda: _list_pids("EXCEL.EXE"))
         self._pythoncom: Any = None
         self.app: Any = None
         self._owned_presentations: list[Any] = []
         self._initial_open_count: int = 0
         self._spawned_pids: set[int] = set()
+        self._pre_excel_pids: set[int] = set()
+        self._spawned_excel_pids: set[int] = set()
         self._owns_instance: bool = False
         self._prev_display_alerts: Any = None
         self._prev_automation_security: Any = None
-        self._watchdog: threading.Timer | None = None
+        self._session_watchdog: threading.Timer | None = None
+        self._step_watchdog: threading.Timer | None = None
+        self._current_step: str = "session_init"
+        self._started_monotonic: float = time.monotonic()
+        self._step_started_monotonic: float = self._started_monotonic
         self._timed_out: bool = False
+        self._timeout_message: str = ""
         self._timeout_event = threading.Event()
         self._lock = threading.Lock()
 
     @property
     def spawned_pids(self) -> set[int]:
         return set(self._spawned_pids)
+
+    @property
+    def spawned_excel_pids(self) -> set[int]:
+        return set(self._spawned_excel_pids)
 
     @property
     def owns_instance(self) -> bool:
@@ -222,37 +246,86 @@ class PowerPointSession:
     def timed_out(self) -> bool:
         return self._timed_out
 
-    def _on_timeout(self) -> None:
+    def _collect_spawned_excel_pids(self) -> set[int]:
+        try:
+            cur = self._list_excel_pids_fn()
+        except Exception:
+            cur = set()
+        return cur - self._pre_excel_pids
+
+    def _on_timeout(self, *, kind: str, limit_s: float) -> None:
         with self._lock:
+            if self._timed_out:
+                return
             self._timed_out = True
-            owned_pids = set(self._spawned_pids)
+            step_name = self._current_step
+            elapsed = time.monotonic() - (
+                self._step_started_monotonic if kind == "step" else self._started_monotonic
+            )
+            owned_ppt = set(self._spawned_pids)
+            owned_xl = self._collect_spawned_excel_pids()
+            self._spawned_excel_pids |= owned_xl
+            to_kill = owned_ppt | owned_xl
+            self._timeout_message = (
+                f"PowerPoint COM {kind} timed out during step={step_name!r} "
+                f"after waiting {elapsed:.1f}s (limit={limit_s:g}s; "
+                f"owned powerpoint_pids={sorted(owned_ppt)}, excel_pids={sorted(owned_xl)})"
+            )
         self._timeout_event.set()
-        # NEVER terminate pre-existing user PowerPoint PIDs — only our own spawned PIDs
-        if owned_pids:
+        # NEVER terminate pre-existing user PowerPoint/Excel PIDs — ONLY our own spawned PIDs
+        if to_kill:
             try:
-                self._terminate_pids_fn(owned_pids)
+                self._terminate_pids_fn(to_kill)
             except Exception:
                 pass
 
-    def _start_watchdog(self) -> None:
-        self._cancel_watchdog()
-        t = threading.Timer(self._timeout_s, self._on_timeout)
+    def _start_session_watchdog(self) -> None:
+        self._cancel_session_watchdog()
+        t = threading.Timer(self._timeout_s, self._on_timeout, kwargs={"kind": "session", "limit_s": self._timeout_s})
         t.daemon = True
         t.start()
-        self._watchdog = t
+        self._session_watchdog = t
 
-    def _cancel_watchdog(self) -> None:
-        t = self._watchdog
-        self._watchdog = None
+    def _cancel_session_watchdog(self) -> None:
+        t = self._session_watchdog
+        self._session_watchdog = None
+        if t is not None:
+            t.cancel()
+
+    def _cancel_step_watchdog(self) -> None:
+        t = self._step_watchdog
+        self._step_watchdog = None
         if t is not None:
             t.cancel()
 
     def check_timeout(self, operation: str = "COM operation") -> None:
         if self._timed_out:
-            raise RenderExecutionError(
-                f"PowerPoint {operation} timed out after {self._timeout_s:g}s "
-                f"(watchdog terminated owned PID(s): {sorted(self._spawned_pids)})"
+            msg = self._timeout_message or (
+                f"PowerPoint {operation} timed out (owned powerpoint_pids={sorted(self._spawned_pids)})"
             )
+            raise RenderExecutionError(msg)
+
+    @contextmanager
+    def step(self, name: str, *, timeout_s: float | None = None) -> Iterator[None]:
+        """Mark the active COM step and arm a per-call watchdog timer."""
+        self.check_timeout(name)
+        limit = min(self._timeout_s, self._step_timeout_s if timeout_s is None else max(0.05, float(timeout_s)))
+        with self._lock:
+            self._current_step = name
+            self._step_started_monotonic = time.monotonic()
+        t = threading.Timer(limit, self._on_timeout, kwargs={"kind": "step", "limit_s": limit})
+        t.daemon = True
+        self._step_watchdog = t
+        t.start()
+        try:
+            yield
+            self.check_timeout(name)
+        except BaseException:
+            if self._timed_out:
+                raise RenderExecutionError(self._timeout_message) from None
+            raise
+        finally:
+            self._cancel_step_watchdog()
 
     def track_presentation(self, pres: Any) -> Any:
         self.check_timeout("track_presentation")
@@ -267,6 +340,14 @@ class PowerPointSession:
         self._owned_presentations = [p for p in self._owned_presentations if p is not pres]
 
     def __enter__(self) -> "PowerPointSession":
+        self._started_monotonic = time.monotonic()
+        self._step_started_monotonic = self._started_monotonic
+        self._current_step = "session_connect"
+        try:
+            self._pre_excel_pids = set(self._list_excel_pids_fn())
+        except Exception:
+            self._pre_excel_pids = set()
+
         if self._app_factory is not None:
             try:
                 self.app = self._app_factory()
@@ -293,7 +374,7 @@ class PowerPointSession:
                 self.app.AutomationSecurity = MSO_AUTOMATION_SECURITY_FORCE_DISABLE
             except Exception:
                 pass
-            self._start_watchdog()
+            self._start_session_watchdog()
             return self
 
         pythoncom, win32_client = _import_com_modules()
@@ -334,12 +415,14 @@ class PowerPointSession:
         # Strictly own the instance ONLY when we actually spawned a new POWERPNT.EXE PID
         # and no pre-existing user presentations were open.
         self._owns_instance = bool(self._spawned_pids) and (self._initial_open_count == 0)
-        self._start_watchdog()
+        self._start_session_watchdog()
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
-        self._cancel_watchdog()
+        self._cancel_step_watchdog()
+        self._cancel_session_watchdog()
         was_timed_out = self._timed_out
+        interrupted = exc_type is KeyboardInterrupt
 
         # Close ONLY presentations created/opened by this session
         for pres in list(self._owned_presentations):
@@ -368,8 +451,8 @@ class PowerPointSession:
                 try:
                     remaining = int(self.app.Presentations.Count)
                 except Exception:
-                    remaining = 0 if was_timed_out else 1
-                if remaining == 0:
+                    remaining = 0 if (was_timed_out or interrupted) else 1
+                if remaining == 0 or interrupted:
                     try:
                         self.app.Quit()
                     except Exception:
@@ -378,6 +461,12 @@ class PowerPointSession:
             self.app = None
 
         gc.collect()
+        # Clean up any Excel process spawned exclusively during our session (never touch user Excel!)
+        new_xl = self._collect_spawned_excel_pids()
+        if new_xl and (was_timed_out or interrupted):
+            self._spawned_excel_pids |= new_xl
+            self._terminate_pids_fn(new_xl)
+
         if self._pythoncom is not None:
             self._pythoncom = None
             if should_wait_exit and self._spawned_pids:
@@ -386,11 +475,13 @@ class PowerPointSession:
                     # Only ever terminate PIDs we spawned ourselves
                     self._terminate_pids_fn(self._spawned_pids)
                 time.sleep(0.3)
+        elif interrupted and self._owns_instance and self._spawned_pids:
+            self._terminate_pids_fn(self._spawned_pids)
 
-        if was_timed_out and exc_type is not RenderExecutionError:
+        if was_timed_out and exc_type is not RenderExecutionError and not interrupted:
             raise RenderExecutionError(
-                f"PowerPoint COM session timed out after {self._timeout_s:g}s "
-                f"(watchdog terminated owned PID(s): {sorted(self._spawned_pids)})"
+                self._timeout_message
+                or f"PowerPoint COM session timed out after {self._timeout_s:g}s (owned PIDs: {sorted(self._spawned_pids)})"
             )
 
 
@@ -399,12 +490,16 @@ def open_powerpoint_session(
     app_factory: Callable[[], Any] | None = None,
     *,
     timeout_s: float | None = None,
+    step_timeout_s: float | None = None,
     terminate_pids_fn: Callable[[set[int]], None] | None = None,
+    list_excel_pids_fn: Callable[[], set[int]] | None = None,
 ) -> Iterator[PowerPointSession]:
     with PowerPointSession(
         app_factory=app_factory,
         timeout_s=timeout_s,
+        step_timeout_s=step_timeout_s,
         terminate_pids_fn=terminate_pids_fn,
+        list_excel_pids_fn=list_excel_pids_fn,
     ) as sess:
         yield sess
 
