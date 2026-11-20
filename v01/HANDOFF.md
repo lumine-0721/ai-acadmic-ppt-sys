@@ -176,6 +176,19 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 > **路线结论（理由与证据见 `docs/renderer-office-research.md`）：主路线 = Windows 上 Python + pywin32 驱动桌面 PowerPoint 的 COM。** VBA 只当对象模型参考；Office.js（PowerPointApi 到 1.10 仍无法创建/读写图表）只留给第二阶段"插入当前文档"，**本轮不做**。
 > **架构要点：** F 只产出后端无关的 `page_design.json`；新增纯 Python 编译层把它编成确定性的 `deck_ops.json`；COM 执行器只负责把操作翻成 COM 调用。这样契约和编译层在 Linux/CI 上就能测，只有执行器需要 Windows。
 
+### 已确认的决定（用户 2026-11-20 回复，取代原"待确认问题"）
+1. **目标环境：Office 2021 桌面版（永久授权）**，即 Office 16.0 对象模型；Excel 按"随 Office 2021 一起装了"假设，**但必须由 `pptv01 doctor` 实测确认**（版本/Build、`Excel.Application` 能否创建）。**不得使用 Microsoft 365 专属特性**：不用 Office.js 的 PowerPointApi 1.8+ 新接口（本轮本来也不做 Office.js）、不用 M365 才有的功能（如 Designer、Copilot、云端字体/图标库、动态数组图表等）；只用 Office 2021 里存在的 COM 对象模型（`AddChart2`、`AddConnector`、`TextFrame2.TextRange.BoundHeight`、`Presentation.Export`、`ExportAsFixedFormat` 等都是 Office 2013/2016 起就有的）。
+2. **是真正的 Microsoft PowerPoint，不是 WPS**。不需要适配 `KWPP.Application`。
+3. **Antigravity 就跑在用户同一台本机 Windows 上**，不是云服务器 → 它可以**直接测 COM**；R2/R3/R7 的真机验收由它在本机跑并汇报，宝特只在 Linux 侧复核产物（zip）。
+4. **python-pptx 只读校验器可以接受**：放 `[verify]` extra，只读、永不写文件（规则 9 不变）。
+5. **云端批量生成：以后再说，不在本轮范围。** 用户有云服务器（由云宝收集的免费额度机器，例如 Linux 的 Simular 盒子）：**Linux 云机不能跑 COM**；要云端批量就得 Windows VM + 交互式桌面会话（微软不支持无人值守自动化 Office，KB257757），届时再评估，**本轮不要为此写任何代码**。
+
+**据此对下面任务的调整：**
+- **R2**：`preflight()` 额外记录是否 Office 2021（`Application.Version == "16.0"` + Build）；`AddChart2` 在**真机 Office 2021**上先做一个最小实测（建图→写数据→关 Excel→保存→重新打开），结果写进 `docs/stage-g-office-research.md`；若 Excel 缺失或 `AddChart2` 失败，**明确报错/把图表请求回退为用户补充请求或占位**，不得静默画假图。
+- **R3**：`Presentation.Export` 的 PNG 尺寸与字体渲染以本机 PowerPoint 2021 为准；`render_provenance` 写明 `powerpoint-com 16.0 (build …)`。
+- **R7**：`pptv01 doctor` 必检项增加：`Application.Version` 为 16.0 且 Build 对应 2021 永久版（如实打印，不强行判断授权类型）、**Excel 存在且 `Excel.Application` 可创建**、中文字体（如微软雅黑/等线）是否安装、`NameFarEast` 设置能否生效。
+- 所有验收里凡写"Windows"处，具体指**用户本机 Windows + Office 2021**；Linux 侧只跑不依赖 COM 的测试。
+
 ### R0 先还账：修评审里与渲染器无关的 bug（可在 Linux 上做）
 - 修 **B1**（resume 失效）、**B2**（`content_summary` 泄漏）、**B3**（"稍后自绘"文案）。
 - **验收：** 每个 bug 一个失败再转绿的测试；B1 的测试要走"provide → resume → deck/ops 里出现该输入的元素且不是占位"；B2 的测试断言页面可见文本 ⊆ `title ∪ key_points ∪ 署名/来源`；B3 的测试断言所有 `why`/`acceptance` 不含"自绘/drawn natively"。全量测试绿。
@@ -244,7 +257,7 @@ Office.js add-in（"插入当前文档"）、macOS/Linux 渲染、云端批量�
 8. **A/B/C/E 的答案仍是 agent 手写**，不是 API 模型的产出。
 9. **QA 对"丑"没有感知**（B6）；版式质量靠 R5 重做。
 10. **COM 只能在用户桌面 Windows + 桌面 PowerPoint 上跑**，不是云服务（微软 KB257757 不支持无人值守自动化 Office）；macOS/Linux 不可行。宝特的 Linux box 不能跑 COM，所有 COM 验收靠 Windows 实测。
-11. 目标机器的 PowerPoint 版本/订阅类型/是否装了 Excel/是否 WPS：**待用户确认**（见 `docs/renderer-office-research.md` 第 7 节）。
+11. 目标机器已确认为 **Office 2021 桌面版 + 真正的 PowerPoint，Antigravity 在同一台本机 Windows 上运行**（见第 5 节「已确认的决定」）；Excel 是否随装、Build 号待 `pptv01 doctor` 实测。云端批量（含 Windows VM 方案）**后做**。
 
 ---
 

@@ -17,7 +17,7 @@
 - **已知（来自仓库历史）**：旧包 `aprd/` 与 `orchestrator/` 来自作者的 **Windows** 机器（`PORTABILITY.md`：`C:/Users/86139/...`），而且已经用过 PowerPoint COM：
   - `aprd/academic-presentation-reference-design/scripts/aprd_engine/reconstructor_verifier.py:468 render_and_measure_via_powerpoint_com`：PowerShell + `New-Object -ComObject PowerPoint.Application`，`Presentations.Open(path, -1, 0, 0)`（只读、无窗口），`Export(outDir,"PNG",w,h)`，并逐形状读 `TextFrame2.TextRange.BoundHeight` 判溢出；
   - `orchestrator/README.md` 记录过 "PowerPoint opened probe.pptx read-only: 2 slides"。
-  → **可以合理假设用户 Windows + 桌面版 PowerPoint 可用**；但**版本/订阅类型/是否装了 Excel/是不是 WPS** 仓库里没写，见第 7 节问题清单。
+  → **可以合理假设用户 Windows + 桌面版 PowerPoint 可用**；**该假设已被用户确认**：Office 2021 桌面版、真 PowerPoint、本机运行（见第 7 节）。
 - **我的 box 是 Linux**：不能跑 COM。所以 COM 相关的验收只能在用户的 Windows 上做；Antigravity 若运行在用户那台 Windows 上，可以直接跑。
 - 微软官方不支持无人值守/服务端自动化 Office（[KB257757](https://support.microsoft.com/en-us/visio/considerations-for-server-side-automation-of-office)：非交互环境可能死锁、弹窗卡死）。**结论：这是"用户桌面上跑"的工具，不是云服务**；要上云需要 Windows VM + 交互桌面会话 + 每进程隔离，或另选方案。这点要写进 README，别让人误以为能放服务器。
 
@@ -135,10 +135,10 @@ class DeckRenderer(Protocol):
 3. `ykuwai/ppt-mcp`（MIT）：`charts.py`（Excel 清理）、`connectors.py`、`layout_check.py`、`export.py`。
 4. `hugohe3/ppt-master`（MIT）：已借的 `slot_capacity`，用 COM 实测校准。
 
-## 7. 只有用户能回答的问题
+## 7. 用户已确认的决定（2026-11-20，原"待回答问题"已关闭）
 
-1. 目标机器：**Windows 版本？PowerPoint 是 Microsoft 365 还是 2016/2019/2021（永久授权）？具体版本/内部版本号？** 是否同时装了 **Excel**（`AddChart2` 需要）？
-2. 是否可能用的是 **WPS**？（WPS 的 COM 接口 `KWPP.Application` 与 PowerPoint 不完全等价，需要单独评估。）
-3. Antigravity 是在**同一台 Windows** 上运行并能直接测试吗？
-4. 是否接受 python-pptx 作为**只读校验器**（`[verify]` extra，永不写文件）？若不接受就改用 `zipfile + lxml`，工作量略增。
-5. 是否需要将来"云端批量生成"？若需要，COM 路线要配 Windows VM + 交互会话；否则别投入。
+1. **Office 2021 桌面版**（Office 16.0 对象模型），Excel 假定随装、由 `pptv01 doctor` 实测；不使用 Microsoft 365 专属特性（Office.js 1.8+ 新接口、Designer、Copilot 等）。`AddChart2` 自 Office 2013 起存在，但仍要在用户真机 2021 上做最小实测（需 Excel）。
+2. **真正的 Microsoft PowerPoint，不是 WPS**。
+3. **Antigravity 与用户同一台本机 Windows**，可直接测 COM。
+4. **接受 python-pptx 只读校验器**（`[verify]` extra）。
+5. **云端批量：以后再说。** 用户有云服务器（免费额度机器，如 Linux Simular 盒子），但 Linux 不能跑 COM；需要 Windows VM + 交互会话才可行，后续再决定，本轮不投入。
