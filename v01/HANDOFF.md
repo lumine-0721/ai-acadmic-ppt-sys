@@ -5,7 +5,8 @@
 > **代码基线（重要，第 3 版）**：你上一轮的成果在分支 `feature/v01-office-renderer`（头提交 `7ceb945`，已评审，见第 4.1 节）。**下一轮继续在这个分支上做（或从它拉 `feature/v01-office-renderer-2`）**，做第 5 节的 N0–N8；Windows 实机测试清单在第 5B 节，由用户在真机上跑。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
-> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最重要的两件事：** ① 全量 `pytest` 在没装 Office 的机器上是红的（N0）；② python-pptx 仍在默认生成路径里、机器很可能不是 Office 2021 而是 Microsoft 365（N1、N7）。
+> **环境已确认（用户实测，2026-11-20）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel），不是 Office 2021。策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑。**
+> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最重要的两件事：** ① 全量 `pytest` 在没装 Office 的机器上是红的（N0）；② python-pptx 仍在默认生成路径里（N7）；另外环境是 Microsoft 365 而不是 2021（已确认，B12/N1 只剩文档与 doctor 的整改）。
 
 ---
 ## 1. 项目目标与现状
@@ -167,14 +168,14 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 | **R2** COM 执行器 | ⚠️ 静态看合理，**只有 fake COM 验证过**，会话安全有 bug | fake COM 测试 471 里通过；真实 COM 行为我无法验证。好处：线程内只 `CoInitialize` 一次、Excel 图表工作簿 `finally` 关闭、`AddChart2` 先开最小化窗口、`SetSourceData` 用字符串区域。缺陷：**B8**（连到用户已运行的 PowerPoint，且可能 `Quit` 它；没有 COM 调用超时）。 |
 | **R3** H 用 PowerPoint 渲染+实测 | ⚠️ 部分通过 | 导出 PNG、PDF（`SaveAs(…,32)`）、`TextFrame2.BoundHeight` 实测、几何 lint、改 `page_design` 后重编译重建重导出——结构齐。缺陷：**B10**（修复循环里重新编译漏掉 `template_path`，改过一轮后模板会丢）、**B11**。真实修复效果未验证。 |
 | **R4** 硬门槛加固 | ✅ 基本通过，有漏洞 B9 | sha256 对 blob 校验、改名图片/手绘椭圆/连接线/换 blob 的 B4 复现全被门槛抓住。**但白名单正则 `_ALLOWED_STRUCTURAL_RE` 太宽**：名为 `card_*`/`accent_*` 的手绘形状可以通过（B9，我已复现）。 |
-| **R5** 版式质量 | ⚠️ 代码层改了，**效果未证实** | 去掉空卡片、统一裁切槽位、B6 QA 规则（空卡片/图过小）有测试；T02 新的 F 设计图比之前大。真实视觉必须在 PowerPoint 渲染图上由人眼+PPTEval 验证。`docs/stage-f-layout-calibration.md` 里的容量校准基于"Office 2021"，但见 B12（机器很可能不是 2021）。 |
+| **R5** 版式质量 | ⚠️ 代码层改了，**效果未证实** | 去掉空卡片、统一裁切槽位、B6 QA 规则（空卡片/图过小）有测试；T02 新的 F 设计图比之前大。真实视觉必须在 PowerPoint 渲染图上由人眼+PPTEval 验证。`docs/stage-f-layout-calibration.md` 里的容量校准写的是"Office 2021"，实际是在 Microsoft 365 Build 20257.20196 上测的，措辞要改（见 B12、N1）。 |
 | **R6** D 图片相关度 | ⚠️ 部分通过，有过拟合和"错图被选中" | 艺术插画过滤、美国辖区过滤、不可评估时诚实记 `not_assessed`+`needs_review`。缺陷：**B14**（同名异地规则 `_HOMONYM_CONFLICTS` 只硬编码了 Pekin 和 Nashville/Parthenon 两个冒烟例子，换一个例子就不灵，属于对基准的拟合）、**B15**（T02 里北京的图被选成纽约 ISS 卫星照，相似度刚过 0.30 阈值，没有"候选与目标实体不符"的通用判据）。 |
 | **R7** doctor + Windows 协议 | ✅ 通过（待实机输出） | `pptv01 doctor [--json]` 区分 required/optional，缺项退出码 1；`docs/windows-testing.md` 步骤齐全。缺陷：**B12**（doctor 不判断 Office 版本类型；文档写"Office 2021 / Office 365"含糊）。 |
 
 #### 其他检查
 
 - **python-pptx 是否已退出生成路径：❌ 没有。** `pyproject.toml:13` 仍是核心依赖；`--renderer` 默认是 `legacy`（`cli.py:25`），旧 `g_pptx` 仍是默认生成路径；`h_qa/repair.py:9-11` 在非 COM 路径仍用 python-pptx **写** PPTX；`grading/gates.py:14` 在模块顶部 `from pptx import …`（只读，OK，但若把 python-pptx 挪到 `[verify]` 就必须改成惰性导入+明确报错）。COM 路径本身没有 python-pptx 写入。
-- **Microsoft 365 专属 API：** 未发现 Designer/Copilot/动态数组/新版图表专属调用；`AddChart2`（Office 2013+）、`TextFrame2`、`Export`、`SaveAs(…,32)` 在 2021 都有。**但机器版本存疑**，见 B12。
+- **Microsoft 365 专属 API：** 未发现 Designer/Copilot/动态数组/新版图表专属调用；`AddChart2`（Office 2013+）、`TextFrame2`、`Export`、`SaveAs(…,32)` 在 Office 2021 / Office 16 基线里都有。**策略不变：只用 Office 2021 基线也有的 API**；目标机器已确认是 Microsoft 365（见 B12），所以"在 2021 上也能跑"只是**设计约束，没有在真 2021 上验证过**。
 - **假图：** 未发现。图表要么来自用户 `provided` 的数据，要么是 `missing` → 占位框；没有自绘图表代码。
 - **复用/署名：** `NOTICE.md` 登记了 pptlive（MIT）、ykuwai/ppt-mcp（MIT）、aprd 导出脚本、ppt-master `slot_capacity`；无许可证的 Ayushmaniar/powerpoint-mcp 未复制。✅
 - **B1–B7 复现结论：** B1 ✅ 已修；B2 ✅；B3 ✅；B4 ✅（改名、手绘椭圆、连接线、换 blob 都被抓；但见 B9 新漏洞）；B5 ✅（编译层）；B6 ⚠️（有规则，视觉未验证）；B7 ⚠️（Pekin 被拒，但换成了纽约的图，见 B15）。
@@ -185,7 +186,7 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 - **B9（高）`grading/gates.py:49-52`（`_ALLOWED_STRUCTURAL_RE`）与 `:152`（`.match(name)`）**：白名单是前缀正则，`card_*`、`accent_*` 等前缀下的任何手绘形状（例如名为 `card_fake_chart` 的椭圆+折线）都会通过 `no_fabricated_visuals`。修法：白名单改成**精确集合**——只允许 `deck_ops.json`/`page_design.json` 里声明过的结构元素名；并按形状类型约束（结构元素只能是矩形/文本框/直线，不能是椭圆、自由曲线、带点列表的形状；连接线只允许 `DIAGRAM_*` 且两端必须绑在图节点上）；加 `card_fake_*` 手绘图的回归测试。
 - **B10（中）`h_qa/stage.py:138`**：修复循环里 `compile_deck_ops(slide_plan, current_design, reg, uir, run_dir)` 没传 `template_path`（对照 `runner.py:485` 有传），修复一轮后重建的 deck 会丢模板。修法：传同一个 `tpl_rel`；加测试（带模板、触发一次修复后，deck 的母版/版式仍来自模板）。
 - **B11（中）`h_qa/stage.py:90`**：`"page_ids" in deck_renderer.measure.__code__.co_varnames` 这种内省 hack。协议（`renderers/protocol.py`）应该统一成 `measure(pptx, page_ids=None)`，所有实现与 fake 都要实现。
-- **B12（高，需用户确认）机器的 Office 版本**：汇报里的 "PowerPoint 16.0 Build 20527" 对不上"Office 2021 永久授权版"——Office 2021/LTSC 的版本号是 2108，Build 在 14332–14334.x；Build 20xxx 是 **Microsoft 365 订阅版**当前通道。所以很可能不是 2021。影响：（a）所有"Office 2021 实测"的措辞和校准结论（`docs/stage-f-layout-calibration.md`、`windows-testing.md`、测试 docstring、`AddChart2` 窗口结论）要改为"在 Microsoft 365 Build xxxxx 上实测"；（b）我们无法证明在 2021 上可用，除非找一台真 2021。修法：`doctor` 读注册表 `HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration` 的 `ProductReleaseIds`/`VersionToReport`/`UpdateChannel`，输出"产品类型：Microsoft 365 / Office 2021 / 其他"；文档与测试里不要再写死"2021"。
+- **B12（已解决：用户已确认，不再是开放问题）机器的 Office 版本**：用户实测 PowerPoint 是 **Microsoft 365 桌面版 PowerPoint（Version 16.0，Build 20257.20196，Current Channel）**，**不是 Office 2021**。（此前汇报里的 "Build 20527" 是抄错的数字，以 20257.20196 为准。）**决定：策略不变——只用 Office 2021 / Office 16 基线里也存在的 API，保证换到 2021 或 LTSC 机器也能跑；不使用 Microsoft 365 专属功能（Designer、Copilot、云端图标/字体库、动态数组图表、Office.js 1.8+ 等）。** 剩余的整改（N1）：（a）`docs/stage-f-layout-calibration.md`、`windows-testing.md`、测试 docstring 里写死的"Office 2021 实测"改成"在 Microsoft 365 Build 20257.20196 上实测；仅使用 Office 2021 基线 API，2021 上未实测"；（b）`doctor` 读注册表 `HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration` 的 `ProductReleaseIds`/`VersionToReport`/`UpdateChannel`，如实输出"产品类型：Microsoft 365 / Office 2021·LTSC / 其他"，**不得因为不是 2021 就报错**。
 - **B13（低）`c_asset_requirements/validate.py:26,101`（`SELF_DRAW_RE`）**：对"不允许凭空绘制"这类**否定**说法也报错（误杀）。修法：先剥掉否定前缀（"不/不得/禁止/不允许/严禁 + 自绘/凭空绘制"）再匹配，加正反测试。
 - **B14（中）`d_retrieve/image_rules.py:76-90`（`_HOMONYM_CONFLICTS`）**：只硬编码 `pekin`、`nashville|tennessee|arkansas|centennial park` 两条，且 `_US_JURISDICTION_RE` 里也混了 `tazewell county|nashville|centennial park`——这是照着冒烟样本拟合的。盲测集换题就不灵。修法：改成**通用**判据——候选的标题/描述/分类里出现的地名限定词，与需求目标实体所在地（用 Wikidata 的 `P17/P131/instance of` 或需求里的地点文字）不一致就判冲突；删除按题硬编码的条目（或只留在测试夹具里）。
 - **B15（中）`d_retrieve/image_rules.py`（选择阶段）**：目标是"北京"的图，最后选中了"ISS-39 New York City.jpg"。原因：被拒掉一张后，退而求其次选了相似度刚过 0.30 的另一张，**没有检查候选是否真的在讲目标实体**。修法：若需求有明确地点/实体目标，候选的元数据（标题/描述/分类/Wikidata 标签）必须命中目标（含别名/译名）；不命中就算 `missing` 并生成用户补充请求，而不是选一张"相关"的图。
@@ -239,10 +240,10 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 - 在 `tests/conftest.py` 给 `windows_com` 标记统一自动跳过：非 Windows、`pywin32` 缺失或起不来 `PowerPoint.Application` 时 skip，原因写进 skip 信息；删除各测试里零散重复的守卫。
 - 验收：Linux 上清环境 `pytest -o addopts="" -rs` 退出码 0（宝特会复核，当前是 2 failed）；Windows 上 `pytest` 与 `pytest -m windows_com` 各给退出码。
 
-### N1 先确认机器到底是什么 Office（修 B12）
+### N1 doctor 如实报告 Office 版本类型，并清掉文档里写死的"2021"（B12 已确认：Microsoft 365 Build 20257.20196）
 - `pptv01 doctor` 读 `HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration`（`ProductReleaseIds`、`VersionToReport`、`UpdateChannel`、`Platform`），再加 `Application.Version/Build`，输出"产品类型：Microsoft 365 订阅 / Office 2021·LTSC / 其他 / 未知"；`--json` 里也有。
-- 文档与测试 docstring 里不要再写死"Office 2021"：按 doctor 的实际结果写（`windows-testing.md` §1、`stage-f-layout-calibration.md`、`test_r*_com_windows.py`）。
-- **等用户回传 5B-1 的结果后**：若确实是 Microsoft 365，把"AddChart2 需要窗口"等 COM 结论标注"已在 Microsoft 365 Build xxxxx 上验证，Office 2021 未验证"。
+- 文档与测试 docstring 里不要再写死"Office 2021"：改成"在 Microsoft 365 Build 20257.20196 上实测；仅使用 Office 2021 基线 API"（`windows-testing.md` §1、`stage-f-layout-calibration.md`、`test_r*_com_windows.py`）。
+- **已确认环境**：Microsoft 365 桌面版，Version 16.0，Build 20257.20196（Current Channel）。把"AddChart2 需要窗口"等 COM 结论统一标注"已在 Microsoft 365 Build 20257.20196 上验证；Office 2021 基线未实测"。**API 约束不变**：凡新用到的 COM 成员，先查它在 Office 2021/Office 16 基线里是否存在（微软文档的 "Applies to" / 引入版本），在代码注释里写出；不确定就不用，或写成可降级路径。
 
 ### N2 COM 会话安全（修 B8，规则 11）
 - 始终 `DispatchEx` 独立实例，记录自己启动的 PID；**绝不**连上用户已运行的 PowerPoint；只 `Quit`/终止自己启动的实例。
@@ -291,9 +292,9 @@ git checkout origin/feature/v01-pipeline -- v01/smoke v01/HANDOFF.md   # 只取�
 cd v01
 ```
 
-**1. 查清 Office 到底是什么版本（最重要，宝特怀疑不是 2021）**
+**1. 记录 Office 版本（环境已确认为 Microsoft 365 Build 20257.20196，这一步只是把机器上的原始输出留档）**
 ```powershell
-# 1a 注册表里的产品类型（2021 会含 "2021"，订阅版会含 "O365"/"M365"）
+# 1a 注册表里的产品类型（订阅版含 "O365"/"M365"，2021 含 "2021"）
 Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" |
   Select-Object ProductReleaseIds, VersionToReport, UpdateChannel, Platform, CDNBaseUrl | Format-List
 # 1b PowerPoint 可执行文件版本（路径若不同请自行找 POWERPNT.EXE）
@@ -382,17 +383,17 @@ foreach ($t in "T02","T12","T26","T36") {
 > **架构要点：** F 只产出后端无关的 `page_design.json`；新增纯 Python 编译层把它编成确定性的 `deck_ops.json`；COM 执行器只负责把操作翻成 COM 调用。这样契约和编译层在 Linux/CI 上就能测，只有执行器需要 Windows。
 
 ### 已确认的决定（用户 2026-11-20 回复，取代原"待确认问题"）
-1. **目标环境：Office 2021 桌面版（永久授权）**，即 Office 16.0 对象模型；Excel 按"随 Office 2021 一起装了"假设，**但必须由 `pptv01 doctor` 实测确认**（版本/Build、`Excel.Application` 能否创建）。**不得使用 Microsoft 365 专属特性**：不用 Office.js 的 PowerPointApi 1.8+ 新接口（本轮本来也不做 Office.js）、不用 M365 才有的功能（如 Designer、Copilot、云端字体/图标库、动态数组图表等）；只用 Office 2021 里存在的 COM 对象模型（`AddChart2`、`AddConnector`、`TextFrame2.TextRange.BoundHeight`、`Presentation.Export`、`ExportAsFixedFormat` 等都是 Office 2013/2016 起就有的）。
+1. **目标环境（2026-11-20 更新，用户实测）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel）。** 原先写的"Office 2021 永久授权版"不成立，已作废。Excel 仍须由 `pptv01 doctor` 实测确认（版本/Build、`Excel.Application` 能否创建）。**策略不变：只用 Office 2021 / Office 16 基线里也存在的 COM 对象模型**，保证在 2021 或 LTSC 上也能跑；**不得使用 Microsoft 365 专属特性**：不用 Office.js 的 PowerPointApi 1.8+ 新接口（本轮本来也不做 Office.js）、不用 M365 才有的功能（如 Designer、Copilot、云端字体/图标库、动态数组图表等）；（`AddChart2`、`AddConnector`、`TextFrame2.TextRange.BoundHeight`、`Presentation.Export`、`ExportAsFixedFormat` 等都是 Office 2013/2016 起就有的）。
 2. **是真正的 Microsoft PowerPoint，不是 WPS**。不需要适配 `KWPP.Application`。
 3. **Antigravity 就跑在用户同一台本机 Windows 上**，不是云服务器 → 它可以**直接测 COM**；R2/R3/R7 的真机验收由它在本机跑并汇报，宝特只在 Linux 侧复核产物（zip）。
 4. **python-pptx 只读校验器可以接受**：放 `[verify]` extra，只读、永不写文件（规则 9 不变）。
 5. **云端批量生成：以后再说，不在本轮范围。** 用户有云服务器（由云宝收集的免费额度机器，例如 Linux 的 Simular 盒子）：**Linux 云机不能跑 COM**；要云端批量就得 Windows VM + 交互式桌面会话（微软不支持无人值守自动化 Office，KB257757），届时再评估，**本轮不要为此写任何代码**。
 
 **据此对下面任务的调整：**
-- **R2**：`preflight()` 额外记录是否 Office 2021（`Application.Version == "16.0"` + Build）；`AddChart2` 在**真机 Office 2021**上先做一个最小实测（建图→写数据→关 Excel→保存→重新打开），结果写进 `docs/stage-g-office-research.md`；若 Excel 缺失或 `AddChart2` 失败，**明确报错/把图表请求回退为用户补充请求或占位**，不得静默画假图。
-- **R3**：`Presentation.Export` 的 PNG 尺寸与字体渲染以本机 PowerPoint 2021 为准；`render_provenance` 写明 `powerpoint-com 16.0 (build …)`。
-- **R7**：`pptv01 doctor` 必检项增加：`Application.Version` 为 16.0 且 Build 对应 2021 永久版（如实打印，不强行判断授权类型）、**Excel 存在且 `Excel.Application` 可创建**、中文字体（如微软雅黑/等线）是否安装、`NameFarEast` 设置能否生效。
-- 所有验收里凡写"Windows"处，具体指**用户本机 Windows + Office 2021**；Linux 侧只跑不依赖 COM 的测试。
+- **R2**：`preflight()` 额外记录 `Application.Version == "16.0"` + Build；`AddChart2` 在真机上先做一个最小实测（建图→写数据→关 Excel→保存→重新打开），结果写进 `docs/stage-g-office-research.md`（注明测于 Microsoft 365 Build 20257.20196；2021 基线未实测）；若 Excel 缺失或 `AddChart2` 失败，**明确报错/把图表请求回退为用户补充请求或占位**，不得静默画假图。
+- **R3**：`Presentation.Export` 的 PNG 尺寸与字体渲染以本机 PowerPoint（Microsoft 365）为准；`render_provenance` 写明 `powerpoint-com 16.0 (build …)`。
+- **R7**：`pptv01 doctor` 必检项增加：`Application.Version` 为 16.0，Build 与产品类型（Microsoft 365 / Office 2021·LTSC / 其他）如实打印，**不因产品类型报错**、**Excel 存在且 `Excel.Application` 可创建**、中文字体（如微软雅黑/等线）是否安装、`NameFarEast` 设置能否生效。
+- 所有验收里凡写"Windows"处，具体指**用户本机 Windows + Microsoft 365 桌面版 PowerPoint**；Linux 侧只跑不依赖 COM 的测试。
 
 ### R0 先还账：修评审里与渲染器无关的 bug（可在 Linux 上做）
 - 修 **B1**（resume 失效）、**B2**（`content_summary` 泄漏）、**B3**（"稍后自绘"文案）。
@@ -462,7 +463,7 @@ Office.js add-in（"插入当前文档"）、macOS/Linux 渲染、云端批量�
 8. **A/B/C/E 的答案仍是 agent 手写**，不是 API 模型的产出。
 9. **QA 对"丑"没有感知**（B6）；版式质量靠 R5 重做。
 10. **COM 只能在用户桌面 Windows + 桌面 PowerPoint 上跑**，不是云服务（微软 KB257757 不支持无人值守自动化 Office）；macOS/Linux 不可行。宝特的 Linux box 不能跑 COM，所有 COM 验收靠 Windows 实测。
-11. 用户说目标机器是 **Office 2021 桌面版**，但 PowerPoint 报告的是 Build 20527，那是 **Microsoft 365** 的版本号（Office 2021 是 14332–14334.x）——**版本待 5B-1 实测确认（B12）**；Antigravity 在同一台本机 Windows 上运行（见 5A「已确认的决定」）。R2–R5 的真实 PowerPoint 行为目前只有 fake COM 验证，**未经宝特复核**。云端批量（含 Windows VM 方案）**后做**。
+11. **目标机器已确认（用户实测）：Microsoft 365 桌面版 PowerPoint（Version 16.0，Build 20257.20196，Current Channel）**，不是 Office 2021。**策略不变：只用 Office 2021 / Office 16 基线也有的 API**，保证在 2021 或 LTSC 上也能跑；但 2021 上没实测过。Antigravity 在同一台本机 Windows 上运行（见 5A「已确认的决定」）。R2–R5 的真实 PowerPoint 行为目前只有 fake COM 验证，**未经宝特复核**。云端批量（含 Windows VM 方案）**后做**。
 
 ---
 

@@ -17,7 +17,7 @@
 - **已知（来自仓库历史）**：旧包 `aprd/` 与 `orchestrator/` 来自作者的 **Windows** 机器（`PORTABILITY.md`：`C:/Users/86139/...`），而且已经用过 PowerPoint COM：
   - `aprd/academic-presentation-reference-design/scripts/aprd_engine/reconstructor_verifier.py:468 render_and_measure_via_powerpoint_com`：PowerShell + `New-Object -ComObject PowerPoint.Application`，`Presentations.Open(path, -1, 0, 0)`（只读、无窗口），`Export(outDir,"PNG",w,h)`，并逐形状读 `TextFrame2.TextRange.BoundHeight` 判溢出；
   - `orchestrator/README.md` 记录过 "PowerPoint opened probe.pptx read-only: 2 slides"。
-  → **可以合理假设用户 Windows + 桌面版 PowerPoint 可用**；**该假设已被用户确认**：Office 2021 桌面版、真 PowerPoint、本机运行（见第 7 节）。
+  → **可以合理假设用户 Windows + 桌面版 PowerPoint 可用**；**该假设已被用户确认**：Microsoft 365 桌面版 PowerPoint（Version 16.0，Build 20257.20196，Current Channel）、真 PowerPoint、本机运行（见第 7 节）。
 - **我的 box 是 Linux**：不能跑 COM。所以 COM 相关的验收只能在用户的 Windows 上做；Antigravity 若运行在用户那台 Windows 上，可以直接跑。
 - 微软官方不支持无人值守/服务端自动化 Office（[KB257757](https://support.microsoft.com/en-us/visio/considerations-for-server-side-automation-of-office)：非交互环境可能死锁、弹窗卡死）。**结论：这是"用户桌面上跑"的工具，不是云服务**；要上云需要 Windows VM + 交互桌面会话 + 每进程隔离，或另选方案。这点要写进 README，别让人误以为能放服务器。
 
@@ -124,7 +124,7 @@ class DeckRenderer(Protocol):
 - **只能在 Windows + 桌面 PowerPoint 上跑**；macOS 版 PowerPoint 的 COM 不存在（有 AppleScript，能力不等价），Linux 不可行。
 - COM 慢且怕弹窗：每次 build 都要有超时、`DisplayAlerts=False`、失败时杀掉自己起的进程；不要在用户正在编辑别的演示文稿时抢占。
 - `AddChart2` 依赖 Excel；Excel 进程泄漏是已知坑（ykuwai 源码注释）。
-- Microsoft 365 版本差异：COM 对象模型向后兼容性好，但 `PowerPointApi` 需求集那一套只对 Office.js 有意义。COM 侧请在 preflight 里记录 `Application.Version` / `Build`。
+- Microsoft 365 版本差异：COM 对象模型向后兼容性好，但 `PowerPointApi` 需求集那一套只对 Office.js 有意义。COM 侧请在 preflight 里记录 `Application.Version` / `Build`。**实际环境是 Microsoft 365 Build 20257.20196**；策略是只用 Office 2021 / Office 16 基线里也有的 COM 成员，保证换到 2021/LTSC 机器也能跑。
 - 这不是云服务方案（KB257757）。
 - 我（宝特）在 Linux box 上**没有**实际运行过任何 COM 代码；以上 COM 行为是依据官方文档与上述开源项目的源码/README，真机行为以 Windows 实测为准。
 
@@ -137,7 +137,7 @@ class DeckRenderer(Protocol):
 
 ## 7. 用户已确认的决定（2026-11-20，原"待回答问题"已关闭）
 
-1. **Office 2021 桌面版**（Office 16.0 对象模型），Excel 假定随装、由 `pptv01 doctor` 实测；不使用 Microsoft 365 专属特性（Office.js 1.8+ 新接口、Designer、Copilot 等）。`AddChart2` 自 Office 2013 起存在，但仍要在用户真机 2021 上做最小实测（需 Excel）。
+1. **Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel）**——用户实测更正（此前误记为 Office 2021）。Excel 由 `pptv01 doctor` 实测。**策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑**；不使用 Microsoft 365 专属特性（Office.js 1.8+ 新接口、Designer、Copilot、动态数组图表等）。`AddChart2` 自 Office 2013 起存在，已/将在本机（Microsoft 365）做最小实测（需 Excel）；**Office 2021 基线本身没有实机验证**，结论里要如实标注。
 2. **真正的 Microsoft PowerPoint，不是 WPS**。
 3. **Antigravity 与用户同一台本机 Windows**，可直接测 COM。
 4. **接受 python-pptx 只读校验器**（`[verify]` extra）。
