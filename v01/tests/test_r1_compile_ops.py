@@ -447,7 +447,7 @@ class _UnavailableRenderer:
     def export(self, pptx: Path, out_dir: Path, width_px: int = 1920) -> ExportResult:
         raise AssertionError("export must not be called")
 
-    def measure(self, pptx: Path) -> MeasureResult:
+    def measure(self, pptx: Path, page_ids: list[str] | None = None) -> MeasureResult:
         raise AssertionError("measure must not be called")
 
 

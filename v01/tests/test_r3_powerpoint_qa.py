@@ -111,6 +111,7 @@ class _TestDeckRenderer:
 
     def __init__(self) -> None:
         self.build_calls = 0
+        self.built_template_paths: list[str | None] = []
 
     def preflight(self) -> RendererInfo:
         return RendererInfo(
@@ -125,6 +126,7 @@ class _TestDeckRenderer:
 
     def build(self, ops: DeckOps, run_dir: Path) -> BuildResult:
         self.build_calls += 1
+        self.built_template_paths.append(ops.template_path)
         prs = Presentation()
         prs.slide_width = Inches(ops.canvas_width_in)
         prs.slide_height = Inches(ops.canvas_height_in)
@@ -168,7 +170,7 @@ class _TestDeckRenderer:
             renderer_build="20527",
         )
 
-    def measure(self, pptx: Path, *, page_ids: list[str] | None = None) -> MeasureResult:
+    def measure(self, pptx: Path, page_ids: list[str] | None = None) -> MeasureResult:
         prs = Presentation(str(pptx))
         ms: list[TextMeasurement] = []
         for idx, sl in enumerate(prs.slides, 1):
@@ -264,6 +266,64 @@ def test_r3_measured_overflow_repairs_page_design_recompiles_and_records_provena
     assert "page_design:" in ov_issues[0].fix_note
     assert ov_issues[0].recheck is Recheck.passed
     assert "BoundHeight=" in ov_issues[0].description
+
+
+def test_n3_repair_loop_preserves_template_path_and_unified_measure_protocol(tmp_path):
+    """N3 (B10 + B11): repair recompilation preserves template_path & DeckRenderer.measure accepts page_ids cleanly."""
+    import inspect
+    from pptv01.renderers.protocol import DeckRenderer
+    import pptv01.h_qa.stage as h_stage
+
+    sig = inspect.signature(DeckRenderer.measure)
+    assert "page_ids" in sig.parameters
+    assert "co_varnames" not in inspect.getsource(h_stage)
+
+    (tmp_path / "templates").mkdir()
+    tpl_rel = "templates/academic.potx"
+    (tmp_path / tpl_rel).write_bytes(b"placeholder-potx")
+
+    sp = _slide_plan()
+    reg = AssetRegistry(run_id=RID, assets=[], sources=[], summary="0/0")
+    design = PageDesign(
+        run_id=RID,
+        pages=[
+            PageDesignEntry(
+                page_id="S001",
+                elements=[
+                    DesignElement(element_id="title", kind=ElementKind.title, x_in=0.6, y_in=0.2, w_in=12.0, h_in=0.8, text="模板保留测试", font_size_pt=26.0, bold=True),
+                    DesignElement(
+                        element_id="bullets",
+                        kind=ElementKind.bullet,
+                        x_in=0.6,
+                        y_in=1.5,
+                        w_in=3.2,
+                        h_in=0.55,
+                        text="• 城市热岛效应是城区温度显著高于周边乡村地区的典型城市微气候现象，涉及地表反照率与人为排热。",
+                        font_size_pt=24.0,
+                    ),
+                ],
+            )
+        ],
+    )
+    renderer = _TestDeckRenderer()
+    ops = compile_deck_ops(sp, design, reg, None, tmp_path, template_path=tpl_rel)
+    build_res = renderer.build(ops, tmp_path)
+
+    qa, _ = run_stage_h(
+        build_res.pptx_path,
+        sp,
+        tmp_path,
+        design=design,
+        reg=reg,
+        deck_renderer=renderer,
+        template_path=tpl_rel,
+    )
+    assert renderer.build_calls >= 2
+    # Every build (initial + every repair rebuild) must keep template_path!
+    assert all(tp == tpl_rel for tp in renderer.built_template_paths)
+    recompiled_ops = load_contract(DeckOps, tmp_path / "deck_ops.json")
+    assert recompiled_ops.template_path == tpl_rel
+    assert any(i.recheck is Recheck.passed for i in qa.issues)
 
 
 # ------------------------------------------------------------------ 3. Real Windows PowerPoint COM R3 test

@@ -144,6 +144,6 @@ class DeckRenderer(Protocol):
         """Export slides to render/slide_001.png... and render/deck.pdf."""
         ...
 
-    def measure(self, pptx: Path) -> MeasureResult:
+    def measure(self, pptx: Path, page_ids: list[str] | None = None) -> MeasureResult:
         """Measure live rendered text bounds, fonts, and autosize states."""
         ...

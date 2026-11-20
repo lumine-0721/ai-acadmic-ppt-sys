@@ -584,6 +584,7 @@ def run_pipeline(
                     mapping=mapping,
                     render_fn=render_fn,
                     deck_renderer=renderer,
+                    template_path=deck_ops.template_path if deck_ops is not None else None,
                     cross_render=cross_render,
                 )
                 h_files = [H_FILE] + [p.relative_to(run_dir).as_posix() for p in rendered_pngs]

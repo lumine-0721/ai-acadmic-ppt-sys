@@ -67,6 +67,7 @@ def run_stage_h(
     mapping: SlideAssetMapping | None = None,
     render_fn: RenderFn | None = None,
     deck_renderer: DeckRenderer | None = None,
+    template_path: str | None = None,
     cross_render: bool = False,
     installed_fonts: list[str] | None = None,
     max_repair_rounds: int = MAX_REPAIR_ROUNDS,
@@ -76,6 +77,14 @@ def run_stage_h(
     run_dir = Path(run_dir)
     render_out = run_dir / RENDER_DIR
     page_ids: list[PageId] = [p.page_id for p in slide_plan.pages]
+
+    effective_template_path = template_path
+    if effective_template_path is None and (run_dir / "deck_ops.json").is_file():
+        try:
+            from pptv01.contracts import DeckOps, load_contract
+            effective_template_path = load_contract(DeckOps, run_dir / "deck_ops.json").template_path
+        except Exception:
+            effective_template_path = None
 
     render_err: Exception | None = None
     rendered_pngs: list[Path] = []
@@ -87,7 +96,7 @@ def run_stage_h(
     def _export_and_measure(cur_pptx: Path) -> tuple[list[Path], MeasureResult | None, str]:
         if deck_renderer is not None:
             exp = deck_renderer.export(cur_pptx, render_out)
-            meas = deck_renderer.measure(cur_pptx, page_ids=page_ids) if "page_ids" in deck_renderer.measure.__code__.co_varnames else deck_renderer.measure(cur_pptx)
+            meas = deck_renderer.measure(cur_pptx, page_ids=page_ids)
             prov = _format_provenance(exp.renderer_name, exp.renderer_version, exp.renderer_build)
             return exp.png_paths, meas, prov
         fn = render_fn or render_pptx_to_pngs
@@ -135,7 +144,14 @@ def run_stage_h(
                 break
             current_design = repaired_design
             write_contract(current_design, run_dir / "page_design.json")
-            new_ops = compile_deck_ops(slide_plan, current_design, reg, uir, run_dir)
+            new_ops = compile_deck_ops(
+                slide_plan,
+                current_design,
+                reg,
+                uir,
+                run_dir,
+                template_path=effective_template_path,
+            )
             build_res = deck_renderer.build(new_ops, run_dir)
             pptx_path = build_res.pptx_path
             rendered_pngs, measure_res, render_provenance = _export_and_measure(pptx_path)

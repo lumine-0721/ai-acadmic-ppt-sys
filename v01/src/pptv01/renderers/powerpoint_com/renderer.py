@@ -87,5 +87,5 @@ class PowerPointComRenderer:
     def export(self, pptx: Path, out_dir: Path, width_px: int = 1920) -> ExportResult:
         return export_presentation(pptx, out_dir, width_px=width_px, app_factory=self._app_factory)
 
-    def measure(self, pptx: Path, *, page_ids: list[str] | None = None) -> MeasureResult:
+    def measure(self, pptx: Path, page_ids: list[str] | None = None) -> MeasureResult:
         return measure_presentation(pptx, page_ids=page_ids, app_factory=self._app_factory)
