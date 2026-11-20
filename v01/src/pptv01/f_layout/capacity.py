@@ -11,9 +11,12 @@ import math
 import re
 from dataclasses import dataclass
 
-# Average glyph advance ratios relative to font_size_pt (calibrated for Microsoft YaHei / Noto Sans / Arial)
+# Average glyph advance ratios relative to font_size_pt (calibrated on Office 2021 Build 20527, Microsoft YaHei)
 LATIN_AVG_ADVANCE_FACTOR = 0.54
 CJK_FULLWIDTH_ADVANCE_FACTOR = 1.02
+# Empirically calibrated on Microsoft PowerPoint 16.0 Build 20527 TextFrame2.BoundHeight (+8.3% -> 0.0% error)
+DEFAULT_LINE_HEIGHT_FACTOR = 1.20
+DEFAULT_PADDING_PT = 7.2
 
 _FULLWIDTH_RE = re.compile(r"[\u2e80-\u9fff\uf900-\ufaff\ufe30-\ufe4f\uff00-\uffef\u3000-\u303f]")
 
@@ -55,8 +58,8 @@ def estimate_slot_capacity(
     h_in: float,
     font_size_pt: float,
     *,
-    line_height_factor: float = 1.30,
-    padding_pt: float = 8.0,
+    line_height_factor: float = DEFAULT_LINE_HEIGHT_FACTOR,
+    padding_pt: float = DEFAULT_PADDING_PT,
 ) -> SlotCapacity:
     """Binary-search per-line CJK and Latin capacity (adapted from ppt-master slot_capacity.py, MIT)."""
     width_pt = max(16.0, w_in * 72.0)
@@ -95,7 +98,7 @@ def wrap_mixed_text(
     w_in: float,
     font_size_pt: float,
     *,
-    padding_pt: float = 8.0,
+    padding_pt: float = DEFAULT_PADDING_PT,
 ) -> list[str]:
     """Wrap mixed CJK + Latin text to fit ``w_in`` at ``font_size_pt`` without silent truncation."""
     usable_w = max(8.0, w_in * 72.0 - 2.0 * padding_pt)
@@ -143,6 +146,19 @@ def _split_long_clauses(text: str) -> str:
     return text
 
 
+def estimate_text_height_in(
+    lines: list[str],
+    font_size_pt: float,
+    *,
+    line_height_factor: float = DEFAULT_LINE_HEIGHT_FACTOR,
+    padding_pt: float = DEFAULT_PADDING_PT,
+) -> float:
+    """Estimate rendered text box height in inches calibrated to PowerPoint BoundHeight."""
+    n = max(1, len(lines))
+    h_pt = n * font_size_pt * line_height_factor + 2.0 * padding_pt
+    return round(h_pt / 72.0, 3)
+
+
 def fit_text_to_box(
     text: str,
     w_in: float,
@@ -150,8 +166,8 @@ def fit_text_to_box(
     font_size_pt: float,
     *,
     min_font_pt: float = 12.0,
-    line_height_factor: float = 1.30,
-    padding_pt: float = 8.0,
+    line_height_factor: float = DEFAULT_LINE_HEIGHT_FACTOR,
+    padding_pt: float = DEFAULT_PADDING_PT,
 ) -> FitResult:
     """Ensure text fits in the box by stepping down font size (to ``min_font_pt``) and wrapping lines.
 

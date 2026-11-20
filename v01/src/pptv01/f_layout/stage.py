@@ -42,7 +42,7 @@ from pptv01.contracts import (
     write_contract,
 )
 
-from .capacity import fit_text_to_box
+from .capacity import estimate_text_height_in, fit_text_to_box
 from .preview import render_schematic_preview
 from .validate import MIN_FONT_PT, validate_page_design
 
@@ -65,7 +65,16 @@ C_HEADER_BG = "#EFF6FF"
 C_PH_FILL = "#FEF3C7"
 C_PH_LINE = "#D97706"
 C_PH_TEXT = "#92400E"
-DEFAULT_FONT = "Noto Sans CJK SC"
+DEFAULT_FONT = "Microsoft YaHei"
+
+# Standard academic slide grid (13.333 x 7.5 in, 0.65 in side margins -> 12.03 in usable width)
+GRID_MARGIN_X = 0.65
+GRID_USABLE_W = 12.03
+GRID_GUTTER = 0.43
+SPLIT_VIS_W = 6.00
+SPLIT_TEXT_W = round(GRID_USABLE_W - SPLIT_VIS_W - GRID_GUTTER, 3)  # 5.60 in
+CROP_FILL_MIN_AR = 0.75
+CROP_FILL_MAX_AR = 2.40
 
 
 class LayoutRuleError(ValueError):
@@ -347,11 +356,19 @@ def _design_visual_element(
                 cap_h = 0.60
             else:
                 cap_h = 0.42
-        img_h = max(1.0, h - cap_h - (0.08 if cap_h else 0.0))
+        img_h = max(1.2, round(h - cap_h - (0.08 if cap_h else 0.0), 3))
         dims = (item.width_px, item.height_px) if (item.width_px and item.height_px) else None
-        nx, ny, nw, nh, adapted = _fit_rect_aspect(x, y, w, img_h, dims)
-        if adapted and dims:
-            page_notes.append(f"vis_{idx}: adapted image box to aspect ratio {dims[0]}x{dims[1]}")
+        img_ar = (dims[0] / dims[1]) if (dims and dims[0] > 0 and dims[1] > 0) else None
+        if img_ar is not None and (img_ar < CROP_FILL_MIN_AR or img_ar > CROP_FILL_MAX_AR):
+            # Extreme portrait or panorama: adapt box to preserve subject without excessive cropping
+            nx, ny, nw, nh, adapted = _fit_rect_aspect(x, y, w, img_h, dims)
+            if adapted and dims:
+                page_notes.append(f"vis_{idx}: adapted image box to aspect ratio {dims[0]}x{dims[1]}")
+        else:
+            # Standard landscape/square/moderate-portrait: uniform slot filled cleanly via PowerPoint crop_fill
+            nx, ny, nw, nh = round(x, 3), round(y, 3), round(w, 3), round(img_h, 3)
+            if dims:
+                page_notes.append(f"vis_{idx}: uniform crop_fill slot {nw:.2f}x{nh:.2f}in for {dims[0]}x{dims[1]}")
         out.append(DesignElement(
             element_id=f"vis_{idx}",
             kind=ElementKind.image,
@@ -366,8 +383,9 @@ def _design_visual_element(
             asset_path=item.asset_path,
         ))
         if cap_h > 0:
+            cap_y = round(y + img_h + 0.08, 3)
             out.append(_make_fitted_text(
-                f"cap_{idx}", ElementKind.caption, x, y + img_h + 0.06, w, cap_h,
+                f"cap_{idx}", ElementKind.caption, x, cap_y, w, cap_h,
                 cap_text, 10.0, z_index=2, color_hex=C_MUTED, role="attribution_caption",
                 page_notes=page_notes,
             ))
@@ -419,27 +437,65 @@ def _place_text_panel(
     body_text: str | None,
     body_start_pt: float,
     notes: list[str],
-) -> None:
-    if body_text:
-        split_h = round(h * 0.58, 3)
-        sum_h = max(0.9, h - split_h - 0.38)
-        b_fit = fit_text_to_box(bullet_text, w, split_h, body_start_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-        s_fit = fit_text_to_box(body_text, w, sum_h, 14.5, min_font_pt=MIN_FONT_PT[ElementKind.body])
-        if not b_fit.still_overflows and not s_fit.still_overflows:
-            elements.append(_make_fitted_text(
-                "bullets", ElementKind.bullet, x, y + 0.16, w, split_h,
-                bullet_text, body_start_pt, z_index=2, role="key_points", page_notes=notes,
-            ))
-            elements.append(_make_fitted_text(
-                "summary", ElementKind.body, x, y + 0.24 + split_h, w, sum_h,
-                body_text, 14.5, z_index=2, color_hex=C_MUTED, role="summary_body", page_notes=notes,
-            ))
-            return
-        notes.append("omitted summary box to give key_points full panel height without overflow")
-    elements.append(_make_fitted_text(
-        "bullets", ElementKind.bullet, x, y + 0.20, w, h - 0.40,
-        bullet_text, body_start_pt + 1.0, z_index=2, role="key_points", page_notes=notes,
-    ))
+    *,
+    with_accent_rail: bool = True,
+) -> float:
+    """Place content-fitted text without an oversized empty background card.
+
+    Shrinks the text box height to calibrated content height (with comfortable breathing room)
+    and pairs it with a slim left accent rail matching the actual text block height.
+    Returns the final text block height in inches.
+    """
+    rail_offset = 0.20 if with_accent_rail else 0.0
+    txt_x = round(x + rail_offset, 3)
+    txt_w = round(max(1.5, w - rail_offset), 3)
+    floor = MIN_FONT_PT[ElementKind.bullet]
+
+    fit = fit_text_to_box(bullet_text, txt_w, h, body_start_pt, min_font_pt=floor)
+    fitted_h = estimate_text_height_in(fit.lines, fit.font_size_pt)
+    # Add modest vertical cushion (~0.24in) so PowerPoint never clips last line descenders,
+    # while still shrinking tightly to content instead of leaving an empty full-height box.
+    box_h = round(min(h, max(0.75, fitted_h + 0.24)), 3)
+    if box_h < h - 0.5:
+        notes.append(f"bullets: shrunk text box height to {box_h:.2f}in (content-fitted, no empty card)")
+
+    if with_accent_rail:
+        elements.append(
+            DesignElement(
+                element_id="accent_rail",
+                kind=ElementKind.shape,
+                x_in=round(x, 3),
+                y_in=round(y, 3),
+                w_in=0.06,
+                h_in=box_h,
+                z_index=1,
+                fill_hex=C_ACCENT,
+                line_hex=C_ACCENT,
+                role="accent_rail",
+            )
+        )
+
+    if fit.adjusted:
+        notes.append(f"bullets: {fit.note}")
+    elements.append(
+        DesignElement(
+            element_id="bullets",
+            kind=ElementKind.bullet,
+            x_in=txt_x,
+            y_in=round(y, 3),
+            w_in=txt_w,
+            h_in=box_h,
+            z_index=2,
+            align="left",
+            text=fit.text,
+            font=DEFAULT_FONT,
+            font_size_pt=fit.font_size_pt,
+            bold=False,
+            color_hex=C_TEXT,
+            role="key_points",
+        )
+    )
+    return box_h
 
 
 def _design_single_page(
@@ -456,14 +512,14 @@ def _design_single_page(
     visuals, citations = _build_page_items(page, mapping, reg_by_id, uir_by_id, run_dir)
     elements: list[DesignElement] = []
 
-    # Subtle top accent bar & header background
+    # Crisp top accent bar, header band, and hairline divider aligned to page grid
     elements.append(DesignElement(
         element_id="bg_header",
         kind=ElementKind.shape,
         x_in=0.0,
         y_in=0.0,
         w_in=CANVAS_W_IN,
-        h_in=1.25,
+        h_in=1.24,
         z_index=0,
         fill_hex=C_HEADER_BG,
         line_hex=C_HEADER_BG,
@@ -481,10 +537,22 @@ def _design_single_page(
         line_hex=C_NAVY,
         role="top_accent",
     ))
+    elements.append(DesignElement(
+        element_id="accent_divider",
+        kind=ElementKind.shape,
+        x_in=GRID_MARGIN_X,
+        y_in=1.24,
+        w_in=GRID_USABLE_W,
+        h_in=0.02,
+        z_index=1,
+        fill_hex=C_BORDER,
+        line_hex=C_BORDER,
+        role="header_divider",
+    ))
 
-    # Title
+    # Title (aligned exactly to GRID_MARGIN_X .. GRID_MARGIN_X + GRID_USABLE_W)
     elements.append(_make_fitted_text(
-        "title", ElementKind.title, 0.65, 0.22, 12.0, 0.88,
+        "title", ElementKind.title, GRID_MARGIN_X, 0.22, GRID_USABLE_W, 0.88,
         page.title, 28.0, z_index=2, bold=True, color_hex=C_NAVY, role="header_title",
         page_notes=notes,
     ))
@@ -509,81 +577,91 @@ def _design_single_page(
     has_footer = bool(footer_lines)
     content_bottom = 6.72 if has_footer else 7.12
     content_top = 1.50
-    content_h = content_bottom - content_top
+    content_h = round(content_bottom - content_top, 3)
 
     if len(visuals) == 0:
-        layout_name = "structured_text_panel"
-        elements.append(DesignElement(
-            element_id="card_main",
-            kind=ElementKind.shape,
-            x_in=0.65,
-            y_in=content_top,
-            w_in=12.03,
-            h_in=content_h,
-            z_index=0,
-            fill_hex=C_BG_CARD,
-            line_hex=C_BORDER,
-            role="background_card",
-        ))
-        _place_text_panel(elements, 0.90, content_top, 11.5, content_h, bullet_text, body_text, body_start_pt + 1.0, notes)
+        layout_name = "clean_text_focus"
+        _place_text_panel(
+            elements,
+            GRID_MARGIN_X,
+            content_top,
+            GRID_USABLE_W,
+            content_h,
+            bullet_text,
+            body_text,
+            body_start_pt + 2.0,
+            notes,
+            with_accent_rail=True,
+        )
     elif len(visuals) == 1:
-        # Alternate visual left/right on odd/even slides for visual rhythm
+        # Alternate visual left/right on odd/even slides for visual rhythm, keeping uniform visual slot width
         visual_right = (page_idx % 2 == 0)
         layout_name = "split_text_left" if visual_right else "split_visual_left"
-        text_x = 0.65 if visual_right else 6.75
-        vis_x = 6.65 if visual_right else 0.65
-        text_w = 5.75
-        vis_w = 6.00
+        if visual_right:
+            text_x = GRID_MARGIN_X
+            vis_x = round(GRID_MARGIN_X + SPLIT_TEXT_W + GRID_GUTTER, 3)
+        else:
+            vis_x = GRID_MARGIN_X
+            text_x = round(GRID_MARGIN_X + SPLIT_VIS_W + GRID_GUTTER, 3)
 
-        elements.append(DesignElement(
-            element_id="card_text",
-            kind=ElementKind.shape,
-            x_in=text_x,
-            y_in=content_top,
-            w_in=text_w,
-            h_in=content_h,
-            z_index=0,
-            fill_hex=C_BG_CARD,
-            line_hex=C_BORDER,
-            role="background_card",
-        ))
-        _place_text_panel(elements, text_x + 0.20, content_top, text_w - 0.40, content_h, bullet_text, body_text, body_start_pt, notes)
-        elements.extend(_design_visual_element(visuals[0], 1, vis_x, content_top, vis_w, content_h, notes))
+        _place_text_panel(
+            elements,
+            text_x,
+            content_top,
+            SPLIT_TEXT_W,
+            content_h,
+            bullet_text,
+            body_text,
+            body_start_pt,
+            notes,
+            with_accent_rail=True,
+        )
+        elements.extend(_design_visual_element(visuals[0], 1, vis_x, content_top, SPLIT_VIS_W, content_h, notes))
     else:
         layout_name = "top_points_multi_visual"
-        text_h = 1.65
-        b_fit = fit_text_to_box(bullet_text, 12.03, text_h, 16.0, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-        if b_fit.still_overflows:
-            text_h = 2.35
-            notes.append("expanded top bullet area to 2.35in to avoid text overflow")
-        elements.append(_make_fitted_text(
-            "bullets", ElementKind.bullet, 0.65, content_top, 12.03, text_h,
-            bullet_text, 16.0, z_index=2, role="key_points", page_notes=notes,
-        ))
-        vis_y = content_top + text_h + 0.18
-        vis_h = max(1.6, content_bottom - vis_y)
-        gap = 0.22
+        max_top_h = 2.25
+        b_fit = fit_text_to_box(bullet_text, GRID_USABLE_W - 0.20, max_top_h, 16.0, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+        fitted_top_h = estimate_text_height_in(b_fit.lines, b_fit.font_size_pt)
+        text_h = round(min(max_top_h, max(0.90, fitted_top_h + 0.18)), 3)
+        _place_text_panel(
+            elements,
+            GRID_MARGIN_X,
+            content_top,
+            GRID_USABLE_W,
+            text_h,
+            bullet_text,
+            None,
+            16.0,
+            notes,
+            with_accent_rail=True,
+        )
+        vis_y = round(content_top + text_h + 0.22, 3)
+        vis_h = round(max(1.8, content_bottom - vis_y), 3)
+        gap = 0.24
         n_vis = len(visuals)
         if n_vis <= 3:
-            col_w = (12.03 - gap * (n_vis - 1)) / n_vis
+            col_w = round((GRID_USABLE_W - gap * (n_vis - 1)) / n_vis, 3)
             for i, item in enumerate(visuals):
-                vx = 0.65 + i * (col_w + gap)
-                elements.extend(_design_visual_element(item, i + 1, vx, vis_y, col_w, vis_h, notes))
+                vx = round(GRID_MARGIN_X + i * (col_w + gap), 3)
+                # Snap final column right edge exactly to GRID_MARGIN_X + GRID_USABLE_W
+                cw = round(GRID_MARGIN_X + GRID_USABLE_W - vx, 3) if i == n_vis - 1 else col_w
+                elements.extend(_design_visual_element(item, i + 1, vx, vis_y, cw, vis_h, notes))
         else:
             import math
             rows = 2
             cols = math.ceil(n_vis / rows)
-            cell_w = (12.03 - gap * (cols - 1)) / cols
-            cell_h = (vis_h - gap) / rows
+            cell_w = round((GRID_USABLE_W - gap * (cols - 1)) / cols, 3)
+            cell_h = round((vis_h - gap) / rows, 3)
             for i, item in enumerate(visuals):
                 r_idx, c_idx = divmod(i, cols)
-                vx = 0.65 + c_idx * (cell_w + gap)
-                vy = vis_y + r_idx * (cell_h + gap)
-                elements.extend(_design_visual_element(item, i + 1, vx, vy, cell_w, cell_h, notes))
+                vx = round(GRID_MARGIN_X + c_idx * (cell_w + gap), 3)
+                vy = round(vis_y + r_idx * (cell_h + gap), 3)
+                cw = round(GRID_MARGIN_X + GRID_USABLE_W - vx, 3) if c_idx == cols - 1 else cell_w
+                elements.extend(_design_visual_element(item, i + 1, vx, vy, cw, cell_h, notes))
 
     if has_footer:
         elements.append(_make_fitted_text(
-            "footer", ElementKind.footer, 0.65, 6.84, 12.03, 0.52,
+            "footer", ElementKind.footer, GRID_MARGIN_X, 6.84, GRID_USABLE_W, 0.52,
             " | ".join(footer_lines), 10.0, z_index=2, color_hex=C_MUTED, role="citation_footer",
             page_notes=notes,
         ))

@@ -32,11 +32,11 @@ from pptv01.f_layout.capacity import estimate_slot_capacity, wrap_mixed_text
 from pptv01.f_layout.validate import MIN_FONT_PT
 from pptv01.renderers.protocol import MeasureResult, TextMeasurement
 
-from .geometry import GeoBox, find_edge_misalignments, find_empty_cards
+from .geometry import GeoBox, find_edge_misalignments, find_empty_cards, find_undersized_image_slots
 
 EMU_PER_IN = 914400.0
 PT_PER_IN = 72.0
-_BG_NAMES = {"bg_header", "accent_bar", "card_main", "card_text"}
+_BG_NAMES = {"bg_header", "accent_bar", "accent_rail", "accent_divider", "card_main", "card_text"}
 _ASSET_BIND_RE = re.compile(r"^(?:ASSET|CHART|TABLE|DIAGRAM|ICON)_(A\d{3,})(?:__|$)")
 _INPUT_BIND_RE = re.compile(r"^(?:INPUT|CHART_INPUT|TABLE_INPUT|DIAGRAM_INPUT)_(U\d{3,})(?:__|$)")
 
@@ -58,7 +58,7 @@ def _element_kind_guess(shape) -> ElementKind:
 
 def _is_background_shape(shape, slide_w_in: float, slide_h_in: float) -> bool:
     name = (shape.name or "").lower()
-    if name in _BG_NAMES or name.startswith("bg_") or name.startswith("card_"):
+    if name in _BG_NAMES or name.startswith(("bg_", "card_", "accent_")):
         return True
     if shape.shape_type is MSO_SHAPE_TYPE.AUTO_SHAPE:
         txt = shape.text_frame.text.strip() if getattr(shape, "has_text_frame", False) else ""
@@ -336,7 +336,7 @@ def inspect_deck(
             if not is_bg and not is_conn:
                 fg_boxes.append((eid, (x, y, w, h)))
 
-        # Pure-arithmetic empty card & edge-alignment checks (B6 / pptlive geometry lint)
+        # Pure-arithmetic empty card, undersized image slot, & edge-alignment checks (B6 / pptlive geometry lint)
         for card_id, detail in find_empty_cards(geo_boxes, bound_heights_pt=bound_h_by_name):
             issues.append(
                 QAIssue(
@@ -344,6 +344,16 @@ def inspect_deck(
                     kind=QAIssueKind.layout_anomaly,
                     severity=Severity.major,
                     element_id=card_id,
+                    description=detail,
+                )
+            )
+        for pic_id, detail in find_undersized_image_slots(geo_boxes, slide_w * PT_PER_IN, slide_h * PT_PER_IN):
+            issues.append(
+                QAIssue(
+                    page_id=pid,
+                    kind=QAIssueKind.layout_anomaly,
+                    severity=Severity.major,
+                    element_id=pic_id,
                     description=detail,
                 )
             )

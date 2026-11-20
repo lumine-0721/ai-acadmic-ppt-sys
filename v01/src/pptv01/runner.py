@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import re
 import secrets
@@ -469,7 +470,19 @@ def run_pipeline(
         else:
             invalidated = True
             try:
-                deck_ops = compile_deck_ops(slide_plan, design, reg, uir, run_dir)
+                tpl_rel: str | None = None
+                env_tpl = os.environ.get("PPTV01_TEMPLATE_POTX", "").strip()
+                if env_tpl:
+                    tpl_src = Path(env_tpl)
+                    if not tpl_src.is_file():
+                        raise OpsCompileError(f"PPTV01_TEMPLATE_POTX not found: {env_tpl}")
+                    tpl_dir = run_dir / "templates"
+                    tpl_dir.mkdir(parents=True, exist_ok=True)
+                    tpl_dst = tpl_dir / tpl_src.name
+                    if tpl_src.resolve() != tpl_dst.resolve():
+                        tpl_dst.write_bytes(tpl_src.read_bytes())
+                    tpl_rel = tpl_dst.relative_to(run_dir).as_posix()
+                deck_ops = compile_deck_ops(slide_plan, design, reg, uir, run_dir, template_path=tpl_rel)
                 if compile_only:
                     record(
                         "G", StageStatus.skipped, t0, [ARTIFACT_OPS],

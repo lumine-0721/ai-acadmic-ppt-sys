@@ -158,3 +158,38 @@ def find_empty_cards(
                 )
             )
     return findings
+
+
+def find_undersized_image_slots(
+    boxes: list[GeoBox],
+    slide_w_pt: float,
+    slide_h_pt: float,
+    *,
+    min_slide_area_ratio: float = 0.020,
+    min_dim_pt: float = 96.0,
+) -> list[tuple[str, str]]:
+    """Detect postage-stamp or severely under-filled picture slots (B6 regression).
+
+    Icons (explicitly named ``ICON_*``) are exempted from the minimum-slot-area rule.
+    Flags pictures occupying less than ``min_slide_area_ratio`` of the slide OR smaller than
+    ``min_dim_pt`` on both dimensions. Returns [(picture_element_id, detail)].
+    """
+    slide_area = max(1.0, slide_w_pt * slide_h_pt)
+    findings: list[tuple[str, str]] = []
+    for b in boxes:
+        if not b.is_picture:
+            continue
+        if b.element_id.upper().startswith("ICON_"):
+            continue
+        ratio = b.area / slide_area
+        if ratio < min_slide_area_ratio or (b.w_pt < min_dim_pt and b.h_pt < min_dim_pt):
+            findings.append(
+                (
+                    b.element_id,
+                    (
+                        f"picture {b.element_id} is undersized ({b.w_pt:.0f}x{b.h_pt:.0f}pt, "
+                        f"{ratio:.1%} of slide area < {min_slide_area_ratio:.1%})"
+                    ),
+                )
+            )
+    return findings
