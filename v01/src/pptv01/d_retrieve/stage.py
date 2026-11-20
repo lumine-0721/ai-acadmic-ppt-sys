@@ -18,7 +18,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
+from typing import Literal, Mapping
 
 import httpx
 
@@ -26,6 +26,7 @@ from pptv01.contracts import (
     AssetChecks, AssetRecord, AssetRegistry, AssetRequirement, AssetRequirements, AssetStatus, AssetType,
     CandidateRecord, EntityRef, ProductionPlan, RelevanceInfo, SCHEMA_VERSION, SlidePlan, SourceCall, write_contract,
 )
+from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, build_user_input_requests
 from pptv01.llm import LLMConfigError
 from pptv01.retrieval.backends import BackendError, CrossrefBackend, make_http
 from pptv01.retrieval.relevance import RULES_VERSION, Candidate, RelevanceFilter, filter_from_env
@@ -512,7 +513,7 @@ _MISSING_WHY = {
 
 
 def run_stage_d(plan: ProductionPlan, slide_plan: SlidePlan, reqs: AssetRequirements, run_dir: Path,
-                services: DServices) -> AssetRegistry:
+                services: DServices, *, on_missing: Literal["placeholder", "wait"] = "placeholder") -> AssetRegistry:
     run_dir = Path(run_dir)
     ctx = _Ctx(plan, services, run_dir)
     records: list[AssetRecord] = []
@@ -539,6 +540,8 @@ def run_stage_d(plan: ProductionPlan, slide_plan: SlidePlan, reqs: AssetRequirem
     from .validate import validate_registry
     validate_registry(reg, reqs, run_dir)
     write_contract(reg, run_dir / REGISTRY_FILE)
+    uir = build_user_input_requests(reqs, reg, on_missing=on_missing)
+    write_contract(uir, run_dir / USER_INPUT_REQUESTS_FILE)
     real = [c for c in ctx.calls if c.status != "disabled"]
     if services.enabled and real and all(c.status == "error" for c in real):
         raise AssetRetrievalFailed(f"all {len(real)} asset source calls failed (network/quota); nothing retrieved: "

@@ -14,7 +14,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from pptv01 import __version__
 from pptv01.a_plan import ARTIFACT as A_FILE, run_stage_a
@@ -30,12 +30,15 @@ from pptv01.contracts import (
     RunReport,
     StageRecord,
     StageStatus,
+    UserInputRequests,
+    UserInputRequestsSummary,
     load_contract,
     write_contract,
 )
 from pptv01.d_retrieve import REGISTRY_FILE, AssetRetrievalFailed, DServices, run_stage_d, services_from_env
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval import ResearchProvider, research_from_env
+from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, summarize_requests
 
 STAGE_NAMES = {
     "A": "production_plan",
@@ -117,6 +120,7 @@ def run_pipeline(
     *,
     run_id: str | None = None,
     resume: bool = False,
+    on_missing: Literal["placeholder", "wait"] = "placeholder",
     research: ResearchProvider | None = None,
     assets: DServices | None = None,
     clock: Callable[[], datetime] = _now,
@@ -152,42 +156,56 @@ def run_pipeline(
 
     # ---- Stage A
     t0 = clock()
-    client.set_stage("A")
-    try:
-        plan, attempts = run_stage_a(utterance, run_id, client, run_dir)
-        record("A", StageStatus.done, t0, [A_FILE, _write_trace(run_dir, "A", attempts, client.model_id)])
+    if resume and (run_dir / A_FILE).is_file():
+        plan = load_contract(ProductionPlan, run_dir / A_FILE)
+        files = [A_FILE] + (["llm_trace/A.json"] if (run_dir / "llm_trace/A.json").is_file() else [])
+        record("A", StageStatus.done, t0, files)
         defaults_summary = [f"{d.field}={d.value}: {d.rationale}" for d in plan.defaults_applied]
-    except (LLMError, ValueError) as e:
-        trace = getattr(e, "attempts", None)
-        files = [_write_trace(run_dir, "A", trace, client.model_id)] if trace else []
-        failure = f"stage A failed: {type(e).__name__}: {str(e)[:500]}"
-        record("A", StageStatus.failed, t0, files, failure)
+    else:
+        client.set_stage("A")
+        try:
+            plan, attempts = run_stage_a(utterance, run_id, client, run_dir)
+            record("A", StageStatus.done, t0, [A_FILE, _write_trace(run_dir, "A", attempts, client.model_id)])
+            defaults_summary = [f"{d.field}={d.value}: {d.rationale}" for d in plan.defaults_applied]
+        except (LLMError, ValueError) as e:
+            trace = getattr(e, "attempts", None)
+            files = [_write_trace(run_dir, "A", trace, client.model_id)] if trace else []
+            failure = f"stage A failed: {type(e).__name__}: {str(e)[:500]}"
+            record("A", StageStatus.failed, t0, files, failure)
 
     # ---- Stage B (research per A's retrieval_brief, then provisional slide plan)
     research_summary: dict[str, Any] = {}
     if plan is not None:
         t0 = clock()
-        client.set_stage("B")
-        try:
-            provider = research if research is not None else research_from_env()
-            slide_plan, attempts, rec = run_stage_b(plan, client, run_dir, provider, reuse_research=resume)
+        if resume and (run_dir / B_FILE).is_file() and (run_dir / RESEARCH_ARTIFACT).is_file():
+            rec = load_contract(ResearchRecord, run_dir / RESEARCH_ARTIFACT)
+            slide_plan = load_contract(SlidePlan, run_dir / B_FILE)
             notes = {n.note_id: n for n in rec.notes}
             research_summary = _research_summary(rec)
-            record("B", StageStatus.done, t0,
-                   [RESEARCH_ARTIFACT, B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
-        except ResearchFailed as e:
-            research_summary = _research_summary(e.record)
-            failure = f"stage B failed: {e}"[:600]
-            record("B", StageStatus.failed, t0, [RESEARCH_ARTIFACT], failure)
-        except (LLMError, ValueError) as e:
-            trace = getattr(e, "attempts", None)
-            files = [RESEARCH_ARTIFACT] if (run_dir / RESEARCH_ARTIFACT).exists() else []
-            if (run_dir / RESEARCH_ARTIFACT).exists():
-                research_summary = _research_summary(load_contract(ResearchRecord, run_dir / RESEARCH_ARTIFACT))
-            if trace:
-                files.append(_write_trace(run_dir, "B", trace, client.model_id))
-            failure = f"stage B failed: {type(e).__name__}: {str(e)[:500]}"
-            record("B", StageStatus.failed, t0, files, failure)
+            files = [RESEARCH_ARTIFACT, B_FILE] + (["llm_trace/B.json"] if (run_dir / "llm_trace/B.json").is_file() else [])
+            record("B", StageStatus.done, t0, files)
+        else:
+            client.set_stage("B")
+            try:
+                provider = research if research is not None else research_from_env()
+                slide_plan, attempts, rec = run_stage_b(plan, client, run_dir, provider, reuse_research=resume)
+                notes = {n.note_id: n for n in rec.notes}
+                research_summary = _research_summary(rec)
+                record("B", StageStatus.done, t0,
+                       [RESEARCH_ARTIFACT, B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
+            except ResearchFailed as e:
+                research_summary = _research_summary(e.record)
+                failure = f"stage B failed: {e}"[:600]
+                record("B", StageStatus.failed, t0, [RESEARCH_ARTIFACT], failure)
+            except (LLMError, ValueError) as e:
+                trace = getattr(e, "attempts", None)
+                files = [RESEARCH_ARTIFACT] if (run_dir / RESEARCH_ARTIFACT).exists() else []
+                if (run_dir / RESEARCH_ARTIFACT).exists():
+                    research_summary = _research_summary(load_contract(ResearchRecord, run_dir / RESEARCH_ARTIFACT))
+                if trace:
+                    files.append(_write_trace(run_dir, "B", trace, client.model_id))
+                failure = f"stage B failed: {type(e).__name__}: {str(e)[:500]}"
+                record("B", StageStatus.failed, t0, files, failure)
     else:
         records["B"] = StageRecord(stage="B", name=STAGE_NAMES["B"], status=StageStatus.skipped,
                                    error="skipped: stage A failed")
@@ -195,15 +213,20 @@ def run_pipeline(
     # ---- Stage C (asset requirements from the provisional slide plan)
     if slide_plan is not None:
         t0 = clock()
-        client.set_stage("C")
-        try:
-            reqs, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
-            record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)])
-        except (LLMError, ValueError) as e:
-            trace = getattr(e, "attempts", None)
-            files = [_write_trace(run_dir, "C", trace, client.model_id)] if trace else []
-            failure = f"stage C failed: {type(e).__name__}: {str(e)[:500]}"
-            record("C", StageStatus.failed, t0, files, failure)
+        if resume and (run_dir / C_FILE).is_file():
+            reqs = load_contract(AssetRequirements, run_dir / C_FILE)
+            files = [C_FILE] + (["llm_trace/C.json"] if (run_dir / "llm_trace/C.json").is_file() else [])
+            record("C", StageStatus.done, t0, files)
+        else:
+            client.set_stage("C")
+            try:
+                reqs, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
+                record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)])
+            except (LLMError, ValueError) as e:
+                trace = getattr(e, "attempts", None)
+                files = [_write_trace(run_dir, "C", trace, client.model_id)] if trace else []
+                failure = f"stage C failed: {type(e).__name__}: {str(e)[:500]}"
+                record("C", StageStatus.failed, t0, files, failure)
     else:
         records["C"] = StageRecord(stage="C", name=STAGE_NAMES["C"], status=StageStatus.skipped,
                                    error="skipped: stage B did not produce a slide plan")
@@ -211,38 +234,73 @@ def run_pipeline(
     # ---- Stage D (asset registry: real retrieval; no LLM involved)
     assets_summary: dict[str, Any] = {}
     missing_assets: list[str] = []
+    uir: UserInputRequests | None = None
     if reqs is not None:
         t0 = clock()
-        svc = None
-        try:
-            svc = assets if assets is not None else services_from_env()
-            reg = run_stage_d(plan, slide_plan, reqs, run_dir, svc)
+        if resume and (run_dir / REGISTRY_FILE).is_file() and (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
+            reg = load_contract(AssetRegistry, run_dir / REGISTRY_FILE)
+            uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
             missing_assets = [a.asset_id for a in reg.assets if a.status.value == "missing"]
             assets_summary = _assets_summary(reg)
-            record("D", StageStatus.done, t0, [REGISTRY_FILE] + sorted(
-                str(p.relative_to(run_dir)) for p in (run_dir / "assets").glob("*") if p.is_file()))
-        except AssetRetrievalFailed as e:
-            assets_summary = _assets_summary(e.registry)
-            missing_assets = [a.asset_id for a in e.registry.assets]
-            failure = f"stage D failed: {e}"[:600]
-            record("D", StageStatus.failed, t0, [REGISTRY_FILE], failure)
-        except (LLMConfigError, ValueError) as e:
-            failure = f"stage D failed: {type(e).__name__}: {str(e)[:500]}"
-            record("D", StageStatus.failed, t0, [], failure)
-        finally:
-            if svc is not None and assets is None:
-                svc.close()
+            d_files = [REGISTRY_FILE, USER_INPUT_REQUESTS_FILE] + sorted(
+                str(p.relative_to(run_dir)).replace("\\", "/")
+                for p in (run_dir / "assets").glob("*") if p.is_file()
+            )
+            record("D", StageStatus.done, t0, d_files)
+        else:
+            svc = None
+            try:
+                svc = assets if assets is not None else services_from_env()
+                reg = run_stage_d(plan, slide_plan, reqs, run_dir, svc, on_missing=on_missing)
+                uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
+                missing_assets = [a.asset_id for a in reg.assets if a.status.value == "missing"]
+                assets_summary = _assets_summary(reg)
+                d_files = [REGISTRY_FILE, USER_INPUT_REQUESTS_FILE] + sorted(
+                    str(p.relative_to(run_dir)).replace("\\", "/")
+                    for p in (run_dir / "assets").glob("*") if p.is_file()
+                )
+                record("D", StageStatus.done, t0, d_files)
+            except AssetRetrievalFailed as e:
+                assets_summary = _assets_summary(e.registry)
+                missing_assets = [a.asset_id for a in e.registry.assets]
+                if (run_dir / USER_INPUT_REQUESTS_FILE).is_file():
+                    uir = load_contract(UserInputRequests, run_dir / USER_INPUT_REQUESTS_FILE)
+                failure = f"stage D failed: {e}"[:600]
+                d_err_files = [REGISTRY_FILE] + ([USER_INPUT_REQUESTS_FILE] if uir is not None else [])
+                record("D", StageStatus.failed, t0, d_err_files, failure)
+            except (LLMConfigError, ValueError) as e:
+                failure = f"stage D failed: {type(e).__name__}: {str(e)[:500]}"
+                record("D", StageStatus.failed, t0, [], failure)
+            finally:
+                if svc is not None and assets is None:
+                    svc.close()
     else:
         records["D"] = StageRecord(stage="D", name=STAGE_NAMES["D"], status=StageStatus.skipped,
                                    error="skipped: stage C did not produce asset requirements")
+
+    uir_summary: UserInputRequestsSummary | None = summarize_requests(uir) if uir is not None else None
+    waiting_for_input = bool(
+        not failure and on_missing == "wait" and uir_summary is not None and uir_summary.open_count > 0
+    )
     for code in "EFGH":
-        records[code] = StageRecord(stage=code, name=STAGE_NAMES[code], status=StageStatus.not_implemented)
+        if waiting_for_input:
+            records[code] = StageRecord(
+                stage=code, name=STAGE_NAMES[code], status=StageStatus.skipped,
+                error="skipped: waiting for user input (see user_input_requests.json)",
+            )
+        else:
+            records[code] = StageRecord(stage=code, name=STAGE_NAMES[code], status=StageStatus.not_implemented)
 
     stages = [records[c] for c in "ABCDEFGH"]
     if failure:
         overall = RunOverall.failed
+    elif waiting_for_input:
+        overall = RunOverall.needs_input
     elif all(s.status is StageStatus.done for s in stages):
-        overall = RunOverall.complete
+        if uir_summary and (uir_summary.open_count > 0 or uir_summary.placeholder_count > 0):
+            overall = RunOverall.complete_with_placeholders
+        else:
+            overall = RunOverall.complete
     else:
         overall = RunOverall.incomplete
 
@@ -268,6 +326,7 @@ def run_pipeline(
         stages=stages,
         defaults_summary=defaults_summary,
         missing_assets=missing_assets,
+        user_input_requests=uir_summary,
         revision_count=0,
         failure_reason=failure,
     )

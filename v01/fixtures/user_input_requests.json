@@ -1,0 +1,26 @@
+{
+  "schema_version": "0.1",
+  "run_id": "uhi-20261120-001",
+  "requests": [
+    {
+      "request_id": "U001",
+      "kind": "diagram",
+      "asset_id": "A003",
+      "page_ids": [
+        "S002"
+      ],
+      "need": "并列画出气象站测气温与卫星测地表温度两种方式及其差异",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "每个节点/边有来源",
+        "许可明确"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "open",
+      "provided": null
+    }
+  ],
+  "summary": "1 open (1 blocking)"
+}

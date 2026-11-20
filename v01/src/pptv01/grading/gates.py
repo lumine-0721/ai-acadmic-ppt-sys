@@ -6,17 +6,155 @@ never silently passed.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pydantic import ValidationError
 
 from pptv01 import textcheck
 from pptv01.contracts import (
-    CONTRACT_FILES, GateReport, GateResult, ProductionPlan, SlidePlan, load_contract,
+    AssetRegistry,
+    AssetStatus,
+    CONTRACT_FILES,
+    GateReport,
+    GateResult,
+    ProductionPlan,
+    SlidePlan,
+    UserInputRequests,
+    UserRequestStatus,
+    load_contract,
 )
 
-STAGE_FILES = ["production_plan", "research_brief", "slide_plan", "asset_requirements", "asset_registry",
-               "slide_asset_mapping", "page_design", "qa_report"]
+STAGE_FILES = [
+    "production_plan",
+    "research_brief",
+    "slide_plan",
+    "asset_requirements",
+    "asset_registry",
+    "user_input_requests",
+    "slide_asset_mapping",
+    "page_design",
+    "qa_report",
+]
+
+_ASSET_BIND_RE = re.compile(r"^(?:ASSET|CHART|TABLE|DIAGRAM|ICON)_(A\d{3,})(?:__|$)")
+_INPUT_BIND_RE = re.compile(r"^(?:INPUT|CHART_INPUT|TABLE_INPUT|DIAGRAM_INPUT)_(U\d{3,})(?:__|$)")
+
+
+def _check_pptx_visual_gates(
+    run_dir: Path,
+    reg: AssetRegistry | None,
+    uir: UserInputRequests | None,
+    sp: SlidePlan | None,
+) -> list[GateResult]:
+    deck_path = run_dir / "deck.pptx"
+    if not deck_path.is_file():
+        return [
+            GateResult(gate="no_fabricated_visuals", status="not_run", detail="deck.pptx absent (stage G not run)"),
+            GateResult(gate="placeholders_marked", status="not_run", detail="deck.pptx absent (stage G not run)"),
+        ]
+    try:
+        prs = Presentation(str(deck_path))
+    except Exception as e:  # noqa: BLE001
+        msg = f"cannot open deck.pptx: {type(e).__name__}: {e}"[:200]
+        return [
+            GateResult(gate="no_fabricated_visuals", status="fail", detail=msg),
+            GateResult(gate="placeholders_marked", status="fail", detail=msg),
+        ]
+
+    valid_assets: set[str] = set()
+    if reg is not None:
+        valid_assets = {
+            a.asset_id
+            for a in reg.assets
+            if a.status in (AssetStatus.acquired, AssetStatus.drawn, AssetStatus.substituted)
+        }
+    valid_inputs: set[str] = set()
+    if uir is not None:
+        valid_inputs = {
+            r.request_id
+            for r in uir.requests
+            if r.status is UserRequestStatus.provided and r.provided and (run_dir / r.provided.file).is_file()
+        }
+
+    unbound: list[str] = []
+    for idx, slide in enumerate(prs.slides, 1):
+        for sh in slide.shapes:
+            is_visual = (
+                sh.shape_type is MSO_SHAPE_TYPE.PICTURE
+                or getattr(sh, "has_chart", False)
+                or getattr(sh, "has_table", False)
+            )
+            if not is_visual:
+                continue
+            name = sh.name or ""
+            m_a = _ASSET_BIND_RE.match(name)
+            m_u = _INPUT_BIND_RE.match(name)
+            if m_a and m_a.group(1) in valid_assets:
+                continue
+            if m_u and m_u.group(1) in valid_inputs:
+                continue
+            unbound.append(f"slide {idx}: {name or sh.shape_type.name}")
+
+    fab_res = GateResult(
+        gate="no_fabricated_visuals",
+        status="fail" if unbound else "pass",
+        detail=f"unbound visual shape(s): {', '.join(unbound[:6])}" if unbound else "all visual elements bound to verified assets/inputs",
+    )
+
+    # placeholders_marked
+    if uir is None:
+        ph_res = GateResult(
+            gate="placeholders_marked",
+            status="not_run",
+            detail="user_input_requests.json absent",
+        )
+    else:
+        need_ph = [
+            r for r in uir.requests
+            if r.status in (UserRequestStatus.open, UserRequestStatus.placeholder_rendered)
+        ]
+        if not need_ph:
+            ph_res = GateResult(
+                gate="placeholders_marked",
+                status="pass",
+                detail="no open/placeholder requests requiring placeholders",
+            )
+        else:
+            page_to_slide = {p.page_id: i for i, p in enumerate(sp.pages)} if sp is not None else {}
+            missing_ph: list[str] = []
+            for r in need_ph:
+                target_slides = (
+                    [prs.slides[page_to_slide[pid]] for pid in r.page_ids if pid in page_to_slide and page_to_slide[pid] < len(prs.slides)]
+                    if page_to_slide
+                    else list(prs.slides)
+                )
+                if not target_slides:
+                    missing_ph.append(f"{r.request_id} (no matching slide)")
+                    continue
+                for sl in target_slides:
+                    has_shape = any(
+                        (sh.name or "").startswith(f"PLACEHOLDER_{r.request_id}")
+                        and getattr(sh, "has_text_frame", False)
+                        and "待补充：" in sh.text_frame.text
+                        and r.request_id in sh.text_frame.text
+                        for sh in sl.shapes
+                    )
+                    notes_text = ""
+                    if sl.has_notes_slide and sl.notes_slide.notes_text_frame is not None:
+                        notes_text = sl.notes_slide.notes_text_frame.text
+                    has_note = r.request_id in notes_text
+                    if not (has_shape and has_note):
+                        missing_ph.append(r.request_id)
+                        break
+            ph_res = GateResult(
+                gate="placeholders_marked",
+                status="fail" if missing_ph else "pass",
+                detail=f"missing marked placeholder/note for: {missing_ph}" if missing_ph else f"{len(need_ph)} placeholder(s) properly marked",
+            )
+    return [fab_res, ph_res]
 
 
 def check_gates(run_dir: Path) -> GateReport:
@@ -63,6 +201,15 @@ def check_gates(run_dir: Path) -> GateReport:
                                   detail=f"missing source/licence: {bad}" if bad else ""))
     else:
         results.append(GateResult(gate="assets_have_source_and_license", status="not_run", detail="no asset_registry yet"))
+    uir = loaded.get("user_input_requests")
+    results.extend(
+        _check_pptx_visual_gates(
+            run_dir,
+            reg if isinstance(reg, AssetRegistry) else None,
+            uir if isinstance(uir, UserInputRequests) else None,
+            sp if isinstance(sp, SlidePlan) else None,
+        )
+    )
     for g in ("pptx_opens", "native_content_not_screenshots"):
         results.append(GateResult(gate=g, status="not_run", detail="stages G/H not implemented in V0.1 so far"))
     st = {r.status for r in results}

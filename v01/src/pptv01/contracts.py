@@ -28,12 +28,14 @@ SCHEMA_VERSION = "0.1"
 
 PAGE_ID_RE = r"^S\d{3,}$"
 ASSET_ID_RE = r"^A\d{3,}$"
+REQUEST_ID_RE = r"^U\d{3,}$"
 ELEMENT_ID_RE = r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
 RUN_ID_RE = r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
 
 NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 PageId = Annotated[str, StringConstraints(pattern=PAGE_ID_RE)]
 AssetId = Annotated[str, StringConstraints(pattern=ASSET_ID_RE)]
+RequestId = Annotated[str, StringConstraints(pattern=REQUEST_ID_RE)]
 ElementId = Annotated[str, StringConstraints(pattern=ELEMENT_ID_RE)]
 RunId = Annotated[str, StringConstraints(pattern=RUN_ID_RE)]
 NeedRef = Annotated[str, StringConstraints(pattern=r"^S\d{3,}#\d+$")]   # <page_id>#<1-based index of the page's asset_need>
@@ -713,9 +715,99 @@ class StageRecord(_Contract):
 
 
 class RunOverall(str, Enum):
-    complete = "complete"        # all stages A-H done
-    incomplete = "incomplete"    # implemented stages ok, others not_implemented/skipped
+    complete = "complete"                                    # all stages A-H done, no open/placeholder requests
+    complete_with_placeholders = "complete_with_placeholders"  # all stages A-H done, placeholders rendered
+    needs_input = "needs_input"                              # paused waiting for user input (--on-missing wait)
+    incomplete = "incomplete"                                # implemented stages ok, others not_implemented/skipped
     failed = "failed"
+
+
+class UserRequestKind(str, Enum):
+    diagram = "diagram"
+    chart = "chart"
+    statistic = "statistic"
+    table = "table"
+    icon = "icon"
+    image = "image"
+    reference = "reference"
+    other = "other"
+
+
+class UserRequestFallback(str, Enum):
+    placeholder = "placeholder"
+    omit_element = "omit_element"
+    wait = "wait"
+
+
+class UserRequestStatus(str, Enum):
+    open = "open"
+    provided = "provided"
+    declined = "declined"
+    placeholder_rendered = "placeholder_rendered"
+
+
+class ProvidedInput(_Contract):
+    file: RelPath
+    sha256: Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
+    source: NonEmptyStr
+    license: NonEmptyStr
+    note: str = ""
+
+    @field_validator("file")
+    @classmethod
+    def _rel(cls, v: str) -> str:
+        return _check_relative_path(v)
+
+
+class UserInputRequest(_Contract):
+    request_id: RequestId
+    kind: UserRequestKind
+    asset_id: AssetId | None = None
+    page_ids: list[PageId] = Field(min_length=1)
+    need: NonEmptyStr
+    why: NonEmptyStr
+    format_wanted: NonEmptyStr
+    acceptance: list[NonEmptyStr] = Field(min_length=1)
+    blocking: bool
+    fallback: UserRequestFallback
+    status: UserRequestStatus = UserRequestStatus.open
+    provided: ProvidedInput | None = None
+
+    @model_validator(mode="after")
+    def _rules(self) -> "UserInputRequest":
+        if self.status is UserRequestStatus.provided and self.provided is None:
+            raise ValueError(f"request {self.request_id} with status=provided requires provided payload")
+        if self.status is not UserRequestStatus.provided and self.provided is not None:
+            raise ValueError(f"request {self.request_id} with status={self.status.value} cannot carry provided payload")
+        return self
+
+
+class UserInputRequests(_RunFile):
+    requests: list[UserInputRequest] = Field(default_factory=list)
+    summary: str = ""
+
+    @model_validator(mode="after")
+    def _unique(self) -> "UserInputRequests":
+        ids = [r.request_id for r in self.requests]
+        if len(set(ids)) != len(ids):
+            raise ValueError("duplicate request_id in user_input_requests")
+        aids = [r.asset_id for r in self.requests if r.asset_id is not None]
+        if len(set(aids)) != len(aids):
+            raise ValueError("duplicate asset_id in user_input_requests")
+        return self
+
+
+class UserInputRequestsSummary(_Contract):
+    path: RelPath
+    open_count: int = Field(ge=0)
+    blocking_open_count: int = Field(default=0, ge=0)
+    provided_count: int = Field(default=0, ge=0)
+    placeholder_count: int = Field(default=0, ge=0)
+
+    @field_validator("path")
+    @classmethod
+    def _rel(cls, v: str) -> str:
+        return _check_relative_path(v)
 
 
 class RunReport(_RunFile):
@@ -731,6 +823,7 @@ class RunReport(_RunFile):
     stages: list[StageRecord]
     defaults_summary: list[str] = Field(default_factory=list)
     missing_assets: list[AssetId] = Field(default_factory=list)
+    user_input_requests: UserInputRequestsSummary | None = None
     revision_count: int = Field(default=0, ge=0)
     failure_reason: str | None = None
 
@@ -739,8 +832,23 @@ class RunReport(_RunFile):
         codes = [s.stage for s in self.stages]
         if codes != list("ABCDEFGH"):
             raise ValueError("run report must list stages A..H exactly once, in order")
-        if self.overall is RunOverall.complete and any(s.status is not StageStatus.done for s in self.stages):
-            raise ValueError("overall=complete requires every stage done")
+        if self.overall is RunOverall.complete:
+            if any(s.status is not StageStatus.done for s in self.stages):
+                raise ValueError("overall=complete requires every stage done")
+            if self.user_input_requests and (
+                self.user_input_requests.open_count > 0 or self.user_input_requests.placeholder_count > 0
+            ):
+                raise ValueError("overall=complete is not allowed when open or placeholder requests exist")
+        if self.overall is RunOverall.complete_with_placeholders:
+            if any(s.status is not StageStatus.done for s in self.stages):
+                raise ValueError("overall=complete_with_placeholders requires every stage done")
+            if not self.user_input_requests or self.user_input_requests.open_count > 0:
+                raise ValueError("overall=complete_with_placeholders requires user_input_requests with 0 open")
+            if self.user_input_requests.placeholder_count == 0:
+                raise ValueError("overall=complete_with_placeholders requires placeholder_count > 0")
+        if self.overall is RunOverall.needs_input:
+            if not self.user_input_requests or self.user_input_requests.open_count == 0:
+                raise ValueError("overall=needs_input requires open user_input_requests")
         if self.overall is RunOverall.failed and not self.failure_reason:
             raise ValueError("overall=failed requires failure_reason")
         return self
@@ -855,6 +963,7 @@ CONTRACT_FILES: dict[str, type[_RunFile]] = {
     "slide_plan": SlidePlan,
     "asset_requirements": AssetRequirements,
     "asset_registry": AssetRegistry,
+    "user_input_requests": UserInputRequests,
     "slide_asset_mapping": SlideAssetMapping,
     "page_design": PageDesign,
     "qa_report": QAReport,

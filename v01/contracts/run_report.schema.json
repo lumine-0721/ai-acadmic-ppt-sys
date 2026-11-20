@@ -3,6 +3,8 @@
     "RunOverall": {
       "enum": [
         "complete",
+        "complete_with_placeholders",
+        "needs_input",
         "incomplete",
         "failed"
       ],
@@ -98,6 +100,45 @@
       ],
       "title": "StageStatus",
       "type": "string"
+    },
+    "UserInputRequestsSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "blocking_open_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Blocking Open Count",
+          "type": "integer"
+        },
+        "open_count": {
+          "minimum": 0,
+          "title": "Open Count",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "placeholder_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Placeholder Count",
+          "type": "integer"
+        },
+        "provided_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Provided Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "open_count"
+      ],
+      "title": "UserInputRequestsSummary",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -216,6 +257,17 @@
       "additionalProperties": true,
       "title": "Tool Config",
       "type": "object"
+    },
+    "user_input_requests": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UserInputRequestsSummary"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

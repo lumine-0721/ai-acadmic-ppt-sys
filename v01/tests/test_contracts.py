@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIX = {
     "production_plan": "production_plan", "slide_plan": "slide_plan_provisional",
     "asset_requirements": "asset_requirements", "asset_registry": "asset_registry",
+    "user_input_requests": "user_input_requests",
     "slide_asset_mapping": "slide_asset_mapping", "page_design": "page_design",
     "qa_report": "qa_report", "run_report": "run_report", "research_brief": "research_brief",
     "grade_report": "grade_report", "gate_report": "gate_report",

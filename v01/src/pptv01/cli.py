@@ -11,9 +11,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from pptv01.contracts import CONTRACT_FILES, export_schemas, load_contract
+from pptv01.contracts import CONTRACT_FILES, RunOverall, UserInputRequests, export_schemas, load_contract
 from pptv01.llm import AwaitingAgentResponse, LLMConfigError, LLMError, client_from_env
 from pptv01.runner import run_pipeline
+from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, provide_user_input
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
@@ -23,7 +24,14 @@ def _cmd_run(args: argparse.Namespace) -> int:
         print(f"error: {e}", file=sys.stderr)
         return 2
     try:
-        report, run_dir = run_pipeline(args.utterance, Path(args.out), client, run_id=args.run_id, resume=args.resume)
+        report, run_dir = run_pipeline(
+            args.utterance,
+            Path(args.out),
+            client,
+            run_id=args.run_id,
+            resume=args.resume,
+            on_missing=args.on_missing,
+        )
     except AwaitingAgentResponse as e:
         print(str(e), file=sys.stderr)
         return 3
@@ -36,6 +44,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     print(f"overall: {report.overall.value}   model: {report.model_id}   commit: {report.code_commit}")
     for s in report.stages:
         print(f"  {s.stage} {s.name:<24} {s.status.value}")
+    if report.user_input_requests:
+        u = report.user_input_requests
+        print(f"requests: {u.open_count} open ({u.blocking_open_count} blocking), {u.provided_count} provided, {u.placeholder_count} placeholders")
+    if report.overall is RunOverall.needs_input:
+        print(f"waiting for user input: run `pptv01 requests {run_dir}` and `pptv01 provide ...`, then `--resume`", file=sys.stderr)
+        return 4
     if report.failure_reason:
         print(f"failure: {report.failure_reason}", file=sys.stderr)
         return 1
@@ -111,6 +125,39 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_requests(args: argparse.Namespace) -> int:
+    req_path = Path(args.run_dir) / USER_INPUT_REQUESTS_FILE
+    if not req_path.is_file():
+        print(f"error: {req_path} not found", file=sys.stderr)
+        return 2
+    uir = load_contract(UserInputRequests, req_path)
+    print(f"summary: {uir.summary}")
+    for r in uir.requests:
+        blk = "blocking" if r.blocking else "optional"
+        prov = f" -> {r.provided.file}" if r.provided else ""
+        print(f"  {r.request_id}  [{r.status.value}]  {r.kind.value:<9}  {blk:<8}  pages={','.join(r.page_ids)}  {r.need}{prov}")
+    return 0
+
+
+def _cmd_provide(args: argparse.Namespace) -> int:
+    try:
+        uir = provide_user_input(
+            Path(args.run_dir),
+            args.request_id,
+            Path(args.file),
+            source=args.source or "",
+            license_str=args.license or "",
+            note=args.note or "",
+        )
+    except (FileNotFoundError, ValueError) as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    req = next(r for r in uir.requests if r.request_id == args.request_id)
+    print(f"updated {req.request_id}: status={req.status.value} file={req.provided.file} sha256={req.provided.sha256[:12]}...")
+    print(f"summary: {uir.summary}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="pptv01", description="AI PPT Sys V0.1")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -119,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--out", default="runs", help="root dir; creates <out>/<run_id>/")
     r.add_argument("--run-id", default=None)
     r.add_argument("--resume", action="store_true", help="re-enter an existing run dir (agent backend: replays answered prompts)")
+    r.add_argument("--on-missing", choices=["placeholder", "wait"], default="placeholder",
+                   help="wait: pause after D (exit 4) when assets are missing; placeholder: mark explicit placeholders")
     r.set_defaults(fn=_cmd_run)
     e = sub.add_parser("export-schemas", help="write JSON Schemas from the Pydantic contracts")
     e.add_argument("--out", default="contracts")
@@ -127,6 +176,17 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("kind", choices=sorted(CONTRACT_FILES))
     v.add_argument("file")
     v.set_defaults(fn=_cmd_validate)
+    rq = sub.add_parser("requests", help="list user_input_requests.json for a run")
+    rq.add_argument("run_dir")
+    rq.set_defaults(fn=_cmd_requests)
+    pv = sub.add_parser("provide", help="supply a verified file/dataset for a user input request (U###)")
+    pv.add_argument("run_dir")
+    pv.add_argument("request_id")
+    pv.add_argument("--file", required=True, help="path to local image/JSON/CSV file")
+    pv.add_argument("--source", default="", help="required attribution/dataset source (URL/DOI/origin)")
+    pv.add_argument("--license", default="", help="required licence or usage terms")
+    pv.add_argument("--note", default="")
+    pv.set_defaults(fn=_cmd_provide)
     g = sub.add_parser("grade", help="PPTEval-style quality grade of a run (env PPTV01_GRADER_*)")
     g.add_argument("run_dir")
     g.add_argument("--slides-dir", default=None, help="rendered slide_*.png|jpg; omit for the plan-text proxy (Design not assessable)")
