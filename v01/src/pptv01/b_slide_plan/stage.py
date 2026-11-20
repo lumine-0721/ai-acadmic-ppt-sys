@@ -17,6 +17,7 @@ from pptv01.contracts import (
     SlidePlan,
     SlideStatus,
     SourceRef,
+    load_contract,
     write_contract,
 )
 from pptv01.llm import ChatClient, complete_json
@@ -92,12 +93,21 @@ def run_stage_b(
     client: ChatClient,
     run_dir: Path | None = None,
     research: ResearchProvider | None = None,
+    reuse_research: bool = False,
 ) -> tuple[SlidePlan, list[dict[str, Any]], ResearchRecord]:
     """Research (per A's retrieval_brief) -> provisional slide plan. Always writes research_brief.json."""
     research = research or DisabledResearch("no research provider supplied")
-    record = research.research(production)
-    if run_dir is not None:
-        write_contract(record, run_dir / RESEARCH_ARTIFACT)
+    record: ResearchRecord | None = None
+    saved = run_dir / RESEARCH_ARTIFACT if run_dir is not None else None
+    if reuse_research and saved is not None and saved.is_file():
+        # resume: keep the notes the (agent) model already saw; never re-query behind its back
+        prev = load_contract(ResearchRecord, saved)
+        if prev.status is not ResearchStatus.failed:
+            record = prev
+    if record is None:
+        record = research.research(production)
+        if saved is not None:
+            write_contract(record, saved)
     if record.status is ResearchStatus.failed:
         raise ResearchFailed(record)
     notes = {n.note_id: n for n in record.notes}

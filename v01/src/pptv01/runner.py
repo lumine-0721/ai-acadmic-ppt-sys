@@ -18,10 +18,12 @@ from typing import Any, Callable
 
 from pptv01 import __version__
 from pptv01.a_plan import ARTIFACT as A_FILE, run_stage_a
+from pptv01.c_asset_requirements import ARTIFACT as C_FILE, run_stage_c
 from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchFailed, run_stage_b
 from pptv01.contracts import (
     ProductionPlan,
     ResearchRecord,
+    SlidePlan,
     RunOverall,
     RunReport,
     StageRecord,
@@ -42,7 +44,7 @@ STAGE_NAMES = {
     "G": "pptx_generation",
     "H": "render_qa_repair",
 }
-IMPLEMENTED_STAGES = ("A", "B")
+IMPLEMENTED_STAGES = ("A", "B", "C")
 
 
 def _now() -> datetime:
@@ -120,6 +122,8 @@ def run_pipeline(
     started = clock()
     records: dict[str, StageRecord] = {}
     plan: ProductionPlan | None = None
+    slide_plan: SlidePlan | None = None
+    notes: dict[str, Any] = {}
     failure: str | None = None
     defaults_summary: list[str] = []
 
@@ -149,7 +153,8 @@ def run_pipeline(
         client.set_stage("B")
         try:
             provider = research if research is not None else research_from_env()
-            _, attempts, rec = run_stage_b(plan, client, run_dir, provider)
+            slide_plan, attempts, rec = run_stage_b(plan, client, run_dir, provider, reuse_research=resume)
+            notes = {n.note_id: n for n in rec.notes}
             research_summary = _research_summary(rec)
             record("B", StageStatus.done, t0,
                    [RESEARCH_ARTIFACT, B_FILE, _write_trace(run_dir, "B", attempts, client.model_id)])
@@ -170,7 +175,23 @@ def run_pipeline(
         records["B"] = StageRecord(stage="B", name=STAGE_NAMES["B"], status=StageStatus.skipped,
                                    error="skipped: stage A failed")
 
-    for code in "CDEFGH":
+    # ---- Stage C (asset requirements from the provisional slide plan)
+    if slide_plan is not None:
+        t0 = clock()
+        client.set_stage("C")
+        try:
+            _, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
+            record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)])
+        except (LLMError, ValueError) as e:
+            trace = getattr(e, "attempts", None)
+            files = [_write_trace(run_dir, "C", trace, client.model_id)] if trace else []
+            failure = f"stage C failed: {type(e).__name__}: {str(e)[:500]}"
+            record("C", StageStatus.failed, t0, files, failure)
+    else:
+        records["C"] = StageRecord(stage="C", name=STAGE_NAMES["C"], status=StageStatus.skipped,
+                                   error="skipped: stage B did not produce a slide plan")
+
+    for code in "DEFGH":
         records[code] = StageRecord(stage=code, name=STAGE_NAMES[code], status=StageStatus.not_implemented)
 
     stages = [records[c] for c in "ABCDEFGH"]

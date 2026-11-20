@@ -229,3 +229,13 @@ def test_free_text_asset_needs_are_rejected(fx):
     d = fx("slide_plan_provisional"); d["pages"][0]["asset_needs"] = ["配几张图"]
     with pytest.raises(ValidationError):
         SlidePlan.model_validate(d)
+
+
+def test_requirement_contract_traceability(fx):
+    for key, val in (("need_refs", []), ("need_refs", ["S1#1"]), ("targets", [])):
+        d = fx("asset_requirements"); d["requirements"][0][key] = val        # image needs a target; refs must match S###\#n
+        with pytest.raises(ValidationError):
+            AssetRequirements.model_validate(d)
+    d = fx("asset_requirements"); d["dropped_needs"] = [{"need_ref": "S001#1", "reason": "x"}]
+    with pytest.raises(ValidationError, match="covered and dropped"):
+        AssetRequirements.model_validate(d)

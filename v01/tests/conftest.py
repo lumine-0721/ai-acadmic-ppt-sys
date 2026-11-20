@@ -39,6 +39,24 @@ GOOD_B = {
 }
 
 
+# need refs in GOOD_B: S001#1 image (某城市热像图, to_verify); S002#1 diagram (no target)
+GOOD_C = {
+    "requirements": [
+        {"need_refs": ["S001#1"], "page_ids": ["S001"], "type": "image",
+         "purpose": "在第一页并排展示城区与郊区的温度分布，让听众直观看到城区更热",
+         "targets": ["某城市热像图"], "query_hints": ["urban heat island thermal image", "城市 热像图 城郊对比"],
+         "priority": "required",
+         "acceptance": ["与城市热岛直接相关，能同时看出城区与郊区的差异", "可合法使用：许可明确（CC 许可或公有领域）",
+                        "须核实所选城市与图像确实对应"]},
+        {"need_refs": ["S002#1"], "page_ids": ["S002"], "type": "diagram",
+         "purpose": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
+         "targets": [], "query_hints": ["urban heat island causes diagram"], "priority": "optional",
+         "acceptance": ["与三类成因直接对应", "取用现成图须许可明确，否则自绘"]},
+    ],
+    "dropped_needs": [],
+}
+
+
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch):
     """Unit tests never touch the network or a real LLM: scrub PPTV01_* and disable research."""

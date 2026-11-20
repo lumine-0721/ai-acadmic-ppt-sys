@@ -7,18 +7,19 @@ Benchmark protocol: [`docs/V0.1-基准测试规范.md`](docs/V0.1-基准测试�
 The old code in the repository root (`apc/`, `seaa/`, `aprd/`, `orchestrator/`, …) is frozen and untouched.
 No multi-agent orchestrator, no Deck IR, no legacy handoff files.
 
-## Status (this batch = plan steps 1–3 + contracts)
+## Status
 
 | Stage | State |
 | --- | --- |
-| Contracts (`contracts.py`, `contracts/*.schema.json`) | all 8 contracts, validated |
-| LLM client (`llm.py`) | OpenAI-compatible, env-only config, 1 repair retry |
-| **A** production plan | implemented (needs a real LLM) |
-| **B** provisional slide plan | implemented (needs a real LLM); research hook is a **stub** (`NullResearch`) |
-| C asset requirements, D retrieve, E mapping, F layout, G pptx, H QA | **not implemented** — runner reports `not_implemented` |
+| Contracts (`contracts.py`, `contracts/*.schema.json`) | 9 contracts (incl. `research_brief`), validated |
+| LLM client (`llm.py`) | OpenAI-compatible or labelled `agent` backend; env-only config; 1 repair retry |
+| **A** production plan (+ `retrieval_brief`) | implemented |
+| **B** research + provisional slide plan | implemented; real retrieval (Wikipedia, Crossref, optional SearXNG); structured `asset_needs` |
+| **C** asset requirements | implemented: every B need is covered or dropped with a reason; checked for traceability, concrete purpose, acceptance criteria |
+| D retrieve, E mapping, F layout, G pptx, H QA | **not implemented** — runner reports `not_implemented` |
 
-A real end-to-end run of A/B has **not** been performed yet: no LLM key was configured when this was written.
-Unit tests use a scripted fake client that exists only under `tests/`; the package has no mock fallback.
+Unit tests use a scripted fake client / fake research / HTTP replay that exist only under `tests/`; the package has no mock fallback.
+Real model runs need an LLM (API key, or the `agent` backend where a human/agent answers); see below.
 
 ## Setup
 
@@ -75,9 +76,11 @@ A run directory currently contains:
 
 ```
 runs/<run_id>/
-  production_plan.json     # stage A
-  slide_plan.json          # stage B, status=provisional
-  llm_trace/A.json, B.json # raw model output + validation errors per attempt (no secrets)
+  production_plan.json     # stage A (incl. retrieval_brief)
+  research_brief.json      # stage B: queries, per-query status, notes with URL/title/retrieved_at/licence (or status disabled/failed)
+  slide_plan.json          # stage B, status=provisional, structured asset_needs
+  asset_requirements.json  # stage C
+  llm_trace/A.json, B.json, C.json # raw model output + validation errors per attempt (no secrets)
   run_report.json          # per-stage status, model id, code commit (+dirty flag), timestamps, tool config
 ```
 

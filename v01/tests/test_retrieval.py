@@ -216,3 +216,18 @@ def test_b_prompt_lists_retrieved_notes():
     run_stage_b(PLAN, c, research=FakeResearch(NOTES))
     body = c.calls[0][-1]["content"]
     assert "[R001] 城市热岛" in body and "[R002] Urban heat island review" in body
+
+
+def test_resume_reuses_saved_research_instead_of_requerying(tmp_path):
+    class Exploding:
+        def research(self, plan):
+            raise AssertionError("must not re-query on resume")
+    run_stage_b(PLAN, FakeClient([with_refs()]), tmp_path, FakeResearch(NOTES))
+    plan, _, rec = run_stage_b(PLAN, FakeClient([with_refs()]), tmp_path, Exploding(), reuse_research=True)
+    assert len(rec.notes) == 2
+    # a *failed* saved record is not reused: retry the network
+    failed = live(lambda r: httpx.Response(503))
+    with pytest.raises(ResearchFailed):
+        run_stage_b(PLAN, FakeClient([GOOD_B]), tmp_path, failed)
+    plan, _, rec = run_stage_b(PLAN, FakeClient([with_refs()]), tmp_path, FakeResearch(NOTES), reuse_research=True)
+    assert rec.status is ResearchStatus.ok

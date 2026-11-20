@@ -17,6 +17,15 @@
           "title": "Asset Id",
           "type": "string"
         },
+        "need_refs": {
+          "items": {
+            "pattern": "^S\\d{3,}#\\d+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Need Refs",
+          "type": "array"
+        },
         "page_ids": {
           "items": {
             "pattern": "^S\\d{3,}$",
@@ -43,6 +52,13 @@
           "title": "Query Hints",
           "type": "array"
         },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/AssetTarget"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
         "type": {
           "$ref": "#/$defs/AssetType"
         }
@@ -50,6 +66,7 @@
       "required": [
         "asset_id",
         "page_ids",
+        "need_refs",
         "type",
         "purpose",
         "query_hints",
@@ -57,6 +74,39 @@
         "acceptance"
       ],
       "title": "AssetRequirement",
+      "type": "object"
+    },
+    "AssetTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "entity_type": {
+          "default": "entity",
+          "minLength": 1,
+          "title": "Entity Type",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "pattern": "^R\\d{3,}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "verification": {
+          "$ref": "#/$defs/Verification",
+          "default": "to_verify"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "AssetTarget",
       "type": "object"
     },
     "AssetType": {
@@ -73,6 +123,27 @@
       "title": "AssetType",
       "type": "string"
     },
+    "DroppedNeed": {
+      "additionalProperties": false,
+      "properties": {
+        "need_ref": {
+          "pattern": "^S\\d{3,}#\\d+$",
+          "title": "Need Ref",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "need_ref",
+        "reason"
+      ],
+      "title": "DroppedNeed",
+      "type": "object"
+    },
     "Priority": {
       "enum": [
         "required",
@@ -80,10 +151,26 @@
       ],
       "title": "Priority",
       "type": "string"
+    },
+    "Verification": {
+      "description": "Has this concrete target been checked against a retrieved source?\n\nto_verify (待核实): a candidate that came from model background knowledge only.\nverified  (已核实): backed by at least one retrieved source (source_refs).",
+      "enum": [
+        "to_verify",
+        "verified"
+      ],
+      "title": "Verification",
+      "type": "string"
     }
   },
   "additionalProperties": false,
   "properties": {
+    "dropped_needs": {
+      "items": {
+        "$ref": "#/$defs/DroppedNeed"
+      },
+      "title": "Dropped Needs",
+      "type": "array"
+    },
     "requirements": {
       "items": {
         "$ref": "#/$defs/AssetRequirement"

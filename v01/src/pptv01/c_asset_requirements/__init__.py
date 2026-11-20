@@ -1,7 +1,6 @@
-"""Stage C (asset_requirements): NOT IMPLEMENTED in this batch.
+"""Stage C: provisional slide plan -> asset_requirements.json (what each page needs, how to accept it)."""
 
-The runner reports this stage as not_implemented; nothing is faked.
-See docs/V0.1-技术方案.md section 2.3 / 6 for the contract and development order.
-"""
+IMPLEMENTED = True
 
-IMPLEMENTED = False
+from .stage import ARTIFACT, RequirementRuleError, run_stage_c  # noqa: E402,F401
+from .validate import validate_requirements  # noqa: E402,F401

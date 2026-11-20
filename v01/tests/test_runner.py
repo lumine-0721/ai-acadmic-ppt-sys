@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import GOOD_A, GOOD_B
+from conftest import GOOD_A, GOOD_B, GOOD_C
 from fakes import FakeClient
 from pptv01 import cli
 from pptv01.contracts import ProductionPlan, RunReport, SlidePlan, StageStatus, load_contract
@@ -13,7 +13,7 @@ U = "帮我做一个城市热岛效应的 PPT。"
 
 
 def test_runner_writes_files_and_honest_report(tmp_path):
-    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B]), run_id="t-001")
+    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-001")
     assert run_dir == tmp_path / "t-001"
     for f in ("production_plan.json", "slide_plan.json", "run_report.json", "llm_trace/A.json", "llm_trace/B.json"):
         assert (run_dir / f).is_file(), f
@@ -21,14 +21,14 @@ def test_runner_writes_files_and_honest_report(tmp_path):
     assert load_contract(SlidePlan, run_dir / "slide_plan.json").status.value == "provisional"
     rep = load_contract(RunReport, run_dir / "run_report.json")
     st = {s.stage: s.status for s in rep.stages}
-    assert st["A"] is StageStatus.done and st["B"] is StageStatus.done
-    assert all(st[c] is StageStatus.not_implemented for c in "CDEFGH")
+    assert [st[c] for c in "ABC"] == [StageStatus.done] * 3
+    assert all(st[c] is StageStatus.not_implemented for c in "DEFGH")
     assert rep.overall.value == "incomplete"          # never "complete" while C-H are missing
     assert rep.model_id == "fake-model-for-unit-tests"
     assert rep.code_commit and rep.started_at <= rep.finished_at
     assert rep.defaults_summary
     # no phantom deliverables
-    for f in ("asset_requirements.json", "asset_registry.json", "deck.pptx", "qa_report.json"):
+    for f in ("asset_registry.json", "deck.pptx", "qa_report.json"):
         assert not (run_dir / f).exists()
 
 
@@ -51,9 +51,9 @@ def test_stage_b_failure_keeps_stage_a_output(tmp_path):
 
 
 def test_existing_run_dir_not_overwritten(tmp_path):
-    run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B]), run_id="t-004")
+    run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-004")
     with pytest.raises(FileExistsError):
-        run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B]), run_id="t-004")
+        run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-004")
 
 
 def test_invalid_run_id(tmp_path):
@@ -84,7 +84,7 @@ def test_runner_records_research_outcome_and_fails_honestly(tmp_path):
     from pptv01.retrieval.backends import make_http
     http = make_http(5, "x", httpx.MockTransport(lambda r: httpx.Response(503)))
     dead = LiveResearch([WikipediaBackend(http), CrossrefBackend(http)])
-    client = FakeClient([GOOD_A, GOOD_B])
+    client = FakeClient([GOOD_A, GOOD_B, GOOD_C])
     report, run_dir = run_pipeline(U, tmp_path, client, run_id="t-net", research=dead)
     st = {s.stage: s for s in report.stages}
     assert report.overall.value == "failed" and st["B"].status is StageStatus.failed
@@ -94,6 +94,6 @@ def test_runner_records_research_outcome_and_fails_honestly(tmp_path):
 
 
 def test_runner_research_disabled_is_recorded(tmp_path):
-    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B]), run_id="t-off")
+    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-off")
     assert report.tool_config["research"]["status"] == "disabled"     # env PPTV01_RESEARCH=none from conftest
     assert (run_dir / "research_brief.json").is_file()

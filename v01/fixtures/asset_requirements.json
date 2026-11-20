@@ -7,34 +7,79 @@
       "page_ids": [
         "S001"
       ],
+      "need_refs": [
+        "S001#1"
+      ],
       "type": "image",
-      "purpose": "并排展示城区与郊区的地表温度分布，说明‘城区相对周边更热’",
+      "purpose": "并排展示城区与郊区的地表温度分布，说明“城区相对周边更热”",
+      "targets": [
+        {
+          "name": "某大城市的地表温度热像图（待选城市）",
+          "entity_type": "dataset",
+          "verification": "to_verify",
+          "source_refs": []
+        }
+      ],
       "query_hints": [
         "urban heat island thermal map",
-        "city surface temperature"
+        "城市 地表温度 热像图"
       ],
       "priority": "required",
       "acceptance": [
-        "与城市热岛直接相关",
-        "可合法使用且来源明确",
+        "与城市热岛直接相关，且能同时看出城区与郊区的差异",
+        "可合法使用：许可明确（如 CC 许可或公有领域）",
+        "须核实所选城市和图像确实对应",
         "清晰可读"
       ]
     },
     {
       "asset_id": "A002",
       "page_ids": [
-        "S002"
+        "S001"
+      ],
+      "need_refs": [
+        "S001#2"
       ],
       "type": "reference",
-      "purpose": "为成因页提供可核验的文献出处",
+      "purpose": "为“热岛不同于热浪”的区分提供可核验的定义出处",
+      "targets": [
+        {
+          "name": "城市热岛的权威定义条目或综述",
+          "entity_type": "publication",
+          "verification": "to_verify",
+          "source_refs": []
+        }
+      ],
       "query_hints": [
-        "urban heat island causes review"
+        "urban heat island definition review"
       ],
       "priority": "optional",
       "acceptance": [
-        "有 DOI",
-        "主题相关"
+        "与城市热岛定义直接相关",
+        "来源可核验，有 DOI 或稳定链接",
+        "须核实文献确实存在"
+      ]
+    },
+    {
+      "asset_id": "A003",
+      "page_ids": [
+        "S002"
+      ],
+      "need_refs": [
+        "S002#1"
+      ],
+      "type": "diagram",
+      "purpose": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
+      "targets": [],
+      "query_hints": [
+        "urban heat island causes diagram"
+      ],
+      "priority": "required",
+      "acceptance": [
+        "与三类成因直接对应",
+        "若自绘则不得照搬受版权保护的图；若取用须许可明确"
       ]
     }
-  ]
+  ],
+  "dropped_needs": []
 }

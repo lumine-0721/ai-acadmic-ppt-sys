@@ -36,6 +36,7 @@ PageId = Annotated[str, StringConstraints(pattern=PAGE_ID_RE)]
 AssetId = Annotated[str, StringConstraints(pattern=ASSET_ID_RE)]
 ElementId = Annotated[str, StringConstraints(pattern=ELEMENT_ID_RE)]
 RunId = Annotated[str, StringConstraints(pattern=RUN_ID_RE)]
+NeedRef = Annotated[str, StringConstraints(pattern=r"^S\d{3,}#\d+$")]   # <page_id>#<1-based index of the page's asset_need>
 SourceRef = Annotated[str, StringConstraints(pattern=r"^R\d{3,}$")]  # research note id (stage B retrieval)
 # Controlled-vocabulary style token (snake_case); the original wording is kept elsewhere.
 Token = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]{0,63}$")]
@@ -310,21 +311,39 @@ class Priority(str, Enum):
 class AssetRequirement(_Contract):
     asset_id: AssetId
     page_ids: list[PageId] = Field(min_length=1)
+    need_refs: list[NeedRef] = Field(min_length=1)    # stage-B asset_needs this requirement answers, e.g. "S001#2"
     type: AssetType
     purpose: NonEmptyStr
+    targets: list[AssetTarget] = Field(default_factory=list)   # carried over from B, with B's verification state
     query_hints: list[NonEmptyStr] = Field(min_length=1)
     priority: Priority
     acceptance: list[NonEmptyStr] = Field(min_length=1)
 
+    @model_validator(mode="after")
+    def _concrete_types_keep_a_target(self) -> "AssetRequirement":
+        if self.type not in TARGET_OPTIONAL_TYPES and not self.targets:
+            raise ValueError(f"{self.asset_id}: {self.type.value} requirement must carry at least one concrete target")
+        return self
+
+
+class DroppedNeed(_Contract):
+    need_ref: NeedRef
+    reason: NonEmptyStr
+
 
 class AssetRequirements(_RunFile):
     requirements: list[AssetRequirement]
+    dropped_needs: list[DroppedNeed] = Field(default_factory=list)   # B needs deliberately not turned into a requirement
 
     @model_validator(mode="after")
     def _unique(self) -> "AssetRequirements":
         ids = [r.asset_id for r in self.requirements]
         if len(set(ids)) != len(ids):
             raise ValueError("duplicate asset_id in asset requirements")
+        covered = {n for r in self.requirements for n in r.need_refs}
+        both = covered & {d.need_ref for d in self.dropped_needs}
+        if both:
+            raise ValueError(f"needs both covered and dropped: {sorted(both)}")
         return self
 
 
