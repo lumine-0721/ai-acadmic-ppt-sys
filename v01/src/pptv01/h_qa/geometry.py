@@ -193,3 +193,50 @@ def find_undersized_image_slots(
                 )
             )
     return findings
+
+
+def find_oversized_placeholders(
+    boxes: list[GeoBox],
+    slide_w_pt: float,
+    slide_h_pt: float,
+    *,
+    max_content_area_ratio: float = 0.15,
+    allow_largest_slot: bool = False,
+) -> list[tuple[str, str]]:
+    """Detect placeholder boxes that exceed ~15% of slide content area or hijack the largest content slot.
+
+    Round-4 visual review regression (T36 slides 1-3 & T12): placeholders must stay compact
+    utility badges/strips and must NEVER dominate the page as hero visuals.
+    Returns [(placeholder_element_id, detail)].
+    """
+    usable_w = max(72.0, slide_w_pt - 2.0 * 0.65 * 72.0)
+    usable_h = max(72.0, slide_h_pt - 1.50 * 72.0)
+    content_area = max(1.0, usable_w * usable_h)
+
+    placeholders = [
+        b for b in boxes if not b.is_background and not b.is_connector and b.element_id.upper().startswith("PLACEHOLDER_")
+    ]
+    if not placeholders:
+        return []
+
+    non_ph_primary = [
+        b
+        for b in boxes
+        if not b.is_background
+        and not b.is_connector
+        and not b.element_id.upper().startswith("PLACEHOLDER_")
+        and not b.element_id.lower().startswith(("footer", "cap_"))
+    ]
+    max_primary_area = max((b.area for b in non_ph_primary), default=0.0)
+
+    findings: list[tuple[str, str]] = []
+    for ph in placeholders:
+        ratio = ph.area / content_area
+        reasons: list[str] = []
+        if ratio > max_content_area_ratio + 1e-6:
+            reasons.append(f"area {ratio:.1%} of content area exceeds {max_content_area_ratio:.0%} limit")
+        if not allow_largest_slot and max_primary_area > 0 and ph.area >= max_primary_area:
+            reasons.append("occupies the largest content slot on the slide (placeholder must not be hero visual)")
+        if reasons:
+            findings.append((ph.element_id, f"placeholder {ph.element_id} oversized: {'; '.join(reasons)}"))
+    return findings

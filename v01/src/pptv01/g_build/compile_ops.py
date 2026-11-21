@@ -447,6 +447,7 @@ def compile_deck_ops(
     for page in design.pages:
         has_title = any(e.kind is ElementKind.title for e in page.elements)
         slide_layout = "title_only" if has_title else "blank"
+        page_layout_id = page.layout_id or page.layout_name
         ops.append(
             DeckOp(
                 op_id=next_op_id(),
@@ -454,7 +455,8 @@ def compile_deck_ops(
                 kind=DeckOpKind.add_slide,
                 params={
                     "layout": slide_layout,
-                    "layout_name": page.layout_name,
+                    "layout_id": page_layout_id,
+                    "layout_name": page.layout_name or page_layout_id,
                 },
             )
         )
@@ -515,11 +517,13 @@ def compile_deck_ops(
                             "w_in": el.w_in,
                             "h_in": el.h_in,
                             "font": el.font or "Microsoft YaHei",
-                            "font_size_pt": el.font_size_pt or 13.0,
+                            "font_size_pt": el.font_size_pt or 11.5,
                             "bold": bool(el.bold),
                             "color_hex": el.color_hex or "#92400E",
-                            "fill_hex": el.fill_hex or "#FEF3C7",
+                            "fill_hex": el.fill_hex or "#FFFBEB",
                             "line_hex": el.line_hex or "#D97706",
+                            "line_width_pt": 1.25 if el.role == "compact_placeholder" else 2.0,
+                            "align": el.align or "left",
                             "dash_style": "dash",
                         },
                     )
@@ -566,6 +570,7 @@ def compile_deck_ops(
                                 "fill_hex": el.fill_hex,
                                 "line_hex": el.line_hex,
                                 "role": el.role,
+                                "z_index": el.z_index,
                             },
                         )
                     )

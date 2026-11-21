@@ -32,7 +32,13 @@ from pptv01.f_layout.capacity import estimate_slot_capacity, wrap_mixed_text
 from pptv01.f_layout.validate import MIN_FONT_PT
 from pptv01.renderers.protocol import MeasureResult, TextMeasurement
 
-from .geometry import GeoBox, find_edge_misalignments, find_empty_cards, find_undersized_image_slots
+from .geometry import (
+    GeoBox,
+    find_edge_misalignments,
+    find_empty_cards,
+    find_oversized_placeholders,
+    find_undersized_image_slots,
+)
 
 EMU_PER_IN = 914400.0
 PT_PER_IN = 72.0
@@ -360,6 +366,23 @@ def inspect_deck(
                     kind=QAIssueKind.layout_anomaly,
                     severity=Severity.major,
                     element_id=pic_id,
+                    description=detail,
+                )
+            )
+        page_design_entry = design_by_id.get(pid)
+        page_lid = (page_design_entry.layout_id or page_design_entry.layout_name) if page_design_entry else ""
+        for ph_id, detail in find_oversized_placeholders(
+            geo_boxes,
+            slide_w * PT_PER_IN,
+            slide_h * PT_PER_IN,
+            allow_largest_slot=(page_lid == "needs-input-list"),
+        ):
+            issues.append(
+                QAIssue(
+                    page_id=pid,
+                    kind=QAIssueKind.layout_anomaly,
+                    severity=Severity.major,
+                    element_id=ph_id,
                     description=detail,
                 )
             )

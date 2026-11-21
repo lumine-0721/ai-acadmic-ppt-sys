@@ -277,8 +277,19 @@ def _add_chart_op(slide: Any, op: DeckOp) -> tuple[Any, str]:
             pass
 
     cd = chart.ChartData
-    cd.Activate()
-    wb = cd.Workbook
+    wb = None
+    last_wb_err: Exception | None = None
+    for _wb_attempt in range(5):
+        try:
+            cd.Activate()
+            wb = cd.Workbook
+            last_wb_err = None
+            break
+        except Exception as e:
+            last_wb_err = e
+            time.sleep(0.4)
+    if wb is None:
+        raise last_wb_err if last_wb_err is not None else RenderExecutionError(f"{op.op_id}: failed to activate ChartData.Workbook")
     ws = None
     try:
         ws = wb.Worksheets(1)
@@ -587,7 +598,13 @@ def _build_presentation_once(
                             align=str(p.get("align", "center")),
                             vertical_anchor=MSO_ANCHOR_MIDDLE,
                         )
-                    if sh_name.lower().startswith("bg_") or str(p.get("role", "")) in ("header_band", "background_card"):
+                    if (
+                        int(p.get("z_index", 0)) == 0
+                        and (
+                            sh_name.lower().startswith("bg_")
+                            or str(p.get("role", "")) in ("header_band", "background_card", "canvas_bg", "quote_bg", "section_bg_left", "section_bg_right", "bleed_editorial_band", "fact_highlight_bg")
+                        )
+                    ):
                         # Send background bands behind native layout placeholders (msoSendToBack = 1)
                         try:
                             sh.ZOrder(1)
@@ -609,19 +626,19 @@ def _build_presentation_once(
                     sh_name = str(p.get("shape_name") or op.element_id)
                     sh.Name = sh_name
                     sh.Fill.Solid()
-                    sh.Fill.ForeColor.RGB = hex_to_bgr(p.get("fill_hex", "#FEF3C7"), (254, 243, 199))
+                    sh.Fill.ForeColor.RGB = hex_to_bgr(p.get("fill_hex", "#FFFBEB"), (255, 251, 235))
                     sh.Line.Visible = MSO_TRUE
                     sh.Line.ForeColor.RGB = hex_to_bgr(p.get("line_hex", "#D97706"), (217, 119, 6))
-                    sh.Line.Weight = 2.0
+                    sh.Line.Weight = float(p.get("line_width_pt", 1.5))
                     sh.Line.DashStyle = DASH_STYLE_MAP.get(str(p.get("dash_style", "dash")), 4)
                     _apply_text_style(
                         sh,
                         text=str(p.get("text", "")),
                         font=str(p.get("font") or "Microsoft YaHei"),
-                        font_size_pt=float(p.get("font_size_pt", 13.0)),
+                        font_size_pt=float(p.get("font_size_pt", 11.5)),
                         bold=bool(p.get("bold", False)),
                         color_hex=p.get("color_hex", "#92400E"),
-                        align="center",
+                        align=str(p.get("align", "left")),
                         vertical_anchor=MSO_ANCHOR_MIDDLE,
                     )
                     if op.element_id:

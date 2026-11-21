@@ -33,6 +33,12 @@ from pptv01.contracts import (
     load_contract,
 )
 from pptv01.d_retrieve.license import needs_attribution
+from pptv01.f_layout.layouts import (
+    LEGACY_LAYOUT_ID,
+    MAX_PLACEHOLDER_AREA_RATIO,
+    normalize_layout_id,
+    slide_content_area_in2,
+)
 from pptv01.renderers.protocol import DeckDump
 
 STAGE_FILES = [
@@ -477,6 +483,126 @@ def _check_pptx_visual_gates(
     return [fab_res, ph_res, opens_res, native_res, attr_res]
 
 
+def _looks_like_legacy_header_bullets_box(page) -> bool:
+    """Detect the legacy 2010-memo layout structurally: bg_header + left bullets + right big box."""
+    has_bg_header = any(e.element_id == "bg_header" and e.kind is ElementKind.shape for e in page.elements)
+    if not has_bg_header:
+        return False
+    has_left_bullets = any(
+        e.kind is ElementKind.bullet and e.x_in <= 1.2 and e.w_in <= 6.5 for e in page.elements
+    )
+    has_right_box = any(
+        e.kind in (ElementKind.placeholder, ElementKind.image, ElementKind.chart, ElementKind.table)
+        and e.x_in >= 5.5
+        and (e.w_in * e.h_in) >= 12.0
+        for e in page.elements
+    )
+    return has_left_bullets and has_right_box
+
+
+def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> GateResult:
+    """Hard gate enforcing layout diversity, legacy-layout cap, and compact non-hero placeholders."""
+    if design is None:
+        return GateResult(
+            gate="layout_diversity",
+            status="not_run",
+            detail="page_design.json absent (stage F not run)",
+        )
+
+    pages = design.pages
+    n = len(pages)
+    failures: list[str] = []
+    layout_ids: list[str] = []
+    legacy_pages: list[str] = []
+
+    for page in pages:
+        raw_id = (page.layout_id or page.layout_name or "").strip()
+        lid = normalize_layout_id(raw_id)
+        if not lid:
+            failures.append(f"{page.page_id}: missing layout_id")
+            lid = "unspecified"
+        if lid == LEGACY_LAYOUT_ID or _looks_like_legacy_header_bullets_box(page):
+            lid = LEGACY_LAYOUT_ID
+            legacy_pages.append(page.page_id)
+        layout_ids.append(lid)
+
+        # Placeholder compactness & non-hero visual checks (<= 15% content area; not largest content slot)
+        content_area = slide_content_area_in2(page.canvas_width_in, page.canvas_height_in)
+        placeholders = [e for e in page.elements if e.kind is ElementKind.placeholder]
+        if placeholders:
+            primary_areas = [
+                e.w_in * e.h_in
+                for e in page.elements
+                if e.kind not in (ElementKind.placeholder, ElementKind.shape, ElementKind.caption, ElementKind.footer)
+                or (e.kind is ElementKind.shape and e.role == "diagram_json")
+            ]
+            max_primary = max(primary_areas, default=0.0)
+            for ph in placeholders:
+                ph_area = ph.w_in * ph.h_in
+                ratio = ph_area / max(content_area, 1e-6)
+                if ratio > MAX_PLACEHOLDER_AREA_RATIO + 1e-6:
+                    failures.append(
+                        f"{page.page_id}.{ph.element_id}: placeholder area {ratio:.1%} > {MAX_PLACEHOLDER_AREA_RATIO:.0%} of content area"
+                    )
+                if lid != "needs-input-list" and max_primary > 0 and ph_area >= max_primary:
+                    failures.append(
+                        f"{page.page_id}.{ph.element_id}: placeholder occupies largest content slot ({ph_area:.1f} >= {max_primary:.1f} sq in)"
+                    )
+
+    # 1. Adjacent slides must NOT share the same layout_id
+    for i in range(1, n):
+        if layout_ids[i] == layout_ids[i - 1]:
+            failures.append(
+                f"adjacent slides {pages[i - 1].page_id}/{pages[i].page_id} repeat layout_id {layout_ids[i]!r}"
+            )
+
+    # 2. Deck with >= 4 slides must use at least min(5, n) distinct layouts
+    distinct = sorted(set(layout_ids))
+    if n >= 4:
+        min_required = min(5, n)
+        if len(distinct) < min_required:
+            failures.append(
+                f"insufficient layout diversity: {len(distinct)} distinct layout(s) across {n} slides (need >= {min_required}; got {layout_ids})"
+            )
+
+    # 3. Legacy top-bar + left-bullets + right-big-box layout may appear at most once per deck
+    if len(legacy_pages) > 1:
+        failures.append(
+            f"legacy layout {LEGACY_LAYOUT_ID!r} used on {len(legacy_pages)} slides {legacy_pages} (max 1 allowed)"
+        )
+
+    # 4. Cross-check compiled deck_ops.json preserves layout_id on add_slide ops
+    ops_path = run_dir / "deck_ops.json"
+    if ops_path.is_file():
+        try:
+            ops = load_contract(DeckOps, ops_path)
+            compiled_lids = [
+                normalize_layout_id(str(o.params.get("layout_id") or o.params.get("layout_name") or ""))
+                for o in ops.ops
+                if o.kind is DeckOpKind.add_slide
+            ]
+            if len(compiled_lids) == n:
+                for page, expected_lid, got_lid in zip(pages, layout_ids, compiled_lids):
+                    if got_lid and expected_lid != LEGACY_LAYOUT_ID and got_lid != expected_lid:
+                        failures.append(
+                            f"{page.page_id}: deck_ops layout_id {got_lid!r} != page_design {expected_lid!r}"
+                        )
+        except Exception:
+            pass
+
+    if failures:
+        return GateResult(
+            gate="layout_diversity",
+            status="fail",
+            detail="; ".join(failures[:6]),
+        )
+    return GateResult(
+        gate="layout_diversity",
+        status="pass",
+        detail=f"{len(distinct)} distinct layout(s) across {n} slide(s): {', '.join(layout_ids)}",
+    )
+
+
 def check_gates(run_dir: Path) -> GateReport:
     run_dir = Path(run_dir)
     results: list[GateResult] = []
@@ -522,6 +648,8 @@ def check_gates(run_dir: Path) -> GateReport:
     else:
         results.append(GateResult(gate="assets_have_source_and_license", status="not_run", detail="no asset_registry yet"))
     uir = loaded.get("user_input_requests")
+    design = loaded.get("page_design")
+    results.append(_check_layout_diversity_gate(run_dir, design if isinstance(design, PageDesign) else None))
     results.extend(
         _check_pptx_visual_gates(
             run_dir,

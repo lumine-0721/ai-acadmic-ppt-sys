@@ -647,6 +647,7 @@ class DesignElement(_Contract):
 
 class PageDesignEntry(_Contract):
     page_id: PageId
+    layout_id: str = ""
     layout_name: str = ""
     canvas_width_in: float = CANVAS_W_IN
     canvas_height_in: float = CANVAS_H_IN

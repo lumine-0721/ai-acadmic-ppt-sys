@@ -617,6 +617,12 @@ class PowerPointSession:
                     # Only ever terminate PIDs we spawned ourselves
                     self._terminate_pids_fn(self._spawned_pids)
                 time.sleep(0.3)
+            # Clean up any embedded Excel server we explicitly spawned (never touches pre-existing user Excel!)
+            owned_xl = set(self._spawned_excel_pids)
+            if owned_xl:
+                xl_exited = _wait_pids_exit(owned_xl, timeout_s=2.0, image_name="EXCEL.EXE")
+                if not xl_exited:
+                    self._terminate_pids_fn(owned_xl)
         elif interrupted and self._owns_instance and self._spawned_pids:
             self._terminate_pids_fn(self._spawned_pids)
 

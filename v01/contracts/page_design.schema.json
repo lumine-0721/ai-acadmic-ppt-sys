@@ -217,6 +217,11 @@
           "title": "Elements",
           "type": "array"
         },
+        "layout_id": {
+          "default": "",
+          "title": "Layout Id",
+          "type": "string"
+        },
         "layout_name": {
           "default": "",
           "title": "Layout Name",

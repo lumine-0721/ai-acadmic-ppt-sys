@@ -128,9 +128,9 @@ def render_schematic_preview(page: PageDesignEntry, run_dir: Path, out_rel: str)
             draw.text((x1 + 8, ty), ln, fill=color, font=font)
             ty += step
 
-    # Clear watermark banner so schematics are never mistaken for LibreOffice renders
+    # Clear watermark banner so schematics are never mistaken for real PowerPoint renders
     wm_font = _load_font(14)
-    label = f"{page.page_id} · {page.layout_name or 'layout'} · {WATERMARK_TEXT}"
+    label = f"{page.page_id} · {page.layout_id or page.layout_name or 'layout'} · {WATERMARK_TEXT}"
     tw = len(label) * 8 + 20
     draw.rectangle([w - tw - 12, 8, w - 8, 32], fill=(15, 23, 42))
     draw.text((w - tw - 4, 12), label, fill=(248, 250, 252), font=wm_font)

@@ -4,6 +4,8 @@
   "pages": [
     {
       "page_id": "S001",
+      "layout_id": "image-right",
+      "layout_name": "image-right",
       "canvas_width_in": 13.333,
       "canvas_height_in": 7.5,
       "elements": [
