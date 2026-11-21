@@ -232,10 +232,207 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 任务清单（第 4 轮已通过；先看第 5 轮：D 挂死 + 你自己跑 Smoke 5）
+## 5. 任务清单（第 5 轮已通过；先看第 6 轮：主题 token、空白门槛、版式硬塞、错图）
 
-> **基线：** 继续在 `feature/v01-office-renderer`（头 `57765f5`，第 4 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
+> **当前基线（第 6 轮）：** `feature/v01-office-renderer` 头 `3a833ea`（第 5 轮已通过），见下面「第 6 轮」。以下两行是第 4 轮时的原文，留作记录：
+>
+> **（第 4 轮原文）基线：** 继续在 `feature/v01-office-renderer`（头 `57765f5`，第 4 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
 > **先决：** 5B 尚未验收，**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮现在有两件必须做：① 先修 N2 全量 pytest 误杀；② 重做 F 的版式多样性（见下，这是用户对真机效果的首要不满）。另有一件**可选**的 Bivia 判断器（见第 4 轮末「可选：Bivia 判断器」），不挡前两件。T02/T26 的 `E_response_2.json` 已放进 `v01/smoke/agent-answers/`，由用户在本机续跑。
+
+### 第 6 轮（2026-11-21 美东，宝特）：第 5 轮已通过；先修「看得见的错」：主题 token、半页空白、硬塞版式、错图
+
+**第 5 轮评定：A−，通过。** 对象是 `feature/v01-office-renderer`，三个提交 `adda069`（D 超时 / 预算 / 进度 / 代理 doctor）、`9499853`（R5-3 修复）、`3a833ea`（Smoke 5 真机评审包）。宝特在 Linux 清环境复核全量 `pytest`：退出码 0，**537 passed，6 skipped**（`windows_com`）。Smoke 5 四题（T36 / T12 / T26 / T02）全部 `RUN_EXIT=0`、`GATES_EXIT=0`：没有挂死，没有自写答案，D 有总预算和逐条进度。R5-3 的六条都已落实，黄色通栏改成了右下角标。
+
+**用户（qing）的产品评价（本轮的方向依据）：**
+- 四份 deck **风格完全一样**，题目对配色、字体、母题、气质没有任何影响。
+- 实际上**只有一套版型**。
+- **文字高度模板化**，看不出特色。
+- **T02（城市热岛）选了一张写满字的黄色告示牌**（Commons `File:Sponge_City.png`）当配图，没有信息量，门槛也没拦住。
+- 作为初版可以接受。方针是「GitHub 上能抄的就抄，多看几个方案再融合」。
+
+宝特对照代码找到的根因（文件:行号以 `3a833ea` 为准）：
+- **主题链断在 A 之后。** A 产出的 `production.style` 只有 C 的 prompt 读（`c_asset_requirements/stage.py:106`）。配色和字体写死在 `f_layout/layouts.py:86-103`（`C_NAVY_DEEP` … `DEFAULT_FONT="Microsoft YaHei"`），`g_build/compile_ops.py:359-362、491-494、519-522、722-725` 还有写死的回退色，`layouts.py:960、1026、1267` 也有散落的 `#94A3B8`、`#CBD5E1`。
+- **半页空白来自多样性那一遍硬换版式。** `layouts.py:256` `select_deck_layouts()` 的第 2 遍和回退（`:298-345`）会把内容并不是「对比」或「数字」的页硬换成 `comparison` / `big-number`。这两个版式只把内容画在上半页，QA 又没有空白检测。
+- **配图过滤只看元数据。** `d_retrieve/image_rules.py` 只看标题、分类、国家，不看像素，所以「图里大半是字」的图片拦不住。
+
+完整调研见宝特的 `/workspace/research/ppt_theme_layout_survey.md`（不在仓库里；下面各条已经写清要抄的文件）。
+
+> **基线：** 从 `feature/v01-office-renderer`（头 `3a833ea`）继续做，或从它拉新分支；只推你自己的分支，**不要往 `feature/v01-pipeline` 推代码**。第 2 节的规则全部照旧。
+> **顺序：** R6-1 → R6-2 → R6-3 → R6-4 → R6-L（遗留）→ Smoke 6。R6-1 到 R6-4 每条单独提交，提交说明以 `r6-N:` 开头。
+
+#### 本轮通用规则（重申）
+
+1. **渲染只用 PowerPoint COM；python-pptx 只能只读核验**，不进生成路径。
+2. **不编造**：不得用 mock 或假数据冒充模型输出，不得编数字、图片或请求号。缺的就诚实占位。主题和母题只用几何形状和颜色，**不 AI 出图、不画插画**。
+3. **协议**：只抄 MIT / Apache-2.0 / BSD。**禁止**抄 GPL / AGPL / 无协议的代码或数据：banana-slides（AGPL）、veasion/AiPPT（GPL）、SmartSchoolAI/ai-to-pptx（GPL）、sligter/LandPPT（协议不明）、anthropics/skills（无协议）。凡是抄过或移植过的代码，都在仓库根目录新建或追加 **`THIRD_PARTY_NOTICES.md`**：项目名、链接、协议全文或 NOTICE、抄了哪个文件、改了什么。移植文件的文件头也要写一行来源。
+4. **推送前**：清掉 `PPTV01_*` 环境变量跑全量 `pytest`，汇报真实退出码和最后一行摘要。Windows 用第 5 轮验收第 1 条的原样命令。
+5. 只推你自己的分支；不碰 master/main；不 force push；不开 PR。
+
+#### R6-1：主题 token 抽离（只有一套主题，渲染结果必须不变）
+
+- **目标**：把写死的颜色和字体收进一个 `ThemeTokens`，为第 7 轮的主题库铺路。**本轮只有一套 `academic-default`，取值和现在一模一样**，渲染出来逐元素不变。
+- **要改的文件**：
+  - 新建 `src/pptv01/theme/__init__.py`、`theme/tokens.py`。
+  - `f_layout/layouts.py:86-103`（全部 `C_*` 和 `DEFAULT_FONT`）、`:470-480`（占位的深色 / 浅色配色）、`:561`、`:677`、`:744`（caption / citation 颜色参数）、`:960`、`:967`、`:1026`、`:1267` 的写死色值。
+  - `g_build/compile_ops.py:359-362、491-494、519-522、722-725` 的 `or "#…"` 回退。
+  - token 要从 F 一路传到 G（经 `page_design` 或运行配置均可，二选一并写进 README）。
+- **抄什么**：[presenton/presenton](https://github.com/presenton/presenton)（Apache-2.0）。
+  - 数据结构参考 `servers/fastapi/models/theme_data.py`（`primary/background/card/stroke/background_text/primary_text/graph_0..9`）。字段名可以照我们的用法调整，但要保留 graph 色序列。
+  - 移植 `servers/fastapi/templates/v2/theme.py` 里的 `contrast_ratio()`、`_relative_luminance()`、`_repair_text_color()`、`_complete_graph_colors()`、`_surface_variant()` 五个纯函数。
+  - 按 Apache-2.0 在 `THIRD_PARTY_NOTICES.md` 里保留 NOTICE，并注明改动。
+- **验收 / 测试**：
+  1. **快照测试**：对 `v01/smoke/review/smoke5/{T36,T12,T26,T02}` 用 `--renderer compile-only` 回放，或者用现有 fixture，重新生成 `page_design.json` / `deck_ops.json`。所有元素的 `color_hex`、`font`、`font_size_pt` 和坐标都必须和改动前**完全一致**。改动前的快照提交到 `tests/fixtures/r6_theme_snapshot/`。
+  2. `rg -n '"#[0-9A-Fa-f]{6}"' src/pptv01/f_layout src/pptv01/g_build` 只允许命中 `theme/tokens.py` 和一个显式白名单（白名单写进测试）。
+  3. 对比度函数有单测：黑白比约等于 21；`_repair_text_color` 在对比度低于 4.5 时换色。
+- **不做**：不加第二套主题，不做题目→主题选择，不改版式几何，不写 SlideMaster 主题色。
+
+#### R6-2：填充率 / 空白门槛（移植 SlideSpeak 的 `occupancy.ts`）
+
+- **目标**：新增门槛 `fill_rate`，能抓出「内容只占上半页、下半页大片空白」的页面。
+- **要改的文件**：新建 `src/pptv01/h_qa/occupancy.py`（纯函数）；在 `grading/gates.py` 注册门槛；`h_qa/stage.py` / `h_qa/inspect.py` 把结果写进 `qa_report.json`；Windows 上可选再用 `renderers/powerpoint_com/measure.py` 的实测文字框复核。
+- **抄什么**：[SlideSpeak/slide-design-skill](https://github.com/SlideSpeak/slide-design-skill)（MIT）的 `engine/occupancy.ts`。
+  - `scoreOccupancy`：内容区里最大的**竖向空白带**。原值是 `VOID_MAX_PX = 230`（1080 高，约等于幻灯片高的 21%，换算成我们 7.5 英寸画布约 1.6 英寸）。
+  - `scoreCellOccupancy`：卡片内部空洞超过 `max(CELL_VOID_MAX_PX=180, 0.45×高)`，或文字覆盖率低于 `SPARSE_TEXT_COVERAGE=0.035`，都算空卡片。
+  - 背景说明见同仓库 `docs/specs/2026-06-04-layout-fit-model.md`（underflow / overflow；绝不靠缩字号）。
+  - 移植文件头写来源，`THIRD_PARTY_NOTICES.md` 写 MIT 全文和版权行 `Copyright (c) 2026 SlideSpeak`。
+- **规则**：
+  - 输入用 `page_design.json` 的元素矩形（F 阶段就能算）。
+  - **排除**整页背景（宽 ≥ 画布 95% 且高 ≥ 画布 85%）、纯装饰 `bg_*` / `accent_*` 细线、页脚、占位角标。
+  - 内容带取标题栏下沿到页脚上沿。
+  - `cover` / `section` / `quote` 这类 anchor 或 breathing 页**豁免**，但要在 detail 里写出豁免原因。
+  - 阈值放进常量并写注释，默认用「最大空白带 ≥ 1.6 英寸」。
+- **宝特的原型数据**（用上面的规则粗算 smoke5，内容带 1.2–7.0 英寸）：
+  - 目标页最大空白带：T36 p3 big-number 2.77、p4 comparison 2.42；T12 p4 comparison 3.02、p5 big-number 2.77；T02 p2 comparison 2.42、p5 big-number 2.77。
+  - 其他非豁免页 ≤ 1.23。
+  - section 页（T12 p6、T02 p4、T26 p4）约 2.3–2.8，必须走豁免。
+- **验收 / 测试**：
+  1. 把 smoke5 的 `page_design.json`（T36 / T12 / T02 / T26）复制成测试 fixture（`tests/fixtures/smoke5_page_design/`），断言 `fill_rate` **恰好**报出 **T36 p3、p4；T12 p4、p5；T02 p2、p5**，其余页不报（豁免页报 exempt）。
+  2. 再加卡片级用例：一个高卡片只有顶上一行字，必须报 `cell-void`。
+  3. 本轮先以 **warn** 级别接进 gates（不挡 `GATES_EXIT`）；R6-3 合入、smoke6 通过后，再在第 7 轮改成 fail。detail 要写页号、空白带位置（top / middle / bottom）和英寸数。
+- **不做**：不靠放大字号或拉伸文本框把空白填掉（SlideSpeak 原则：「空白是围绕内容簇的边距，不是被拉开的间隙」）；不做跨题对比（R6-9）。
+
+#### R6-3：修多样性那一遍：绝不硬塞不匹配的版式
+
+- **目标**：`layout_diversity` 只能在「内容合适的候选」之间调整，不能为了凑「不相邻、≥5 种」把内容形态不对的页硬换成 `comparison` / `big-number` / `timeline`。内容少的页用稀疏变体或降级家族。
+- **要改的文件**：
+  - `f_layout/layouts.py:176` `_score_layouts_for_page()`（加内容形态资格）、`:256` `select_deck_layouts()`（第 2 遍 `:298-326` 和回退 `:328-345` 只能从**合格**候选里换）、`:347-358`（第 3 遍同理）。
+  - comparison / big-number / timeline 各自的构建函数（`build_layout_elements` 里对应分支）加 `sparse` 几何。
+  - `f_layout/capacity.py` 写每个版式的槽位容量。
+  - `grading/gates.py` 里 `layout_diversity` 的阈值：合格候选不足时，降级成按「合格家族数」计算，并在 detail 里写明。
+- **抄什么**：
+  - [presenton](https://github.com/presenton/presenton)（Apache-2.0）`servers/fastapi/utils/llm_calls/generate_presentation_structure.py` 的选版式规则：内容里没有图就不选带图版式；没有表就不选表格版式；相邻页尽量不同，但**允许按需重复**。改写成我们的确定性规则，不调 LLM。
+  - [SlideSpeak](https://github.com/SlideSpeak/slide-design-skill)（MIT）`docs/specs/2026-06-04-layout-fit-model.md` 的「版式容量契约」：每个槽位 `{min, ideal, max}`，加家族和降级 / 续页策略。
+  - [icip-cas/PPTAgent v0.2.0](https://github.com/icip-cas/PPTAgent/tree/v0.2.0)（MIT）`pptagent/roles/layout_selector.yaml` 的判据：元素个数、字数区间、图片相关度。
+- **资格与降级规则（最少要有这些）**：
+
+| 版式 | 合格条件 | 不合格时 |
+|---|---|---|
+| comparison | 两方，每边 ≥ 2 条要点 | 降级为 quote（结论句），或者 two-content 的 `sparse` 变体 |
+| big-number | 有**带 `source_refs` 的数字**事实 | 降级为 quote / statement；**绝不编数字** |
+| timeline | ≥ 3 个有序步骤或年份 | 2 步用 comparison-sparse 或 bullets；1 步用 quote |
+| 任意版式 | 内容低于 `min` 容量 | 用该版式的 `sparse` 变体：内容簇在内容带的上中部居中成团，不拉伸到整页 |
+
+- **验收 / 测试**：
+  1. 用 smoke5 四题的输入回放（compile-only）：`fill_rate`（R6-2）**全部通过**（豁免页除外）；`layout_diversity`、`no_fabricated_visuals`、`placeholders_marked`、`attribution_present`、`mapped_visuals_placed` 照旧全过。
+  2. 新单测：构造「两方各 1 条」的页，断言选不到 comparison；构造「没有带来源数字」的页，断言选不到 big-number。
+  3. 汇报里列出每题新旧版式序列的对照。
+- **不做**：本轮不新增版式（那是 R6-7）；不改 B 的 prompt（R6-6）。
+
+#### R6-4：配图像素级过滤（CLIP 零样本负类 + OCR 文字面积占比）
+
+- **目标**：拦住「告示牌、logo、文字截图、文档页、海报」这类以文字为主、没有信息量的图片，并用图文相似度给候选排序。**T02 的 `File:Sponge_City.png` 必须被拒，并写出原因。**
+- **要改的文件**：
+  - 新建 `src/pptv01/d_retrieve/pixel_rules.py`，在 `d_retrieve/stage.py` 中元数据规则之后、图片下载之后调用。拒绝写进 D 报告的 rejections：原因、负类标签、分数、OCR 占比。
+  - `grading/gates.py` 新增复查门槛 `no_text_only_visuals`（warn 级）。
+  - `pyproject.toml` 加可选依赖组 `[project.optional-dependencies] vision = ["rapidocr-onnxruntime"]`（或当前包名，以 PyPI 为准）。
+- **抄什么**：
+  - [qdrant/fastembed](https://github.com/qdrant/fastembed)（Apache-2.0，已经是依赖）的 `ImageEmbedding("Qdrant/clip-ViT-B-32-vision")` + `TextEmbedding("Qdrant/clip-ViT-B-32-text")`（模型 MIT，约 0.34 + 0.25 GB，CPU 可跑）。
+    - 负类 prompt：`a sign with text`、`a logo`、`a screenshot of text`、`a document page`、`a poster with text`、`a map legend`。
+    - 正类：asset requirement 的 purpose + 目标名（英文）。
+    - 负类最高分比正类高出阈值就拒；正类分写进候选排序。
+  - [RapidAI/RapidOCR](https://github.com/RapidAI/RapidOCR)（Apache-2.0）：算文字框面积 / 图片面积。`type=image`（照片）超过约 0.15 就拒；`diagram` / `chart` 放宽或豁免。扫描写法可以参考 [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master)（MIT）的 `skills/ppt-master/scripts/image_ocr.py`。
+  - 阈值写成常量并注明是用哪些样本标定的。
+- **离线 / 失败降级**：
+  - 模型下载或加载失败、超时、没装 rapidocr 时，**不得静默跳过**。D 报告和日志都要写 `pixel_rules: degraded (<原因>)`，`qa_report` 里要有这一行。
+  - 降级后只按元数据规则继续，不挡运行。
+  - 模型加载必须走第 5 轮的 fastembed 超时、缓存和代理路径，`flush=True` 打进度。
+- **验收 / 测试**：
+  1. 把 `Sponge_City.png` 作为测试图片 fixture 提交（来源 `https://commons.wikimedia.org/wiki/File:Sponge_City.png`，Jeb，CC BY 4.0，在 `THIRD_PARTY_NOTICES.md` 或 fixture 的 README 里写署名）。再选 2–3 张 smoke5 里**合格**的真实照片当正例。
+  2. 断言：Sponge_City 被拒，原因里有负类标签或 OCR 占比；正例通过。
+  3. 默认 `pytest` 不出网：需要模型的测试标 `@pytest.mark.vision_model`，没有缓存模型时 skip 并写原因。另外用**假的 embedder 和假的 OCR** 测「判定逻辑」和「降级路径会写日志」。
+  4. Windows 实跑 T02 时，D 报告里能看到 Sponge_City 的拒绝记录。
+- **不做**：美学分模型（improved-aesthetic-predictor，较重，延后）；不用 AI 生成替代图；不改 `inspect_image_with_vision()`（保留为兜底复核）。
+
+#### R6-L：第 5 轮遗留（小项，一起做）
+
+1. **代理说明文档**：在 `v01/README.md` 或 `docs/proxy.md` 写清：
+   - httpx 的 `trust_env`（默认 True，读 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY`）；
+   - huggingface_hub / fastembed 下载是否走代理、怎么配；
+   - `HF_ENDPOINT`（例如镜像站）是否支持，在哪里生效；
+   - 缓存目录（`FASTEMBED_CACHE_PATH` / HF cache）。
+   
+   doctor 里已有的代理提示保持「只显示主机和端口」。
+2. **去掉 pyalex**：`pyproject.toml:15` 删除 `pyalex>=0.18`（`adda069` 已经改成 httpx 的 `openalex_http_fetch`）。把 `d_retrieve/sources.py:5`、`:353-370`（`pyalex_fetch` 这个名字）、`d_retrieve/stage.py:6`、`:815`（`"OpenAlex (pyalex)"`）里的字样一起清掉。`pyalex_fetch` 如果只是别名就删掉或改名，测试同步更新。
+3. **未使用的导入**：`tests/test_r5_1_d_timeouts_budget.py` 头部疑似未使用 `builtins`、`json`、`pytest`、`OpenAlexClient`、`openalex_http_fetch`（:5–28）。以 `ruff --select F401` 或 pyflakes 的结果为准删干净。
+4. **OpenAlex 429 熔断**：Smoke 5 里 OpenAlex 每题都返回 429，重试白白耗掉 15–65 秒。
+   - 改法：`d_retrieve/sources.py:315-349`（`openalex_http_fetch`），以及 `d_retrieve/stage.py:664` 的调用处。同一次运行里**第一次收到 429**（或 402 / 403 配额类）后，**本次运行剩下的 OpenAlex 请求全部跳过**，直接走 Crossref。
+   - D 报告写 `openalex: circuit_open after 429 at <时间>`，以及省下的请求数和估算节省的秒数。
+   - 不要因此缩短其他 provider 的预算。
+   - 测试用 `httpx.MockTransport`：第一次返回 429，断言后面不再发起 OpenAlex 请求。
+5. **引用 / 署名字号和颜色**：
+   - `f_layout/validate.py:31` `ElementKind.caption: 9.0` 改为 **≥ 10.5**。
+   - `layouts.py:569` 的起始 `9.5` 同步调整。
+   - `_place_anchored_citation`（`layouts.py:736` 起）和 caption 的颜色从 `C_MUTED #64748B` / `#94A3B8` 改成**更深**的颜色：浅底上对比度 ≥ 4.5（例如 `#475569`）；深底页用对应的浅色，同样 ≥ 4.5。颜色走 R6-1 的 token，用 R6-1 的 `contrast_ratio()` 写单测。
+   - 这一条**会改变渲染**，所以放在 R6-1 快照测试**之后**单独提交，并更新快照。
+6. **冒烟汇总必须带 Windows 全量 pytest 退出码**：`smoke6/SUMMARY.md` 第一段写 `PYTEST_ALL_EXIT=<n>` 和 `pytest_all.txt` 的最后一行摘要。Smoke 5 的汇总里缺了这一项。
+
+#### Smoke 6：你自己跑（同样四题，同样流程）
+
+- 前提：R6-1 到 R6-4 和 R6-L 都已合入你的分支；Windows 全量 `pytest` 退出码 0。
+- 流程**完全照第 5 轮 R5-2**：
+  - 每行一条命令；每题用全新的 `runs\smoke6\<id>`；
+  - `python -u` + `2>&1 | Tee-Object`；
+  - 超过 5 分钟没有新日志就判 `HUNG`；
+  - 把 R5-2 命令里的 `smoke5` 全部换成 `smoke6`。
+- 四题和提示词同 R5-2 的表格（T36 / T12 / T26 / T02）。
+- **答案文件规则不变：你不得编写、修改或「补」任何 `*_response_*.json`。** 退出码 3，或 E 因素材对不上失败时，立刻停下这一题，提交最新的 `*_request_*.json` 和日志，等宝特补答案。R6-4 拒掉 Sponge_City 之后，T02 的 E 很可能对不上旧答案，这是预期情况，照此处理。
+- **提交位置**：`feature/v01-office-renderer`（或你的新分支）的 `v01/smoke/review/smoke6/<id>/`。每题的文件同 R5-2，并额外提交：
+  - `contact_sheet.png`：本题全部页的缩略图拼图；
+  - `before_after.png`：同题 smoke5 和 smoke6 逐页并排；
+  - `fill_rate`、`no_text_only_visuals` 两个门槛的原文行。
+- **`v01/smoke/review/smoke6/SUMMARY.md`**：
+  - Windows 全量 pytest 退出码和摘要（R6-L 第 6 条）；
+  - 每题的 `RUN_EXIT` / `GATES_EXIT`、各阶段耗时（D 单列，写 OpenAlex 熔断节省的秒数）；
+  - 新旧版式序列；
+  - `fill_rate` 报出的页；
+  - Sponge_City 的拒绝记录；
+  - `pixel_rules` 是否降级；
+  - 你看图后每题一句话的观感。
+
+#### 第 6 轮验收（全部满足才算过）
+
+1. Windows 清环境全量 `pytest` 退出码 0（第 5 轮验收第 1 条的原样命令），Linux 上默认 `pytest` 不出网、退出码 0。
+2. R6-1 快照测试证明渲染不变，写死的色值只在白名单里。
+3. R6-2 在 smoke5 fixture 上**恰好**报出 T36 p3/p4、T12 p4/p5、T02 p2/p5。
+4. R6-3 合入后，smoke5 回放和 Smoke 6 真机的 `fill_rate` 全部通过（豁免页除外），其他门槛照旧全过。
+5. R6-4：Sponge_City 被拒且有原因；离线时有 `degraded` 记录，不是静默跳过。
+6. R6-L 六条都已落实；`THIRD_PARTY_NOTICES.md` 已覆盖所有移植来源（presenton、SlideSpeak、PPTAgent 如有引用、fastembed、RapidOCR、ppt-master 如有引用）。
+7. Smoke 6 四题结果和 `SUMMARY.md` 已推送；没有任何编造，没有自写的答案文件。
+
+#### 已排好但**本轮不要做**（第 7 轮及以后的路线图，先知道方向）
+
+- **R6-5 主题库 ×8 + 「设计读取」**：
+  - 每套主题一份 JSON 的 token，索引格式抄 [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides)（MIT）的 `bold-template-pack/selection-index.json`（mood / tone / formality / density / scheme / best_for / avoid_for）。
+  - 风格和论证模式分开选，参考 [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master)（MIT）的 `references/visual-styles/`、`references/modes/`。
+  - 由 LLM 按题目选 `theme_id` 并给理由，选不出来时用关键词兜底；doctor 检查字体是否存在。
+- **R6-6 B 阶段加页面角色、文字结构、节奏、结论句标题，加真正的讲者备注**：
+  - 页面角色参考 ppt-master 的 `templates/styles/academic-research/templates/design_spec.md`；结论句标题和 ghost-deck 测试参考 [Gabberflast/academic-pptx-skill](https://github.com/Gabberflast/academic-pptx-skill)（MIT）。
+  - 文字结构词表参考 [allweonedev/presentation-ai](https://github.com/allweonedev/presentation-ai)（MIT）的 `src/lib/presentation/layout-catalog.ts`。
+  - `set_notes` 写讲稿，不再写 planning summary。
+- **R6-7 版式扩充 +6**：three-card、two-content、steps-horizontal、hero-statement、picture-caption、chart-insight。每个带容量和 sparse / normal / dense 三种变体，参考 ppt-master 的 `templates/layouts/layouts_index.json`（presentation_core）和 presenton 的版式描述。
+- **R6-8 AI 腔 lint**：参考 SlideSpeak 的 `engine/quality-lint.ts`，补中文空话词表，先只告警。
+- **R6-9 跨题雷同度**：参考 SlideSpeak 的 `engine/divergence.ts`（版式集合用 Jaccard，序列用 LCS），写进冒烟汇总。
+- 继续延后：**Bivia 判断器**（第 4 轮「可选」条款仍然有效）、**Keenable 检索**（等版式几轮都过了再评估，只做 opt-in）、N7（python-pptx 退出生成路径）、SDXL 背景。
 
 ### 第 5 轮（2026-11-21 美东，宝特）：第 4 轮已通过；先治 D 挂死，再由你自己跑 Smoke 5，并修第 4 轮评审遗留
 
