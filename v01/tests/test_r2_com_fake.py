@@ -226,3 +226,54 @@ def test_preflight_raises_renderer_unavailable_when_com_missing():
     renderer = PowerPointComRenderer(app_factory=_boom)
     with pytest.raises(RendererUnavailableError, match="PowerPoint COM"):
         renderer.preflight()
+
+
+def test_fake_com_keeps_bg_canvas_behind_secondary_bg_bands(tmp_path):
+    """bg_canvas must stay behind z=0 panels (bg_bleed_band, bg_card_0) which stay behind title."""
+    sp = SlidePlan(
+        run_id="zorder-test",
+        status="provisional",
+        narrative="ZOrder test.",
+        pages=[
+            {
+                "page_id": "S001",
+                "title": "全幅与卡片层叠测试",
+                "goal": "测试背景与卡片Z序",
+                "key_points": ["要点A", "要点B"],
+                "content_summary": "不渲染",
+                "visual_intent": "卡片",
+                "asset_needs": [],
+                "status": "provisional",
+            }
+        ],
+    )
+    design = PageDesign(
+        run_id="zorder-test",
+        theme_id="architectural-stone",
+        pages=[
+            PageDesignEntry(
+                page_id="S001",
+                layout_id="full-bleed",
+                layout_name="full-bleed",
+                elements=[
+                    DesignElement(element_id="bg_canvas", kind=ElementKind.shape, x_in=0.0, y_in=0.0, w_in=13.333, h_in=7.5, z_index=0, fill_hex="#F7F5F0", line_hex="#F7F5F0", role="canvas_bg"),
+                    DesignElement(element_id="bg_bleed_band", kind=ElementKind.shape, x_in=0.0, y_in=4.85, w_in=13.333, h_in=2.65, z_index=0, fill_hex="#1C1917", line_hex="#1C1917", role="bleed_editorial_band"),
+                    DesignElement(element_id="bg_card_0", kind=ElementKind.shape, x_in=0.65, y_in=1.60, w_in=3.80, h_in=1.30, z_index=0, fill_hex="#FFFFFF", line_hex="#CFC8BA", role="card_panel_0"),
+                    DesignElement(element_id="title", kind=ElementKind.title, x_in=0.65, y_in=5.05, w_in=5.40, h_in=0.90, z_index=2, text="全幅与卡片层叠测试", font="SimSun", font_size_pt=28.0, bold=True, color_hex="#FAF8F5"),
+                ],
+            )
+        ],
+    )
+    reg = AssetRegistry(run_id="zorder-test", assets=[], sources=[], summary="0/0")
+    uir = UserInputRequests(run_id="zorder-test", requests=[], summary="0 open")
+    ops = compile_deck_ops(sp, design, reg, uir, tmp_path, write_file=True)
+
+    fake_app = FakePowerPointApp()
+    renderer = PowerPointComRenderer(app_factory=lambda: fake_app, excel_factory=FakeExcelApp)
+    res = renderer.build(ops, tmp_path)
+    dump = DeckDump.model_validate_json(res.dump_path.read_text(encoding="utf-8"))
+    names = [s.name for s in dump.slides[0].shapes]
+    assert names.index("bg_canvas") < names.index("bg_bleed_band"), names
+    assert names.index("bg_canvas") < names.index("bg_card_0"), names
+    assert names.index("bg_bleed_band") < names.index("title"), names
+    assert names.index("bg_card_0") < names.index("title"), names

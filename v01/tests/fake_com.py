@@ -272,6 +272,16 @@ class FakeShape:
         self.AlternativeText = ""
         self.PlaceholderFormat = _FakePlaceholderFormat(placeholder_type or 0)
         self.picture_file: str | None = None
+        self._parent: "_FakeShapes | None" = None
+
+    def ZOrder(self, cmd: int) -> None:
+        if self._parent is None or self not in self._parent._items:
+            return
+        self._parent._items.remove(self)
+        if cmd == 1:  # msoSendToBack
+            self._parent._items.insert(0, self)
+        else:  # 0 = msoBringToFront
+            self._parent._items.append(self)
 
 
 class _FakeShapes:
@@ -306,6 +316,7 @@ class _FakeShapes:
         return phs[idx - 1]
 
     def _add(self, sh: FakeShape) -> FakeShape:
+        sh._parent = self
         self._items.append(sh)
         return sh
 

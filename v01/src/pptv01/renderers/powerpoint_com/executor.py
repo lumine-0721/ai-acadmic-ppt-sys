@@ -605,9 +605,12 @@ def _build_presentation_once(
                             or str(p.get("role", "")) in ("header_band", "background_card", "canvas_bg", "quote_bg", "section_bg_left", "section_bg_right", "bleed_editorial_band", "fact_highlight_bg")
                         )
                     ):
-                        # Send background bands behind native layout placeholders (msoSendToBack = 1)
+                        # Send background bands behind native layout placeholders (msoSendToBack = 1),
+                        # then re-anchor full-slide `bg_canvas` underneath any secondary `z_index == 0` bands/cards.
                         try:
                             sh.ZOrder(1)
+                            if sh_name != "bg_canvas" and "bg_canvas" in slide_shapes:
+                                slide_shapes["bg_canvas"].ZOrder(1)
                         except Exception:
                             pass
                     if op.element_id:
