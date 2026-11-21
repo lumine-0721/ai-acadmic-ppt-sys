@@ -201,3 +201,53 @@ def test_r6_l_caption_and_footer_wcag_contrast_and_font_floor():
     assert dark_caps and all((c.font_size_pt or 0) >= 10.5 and c.color_hex == t.caption_on_dark for c in dark_caps)
     assert dark_foots and all((f.font_size_pt or 0) >= 10.5 and f.color_hex == t.citation_on_dark for f in dark_foots)
 
+
+def test_r6_l_full_bleed_caption_with_placeholder_does_not_overflow_at_10_5pt():
+    """full-bleed fits a multi-line Wikimedia attribution at >= 10.5pt above the placeholder tray without overflow."""
+    from pptv01.contracts import ElementKind, PageDesignEntry, SlidePage
+    from pptv01.f_layout.layouts import SlotItem, build_layout_elements
+    from pptv01.f_layout.validate import validate_page_geometry
+    from pptv01.theme import ACADEMIC_DEFAULT_THEME
+
+    sp_page = SlidePage(page_id="S007", status="provisional", **GOOD_B["pages"][0])
+    rv = [
+        SlotItem(
+            slot_type="image",
+            asset_id="A011",
+            request_id=None,
+            asset_path="assets/A011.jpg",
+            label="Landmark Architecture",
+            width_px=1280,
+            height_px=853,
+            attribution=(
+                "Stefan Fussan, CC BY-SA 3.0, via Wikimedia Commons "
+                "(https://commons.wikimedia.org/wiki/File:Very_Long_Wikimedia_Commons_Architecture_Example_Photo_Name.jpg)"
+            ),
+        )
+    ]
+    ph = [
+        SlotItem(
+            slot_type="placeholder",
+            asset_id="A013",
+            request_id="U004",
+            asset_path=None,
+            label="待补充：U004 Architecture structural cross-section diagram awaiting user input",
+        )
+    ]
+    els = build_layout_elements(
+        "full-bleed",
+        sp_page,
+        list(sp_page.key_points),
+        rv,
+        ph,
+        [],
+        [],
+        theme=ACADEMIC_DEFAULT_THEME,
+    )
+    problems = validate_page_geometry(PageDesignEntry(page_id="S007", layout_name="full-bleed", elements=els))
+    assert problems == []
+    cap = next(e for e in els if e.element_id == "cap_1")
+    assert (cap.font_size_pt or 0) >= 10.5
+    assert cap.y_in + cap.h_in <= 6.50
+
+

@@ -1320,10 +1320,33 @@ def build_layout_elements(
 
     # ================================================================ 3) FULL-BLEED (edge-to-edge hero image + dark lower band)
     if lid == "full-bleed" and len(real_visuals) == 1 and real_visuals[0].slot_type == "image":
-        band_y = 4.85
-        band_h = round(CANVAS_H_IN - band_y, 3)  # 2.65 in
+        left_w = 5.40
+        band_bottom = 6.46 if has_ph else 7.26
         img_item = real_visuals[0]
-        # Edge-to-edge full-bleed hero image across the top 60% (zero margin, crop_fill)
+        cap_text = img_item.attribution.strip()
+        cap_pt = MIN_FONT_PT[ElementKind.caption]
+
+        if cap_text:
+            title_fit = fit_text_to_box(page.title, left_w, 1.05, 28.0, min_font_pt=MIN_FONT_PT[ElementKind.title])
+            title_h = round(
+                min(1.05, max(0.54, estimate_text_height_in(title_fit.lines, title_fit.font_size_pt) + 0.14)),
+                3,
+            )
+            cap_lines = wrap_mixed_text(cap_text, left_w, cap_pt)
+            need_cap_h = round(min(1.15, max(0.42, estimate_text_height_in(cap_lines, cap_pt) + 0.14)), 3)
+            while need_cap_h < 1.15 and estimate_slot_capacity(left_w, need_cap_h, cap_pt).max_lines < len(cap_lines):
+                need_cap_h = round(min(1.15, need_cap_h + 0.08), 3)
+            need_left_h = title_h + 0.08 + need_cap_h
+            band_y = 4.85
+            if band_y + 0.20 + need_left_h > band_bottom:
+                band_y = round(max(4.15, band_bottom - need_left_h - 0.20), 3)
+        else:
+            band_y = 4.85
+            title_h = round(band_bottom - round(band_y + 0.20, 3), 3)
+            need_cap_h = 0.0
+
+        band_h = round(CANVAS_H_IN - band_y, 3)
+        # Edge-to-edge full-bleed hero image across the top ~60%+ (zero margin, crop_fill)
         elements.append(
             DesignElement(
                 element_id="vis_1",
@@ -1370,14 +1393,10 @@ def build_layout_elements(
             )
         )
 
-        text_top = round(band_y + 0.20, 3)  # 4.70
-        band_bottom = 6.46 if has_ph else 7.26
-        left_w = 5.40
+        text_top = round(band_y + 0.20, 3)
         right_x = round(GRID_MARGIN_X + left_w + 0.43, 3)
         right_w = round(GRID_RIGHT_X - right_x, 3)
 
-        cap_text = img_item.attribution.strip()
-        title_h = 1.05 if cap_text else round(band_bottom - text_top, 3)
         elements.append(
             _make_fitted_text(
                 "title",
@@ -1397,16 +1416,18 @@ def build_layout_elements(
             )
         )
         if cap_text:
+            cap_y = round(text_top + title_h + 0.08, 3)
+            cap_h = round(min(max(need_cap_h, 0.42), max(0.42, band_bottom - cap_y)), 3)
             elements.append(
                 _make_fitted_text(
                     "cap_1",
                     ElementKind.caption,
                     GRID_MARGIN_X,
-                    round(text_top + title_h + 0.08, 3),
+                    cap_y,
                     left_w,
-                    round(max(0.42, band_bottom - (text_top + title_h + 0.08)), 3),
+                    cap_h,
                     cap_text,
-                    10.5,
+                    cap_pt,
                     z_index=2,
                     color_hex=theme.caption_on_dark,
                     font=theme.font_family,
