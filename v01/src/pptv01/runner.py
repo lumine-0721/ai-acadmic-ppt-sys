@@ -124,6 +124,11 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _rel_to_run_dir(path: Path, run_dir: Path) -> str:
+    """Return a POSIX path relative to ``run_dir`` even when one side is relative and the other is resolved."""
+    return path.resolve().relative_to(run_dir.resolve()).as_posix()
+
+
 def _input_hashes(run_dir: Path, rel_paths: list[str]) -> dict[str, str]:
     out: dict[str, str] = {}
     for rel in sorted(set(rel_paths)):
@@ -481,7 +486,7 @@ def run_pipeline(
                     tpl_dst = tpl_dir / tpl_src.name
                     if tpl_src.resolve() != tpl_dst.resolve():
                         tpl_dst.write_bytes(tpl_src.read_bytes())
-                    tpl_rel = tpl_dst.relative_to(run_dir).as_posix()
+                    tpl_rel = _rel_to_run_dir(tpl_dst, run_dir)
                 deck_ops = compile_deck_ops(slide_plan, design, reg, uir, run_dir, template_path=tpl_rel)
                 if compile_only:
                     record(
@@ -512,7 +517,7 @@ def run_pipeline(
                                     records[st_code].input_hashes[USER_INPUT_REQUESTS_FILE] = post_g_uir_sha
                         g_files = [ARTIFACT_OPS, G_FILE]
                         if build_res.dump_path.is_file():
-                            g_files.append(build_res.dump_path.relative_to(run_dir).as_posix())
+                            g_files.append(_rel_to_run_dir(build_res.dump_path, run_dir))
                         record(
                             "G", StageStatus.done, t0, g_files,
                             input_hashes=g_inputs,
@@ -587,7 +592,7 @@ def run_pipeline(
                     template_path=deck_ops.template_path if deck_ops is not None else None,
                     cross_render=cross_render,
                 )
-                h_files = [H_FILE] + [p.relative_to(run_dir).as_posix() for p in rendered_pngs]
+                h_files = [H_FILE] + [_rel_to_run_dir(p, run_dir) for p in rendered_pngs]
                 if (run_dir / "render" / "deck.pdf").is_file():
                     h_files.append("render/deck.pdf")
                 # Sync hashes if H's bounded repair updated page_design.json or deck.pptx

@@ -326,6 +326,44 @@ def test_n3_repair_loop_preserves_template_path_and_unified_measure_protocol(tmp
     assert any(i.recheck is Recheck.passed for i in qa.issues)
 
 
+def test_runner_relative_out_dir_handles_resolved_renderer_paths(tmp_path, monkeypatch):
+    """Smoke 4 regression: runner must accept relative --out paths when DeckRenderer returns resolved Paths."""
+    from pptv01.runner import run_pipeline
+    from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+    from tests.fakes import FakeClient
+
+    monkeypatch.chdir(tmp_path)
+
+    class _ResolvedPathRenderer(_TestDeckRenderer):
+        def build(self, ops: DeckOps, run_dir: Path) -> BuildResult:
+            res = super().build(ops, run_dir.resolve())
+            return res.model_copy(
+                update={"pptx_path": res.pptx_path.resolve(), "dump_path": res.dump_path.resolve()}
+            )
+
+        def export(self, pptx: Path, out_dir: Path, width_px: int = 1920) -> ExportResult:
+            res = super().export(pptx, out_dir.resolve(), width_px=width_px)
+            return res.model_copy(
+                update={
+                    "png_paths": [p.resolve() for p in res.png_paths],
+                    "pdf_path": res.pdf_path.resolve() if res.pdf_path else None,
+                }
+            )
+
+    rep, run_dir = run_pipeline(
+        "帮我做一个城市热岛效应的 PPT。",
+        Path("runs/smoke4"),  # relative out_dir just like CLI `--out runs/smoke4`
+        FakeClient([GOOD_A, GOOD_B, GOOD_C]),
+        run_id="rel-test",
+        renderer=_ResolvedPathRenderer(),
+    )
+    st = {s.stage: s for s in rep.stages}
+    assert st["G"].status.value == "done", st["G"].error
+    assert st["H"].status.value == "done", st["H"].error
+    assert "deck_dump.json" in st["G"].output_files
+    assert any(f.startswith("render/slide_") for f in st["H"].output_files)
+
+
 # ------------------------------------------------------------------ 3. Real Windows PowerPoint COM R3 test
 @pytest.mark.windows_com
 def test_r3_real_powerpoint_com_detects_and_repairs_measured_text_overflow(tmp_path):
