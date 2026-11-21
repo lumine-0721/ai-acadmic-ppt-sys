@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import builtins
+import sys
+import types
 
 from pptv01.renderers import PowerPointComRenderer, RendererUnavailableError
 from tests.conftest import check_windows_com_skip_reason
@@ -15,6 +17,8 @@ def test_n0_windows_com_skips_on_non_windows():
 
 
 def test_n0_windows_com_skips_when_pywin32_missing(monkeypatch):
+    for mod in ("pythoncom", "win32com", "win32com.client"):
+        monkeypatch.delitem(sys.modules, mod, raising=False)
     real_import = builtins.__import__
 
     def fake_import(name, *args, **kwargs):
@@ -29,6 +33,15 @@ def test_n0_windows_com_skips_when_pywin32_missing(monkeypatch):
 
 
 def test_n0_windows_com_skips_when_powerpoint_unavailable(monkeypatch):
+    """Inject fake pywin32 modules so this test exercises the PowerPoint preflight branch even on Linux without pywin32."""
+    fake_pythoncom = types.ModuleType("pythoncom")
+    fake_win32com = types.ModuleType("win32com")
+    fake_win32com_client = types.ModuleType("win32com.client")
+    fake_win32com.client = fake_win32com_client  # type: ignore[attr-defined]
+
+    monkeypatch.setitem(sys.modules, "pythoncom", fake_pythoncom)
+    monkeypatch.setitem(sys.modules, "win32com", fake_win32com)
+    monkeypatch.setitem(sys.modules, "win32com.client", fake_win32com_client)
     monkeypatch.setattr(
         PowerPointComRenderer,
         "preflight",
