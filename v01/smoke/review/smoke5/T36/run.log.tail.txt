@@ -1,0 +1,43 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.01s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) done elapsed=1.38s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.02s
+[pptv01] stage D (asset_retrieval) start
+[stage-D] 1/7 start A001 (diagram) remaining_budget=180.0s
+[stage-D] 1/7 done A001 provider=none result=missing elapsed=0.00s
+[stage-D] 2/7 start A002 (reference) remaining_budget=180.0s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=artificial+intelligence+definition&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=14.45s attempts=3 detail=OpenAlex quota/rate limit reached: set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.openalex.
+[stage-D] 2/7 done A002 provider=openalex,crossref result=acquired elapsed=15.99s
+[stage-D] 3/7 start A003 (diagram) remaining_budget=164.0s
+[stage-D] 3/7 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/7 start A004 (icon) remaining_budget=164.0s
+[stage-D] 4/7 done A004 provider=none result=missing elapsed=0.00s
+[stage-D] 5/7 start A005 (diagram) remaining_budget=164.0s
+[stage-D] 5/7 done A005 provider=none result=missing elapsed=0.00s
+[stage-D] 6/7 start A006 (reference) remaining_budget=164.0s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=AI+hallucination+definition&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=13.65s attempts=3 detail=OpenAlex quota/rate limit reached: set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.openalex.
+[stage-D] 6/7 done A006 provider=openalex,crossref result=acquired elapsed=16.14s
+[stage-D] 7/7 start A007 (diagram) remaining_budget=147.9s
+[stage-D] 7/7 done A007 provider=none result=missing elapsed=0.00s
+[pptv01] stage D (asset_retrieval) done elapsed=33.95s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.01s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.15s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=42.95s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=42.61s
+run_dir: runs\smoke5\T36
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: 9499853f46652e7eae00c4272e742e303df1964b
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 5 placeholders

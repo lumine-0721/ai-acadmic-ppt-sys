@@ -1,0 +1,20 @@
+  pass     contract:production_plan  
+  pass     contract:research_brief  
+  pass     contract:slide_plan  
+  pass     contract:asset_requirements  
+  pass     contract:asset_registry  
+  pass     contract:user_input_requests  
+  pass     contract:slide_asset_mapping  
+  pass     contract:page_design  
+  pass     contract:qa_report  
+  pass     run_id_consistent  
+  pass     page_constraint  user stated no page limit
+  pass     assets_have_source_and_license  
+  pass     layout_diversity  7 distinct layout(s) across 7 slide(s): cover, timeline, image-right, comparison, big-number, section, quote
+  pass     mapped_visuals_placed  all 2 accepted visual mapping(s) placed in page_design
+  pass     no_fabricated_visuals  all visual elements sha256-verified and shapes whitelisted
+  pass     placeholders_marked  9 placeholder(s) properly marked
+  pass     pptx_opens  opened deck.pptx with 7 slides
+  pass     native_content_not_screenshots  all 7 slide(s) contain native text/shapes
+  pass     attribution_present  all attribution-required assets credited
+overall: pass

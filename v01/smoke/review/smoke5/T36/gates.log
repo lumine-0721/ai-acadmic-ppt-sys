@@ -1,0 +1,20 @@
+  pass     contract:production_plan  
+  pass     contract:research_brief  
+  pass     contract:slide_plan  
+  pass     contract:asset_requirements  
+  pass     contract:asset_registry  
+  pass     contract:user_input_requests  
+  pass     contract:slide_asset_mapping  
+  pass     contract:page_design  
+  pass     contract:qa_report  
+  pass     run_id_consistent  
+  pass     page_constraint  user max 5 pages; slide plan has 5
+  pass     assets_have_source_and_license  
+  pass     layout_diversity  5 distinct layout(s) across 5 slide(s): cover, timeline, big-number, comparison, quote
+  pass     mapped_visuals_placed  all 0 accepted visual mapping(s) placed in page_design
+  pass     no_fabricated_visuals  all visual elements sha256-verified and shapes whitelisted
+  pass     placeholders_marked  5 placeholder(s) properly marked
+  pass     pptx_opens  opened deck.pptx with 5 slides
+  pass     native_content_not_screenshots  all 5 slide(s) contain native text/shapes
+  pass     attribution_present  all attribution-required assets credited
+overall: pass

@@ -1,0 +1,102 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "results": [
+    {
+      "gate": "contract:production_plan",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:research_brief",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:slide_plan",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:asset_requirements",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:asset_registry",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:user_input_requests",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:slide_asset_mapping",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:page_design",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:qa_report",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "run_id_consistent",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "page_constraint",
+      "status": "pass",
+      "detail": "user max 5 pages; slide plan has 5"
+    },
+    {
+      "gate": "assets_have_source_and_license",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "layout_diversity",
+      "status": "pass",
+      "detail": "5 distinct layout(s) across 5 slide(s): cover, timeline, big-number, comparison, quote"
+    },
+    {
+      "gate": "mapped_visuals_placed",
+      "status": "pass",
+      "detail": "all 0 accepted visual mapping(s) placed in page_design"
+    },
+    {
+      "gate": "no_fabricated_visuals",
+      "status": "pass",
+      "detail": "all visual elements sha256-verified and shapes whitelisted"
+    },
+    {
+      "gate": "placeholders_marked",
+      "status": "pass",
+      "detail": "5 placeholder(s) properly marked"
+    },
+    {
+      "gate": "pptx_opens",
+      "status": "pass",
+      "detail": "opened deck.pptx with 5 slides"
+    },
+    {
+      "gate": "native_content_not_screenshots",
+      "status": "pass",
+      "detail": "all 5 slide(s) contain native text/shapes"
+    },
+    {
+      "gate": "attribution_present",
+      "status": "pass",
+      "detail": "all attribution-required assets credited"
+    }
+  ],
+  "overall": "pass"
+}

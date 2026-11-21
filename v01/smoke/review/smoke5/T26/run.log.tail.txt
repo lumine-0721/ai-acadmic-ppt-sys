@@ -1,0 +1,56 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.01s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) done elapsed=1.47s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.05s
+[pptv01] stage D (asset_retrieval) start
+[stage-D] 1/14 start A001 (image) remaining_budget=180.0s
+[stage-D] 1/14 done A001 provider=wikidata,commons result=acquired elapsed=11.12s
+[stage-D] 2/14 start A002 (image) remaining_budget=168.9s
+[stage-D] 2/14 done A002 provider=wikidata,commons result=acquired elapsed=10.56s
+[stage-D] 3/14 start A003 (diagram) remaining_budget=158.3s
+[stage-D] 3/14 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/14 start A004 (image) remaining_budget=158.3s
+[stage-D] 4/14 done A004 provider=wikidata,commons result=acquired elapsed=11.00s
+[stage-D] 5/14 start A005 (reference) remaining_budget=147.3s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=Gothic+cathedrals+structure+ribbed+vault+flying+buttress+review&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=13.69s attempts=3 detail=OpenAlex quota/rate limit reached: set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.openalex.
+[stage-D] 5/14 done A005 provider=openalex,crossref result=acquired elapsed=15.71s
+[stage-D] 6/14 start A006 (image) remaining_budget=131.6s
+[stage-D] 6/14 done A006 provider=wikidata,commons result=missing elapsed=5.00s
+[stage-D] 7/14 start A007 (diagram) remaining_budget=126.6s
+[stage-D] 7/14 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] 8/14 start A008 (image) remaining_budget=126.6s
+[stage-D] 8/14 done A008 provider=wikidata,commons result=acquired elapsed=10.51s
+[stage-D] 9/14 start A009 (diagram) remaining_budget=116.1s
+[stage-D] 9/14 done A009 provider=none result=missing elapsed=0.00s
+[stage-D] 10/14 start A010 (image) remaining_budget=116.1s
+[stage-D] 10/14 done A010 provider=wikidata,commons result=missing elapsed=4.23s
+[stage-D] 11/14 start A011 (image) remaining_budget=111.9s
+[stage-D] 11/14 done A011 provider=wikidata,commons result=acquired elapsed=9.70s
+[stage-D] 12/14 start A012 (image) remaining_budget=102.2s
+[stage-D] 12/14 done A012 provider=wikidata,commons result=acquired elapsed=10.27s
+[stage-D] 13/14 start A013 (diagram) remaining_budget=91.9s
+[stage-D] 13/14 done A013 provider=none result=missing elapsed=0.00s
+[stage-D] 14/14 start A014 (diagram) remaining_budget=91.9s
+[stage-D] 14/14 done A014 provider=none result=missing elapsed=0.00s
+[pptv01] stage D (asset_retrieval) done elapsed=90.38s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.02s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.56s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=46.16s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=43.69s
+run_dir: runs\smoke5\T26
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: 9499853f46652e7eae00c4272e742e303df1964b
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 7 placeholders
