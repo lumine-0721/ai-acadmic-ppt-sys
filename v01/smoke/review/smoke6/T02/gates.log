@@ -1,0 +1,22 @@
+  pass     contract:production_plan  
+  pass     contract:research_brief  
+  pass     contract:slide_plan  
+  pass     contract:asset_requirements  
+  pass     contract:asset_registry  
+  pass     contract:user_input_requests  
+  not_run  contract:slide_asset_mapping  file absent (stage not run or not implemented)
+  not_run  contract:page_design  file absent (stage not run or not implemented)
+  not_run  contract:qa_report  file absent (stage not run or not implemented)
+  pass     run_id_consistent  
+  pass     page_constraint  user stated no page limit
+  pass     assets_have_source_and_license  
+  not_run  layout_diversity  page_design.json absent (stage F not run)
+  not_run  fill_rate  page_design.json absent (stage F not run)
+  pass     no_text_only_visuals  3 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  not_run  mapped_visuals_placed  needs slide_asset_mapping.json and page_design.json
+  not_run  no_fabricated_visuals  deck.pptx absent (stage G not run)
+  not_run  placeholders_marked  deck.pptx absent (stage G not run)
+  not_run  pptx_opens  deck.pptx absent (stage G not run)
+  not_run  native_content_not_screenshots  deck.pptx absent (stage G not run)
+  not_run  attribution_present  deck.pptx absent (stage G not run)
+overall: incomplete

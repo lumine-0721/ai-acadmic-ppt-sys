@@ -1,0 +1,313 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "renderer": "powerpoint-com",
+  "render_provenance": "powerpoint-com 16.0 (build 20625)",
+  "rendered_pages": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005"
+  ],
+  "issues": [],
+  "missing_fonts": [],
+  "capacity_vs_measured": [
+    {
+      "page_id": "S001",
+      "element_id": "bullets",
+      "font_size_pt": 20.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 4,
+      "allocated_h_pt": 108.0,
+      "bound_h_pt": 48.0,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "footer",
+      "font_size_pt": 10.5,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 33.12,
+      "bound_h_pt": 12.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "title",
+      "font_size_pt": 42.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 115.2,
+      "bound_h_pt": 45.36,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "PLACEHOLDER_U001",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "bullets",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 57.6,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "quote_main",
+      "font_size_pt": 32.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 147.6,
+      "bound_h_pt": 38.4,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "title",
+      "font_size_pt": 24.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 56.16,
+      "bound_h_pt": 25.92,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "PLACEHOLDER_U002",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "bullets",
+      "font_size_pt": 20.0,
+      "estimated_lines": 3,
+      "capacity_max_lines": 5,
+      "allocated_h_pt": 144.0,
+      "bound_h_pt": 72.0,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "title",
+      "font_size_pt": 34.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 158.4,
+      "bound_h_pt": 36.72,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "PLACEHOLDER_U003",
+      "font_size_pt": 11.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 26.4,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "bullets",
+      "font_size_pt": 19.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 77.26,
+      "bound_h_pt": 45.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "footer",
+      "font_size_pt": 10.5,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 33.12,
+      "bound_h_pt": 12.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "quote_main",
+      "font_size_pt": 32.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 147.6,
+      "bound_h_pt": 38.4,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "title",
+      "font_size_pt": 24.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 56.16,
+      "bound_h_pt": 25.92,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "PLACEHOLDER_U004",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "bullets",
+      "font_size_pt": 20.0,
+      "estimated_lines": 3,
+      "capacity_max_lines": 5,
+      "allocated_h_pt": 144.0,
+      "bound_h_pt": 72.0,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "title",
+      "font_size_pt": 34.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 158.4,
+      "bound_h_pt": 73.44,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "PLACEHOLDER_U005",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    }
+  ],
+  "occupancy": [
+    {
+      "page_id": "S001",
+      "layout_id": "cover",
+      "passed": true,
+      "exempt": true,
+      "exempt_reason": "cover anchor title slide",
+      "max_void_in": 1.32,
+      "void_position": "middle",
+      "content_band": [
+        1.2,
+        6.56
+      ],
+      "detail": "S001 (cover): exempt (cover anchor title slide; max_void=1.32in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S002",
+      "layout_id": "quote",
+      "passed": true,
+      "exempt": true,
+      "exempt_reason": "editorial statement breathing slide",
+      "max_void_in": 1.823,
+      "void_position": "bottom",
+      "content_band": [
+        1.38,
+        6.56
+      ],
+      "detail": "S002 (quote): exempt (editorial statement breathing slide; max_void=1.82in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S003",
+      "layout_id": "section",
+      "passed": true,
+      "exempt": true,
+      "exempt_reason": "section divider breathing slide",
+      "max_void_in": 3.8,
+      "void_position": "bottom",
+      "content_band": [
+        1.2,
+        6.56
+      ],
+      "detail": "S003 (section): exempt (section divider breathing slide; max_void=3.80in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S004",
+      "layout_id": "quote",
+      "passed": true,
+      "exempt": true,
+      "exempt_reason": "editorial statement breathing slide",
+      "max_void_in": 1.617,
+      "void_position": "middle",
+      "content_band": [
+        1.38,
+        6.56
+      ],
+      "detail": "S004 (quote): exempt (editorial statement breathing slide; max_void=1.62in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S005",
+      "layout_id": "section",
+      "passed": true,
+      "exempt": true,
+      "exempt_reason": "section divider breathing slide",
+      "max_void_in": 3.78,
+      "void_position": "bottom",
+      "content_band": [
+        1.2,
+        6.56
+      ],
+      "detail": "S005 (section): exempt (section divider breathing slide; max_void=3.78in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    }
+  ],
+  "diagnostics": [
+    "fill_rate: all 0 non-exempt slide(s) pass fill_rate (max_void=0.00in < 1.60in) | exempt: S001 (cover anchor title slide), S002 (editorial statement breathing slide), S003 (section divider breathing slide), S004 (editorial statement breathing slide), S005 (section divider breathing slide)"
+  ],
+  "cross_render_notes": [],
+  "summary": "0 issue(s) recorded (0 fixed & passed recheck, 0 unresolved blocker/major)"
+}

@@ -1,0 +1,112 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T02",
+  "results": [
+    {
+      "gate": "contract:production_plan",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:research_brief",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:slide_plan",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:asset_requirements",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:asset_registry",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:user_input_requests",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:slide_asset_mapping",
+      "status": "not_run",
+      "detail": "file absent (stage not run or not implemented)"
+    },
+    {
+      "gate": "contract:page_design",
+      "status": "not_run",
+      "detail": "file absent (stage not run or not implemented)"
+    },
+    {
+      "gate": "contract:qa_report",
+      "status": "not_run",
+      "detail": "file absent (stage not run or not implemented)"
+    },
+    {
+      "gate": "run_id_consistent",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "page_constraint",
+      "status": "pass",
+      "detail": "user stated no page limit"
+    },
+    {
+      "gate": "assets_have_source_and_license",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "layout_diversity",
+      "status": "not_run",
+      "detail": "page_design.json absent (stage F not run)"
+    },
+    {
+      "gate": "fill_rate",
+      "status": "not_run",
+      "detail": "page_design.json absent (stage F not run)"
+    },
+    {
+      "gate": "no_text_only_visuals",
+      "status": "pass",
+      "detail": "3 image visual(s) checked cleanly (max OCR area ratio <= 0.12)"
+    },
+    {
+      "gate": "mapped_visuals_placed",
+      "status": "not_run",
+      "detail": "needs slide_asset_mapping.json and page_design.json"
+    },
+    {
+      "gate": "no_fabricated_visuals",
+      "status": "not_run",
+      "detail": "deck.pptx absent (stage G not run)"
+    },
+    {
+      "gate": "placeholders_marked",
+      "status": "not_run",
+      "detail": "deck.pptx absent (stage G not run)"
+    },
+    {
+      "gate": "pptx_opens",
+      "status": "not_run",
+      "detail": "deck.pptx absent (stage G not run)"
+    },
+    {
+      "gate": "native_content_not_screenshots",
+      "status": "not_run",
+      "detail": "deck.pptx absent (stage G not run)"
+    },
+    {
+      "gate": "attribution_present",
+      "status": "not_run",
+      "detail": "deck.pptx absent (stage G not run)"
+    }
+  ],
+  "overall": "incomplete"
+}

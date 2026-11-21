@@ -1,0 +1,59 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.00s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) done elapsed=2.93s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.09s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 2.30s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 1.01s
+[stage-D] 1/14 start A001 (image) remaining_budget=180.0s
+[stage-D] 1/14 done A001 provider=wikidata,commons result=acquired elapsed=28.06s
+[stage-D] 2/14 start A002 (image) remaining_budget=151.9s
+[stage-D] 2/14 done A002 provider=wikidata,commons result=acquired elapsed=14.01s
+[stage-D] 3/14 start A003 (diagram) remaining_budget=137.9s
+[stage-D] 3/14 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/14 start A004 (image) remaining_budget=137.9s
+[stage-D] 4/14 done A004 provider=wikidata,commons result=acquired elapsed=11.49s
+[stage-D] 5/14 start A005 (reference) remaining_budget=126.4s
+[stage-D] 5/14 done A005 provider=openalex result=acquired elapsed=2.78s
+[stage-D] 6/14 start A006 (image) remaining_budget=123.7s
+[stage-D] 6/14 done A006 provider=wikidata,commons result=acquired elapsed=14.86s
+[stage-D] 7/14 start A007 (diagram) remaining_budget=108.8s
+[stage-D] 7/14 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] 8/14 start A008 (image) remaining_budget=108.8s
+[stage-D] 8/14 done A008 provider=wikidata,commons result=acquired elapsed=13.37s
+[stage-D] 9/14 start A009 (diagram) remaining_budget=95.4s
+[stage-D] 9/14 done A009 provider=none result=missing elapsed=0.00s
+[stage-D] 10/14 start A010 (image) remaining_budget=95.4s
+[stage-D] 10/14 done A010 provider=wikidata,commons result=acquired elapsed=10.22s
+[stage-D] 11/14 start A011 (image) remaining_budget=85.2s
+[stage-D] 11/14 done A011 provider=wikidata,commons result=acquired elapsed=11.40s
+[stage-D] 12/14 start A012 (image) remaining_budget=73.8s
+[stage-D] 12/14 done A012 provider=wikidata,commons result=acquired elapsed=20.49s
+[stage-D] 13/14 start A013 (diagram) remaining_budget=53.3s
+[stage-D] 13/14 done A013 provider=none result=missing elapsed=0.00s
+[stage-D] 14/14 start A014 (diagram) remaining_budget=53.3s
+[stage-D] 14/14 done A014 provider=none result=missing elapsed=0.00s
+[pptv01] stage D (asset_retrieval) done elapsed=134.84s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.02s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.92s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=44.29s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=42.59s
+run_dir: runs\smoke6\T26
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: 50d26c7ef5981270dc575f6e73b4c42907518747
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 5 placeholders

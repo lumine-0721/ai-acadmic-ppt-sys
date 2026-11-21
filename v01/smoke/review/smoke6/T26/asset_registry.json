@@ -1,0 +1,2291 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T26",
+  "assets": [
+    {
+      "asset_id": "A001",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A001.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)",
+      "author": "Steve Swayne",
+      "attribution": "Steve Swayne, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg)",
+      "identifier": "File:The Parthenon in Athens.jpg",
+      "entity": {
+        "name": "帕特农神庙",
+        "qid": "Q10288",
+        "label": "Parthenon",
+        "description": "former temple of Athena on the Athenian Acropolis, Greece",
+        "url": "https://www.wikidata.org/wiki/Q10288",
+        "chosen_by": "exact_label_match",
+        "alternatives": [
+          "Q3753726 帕特农神庙的山形墙浮雕 - sculpture by Phidias"
+        ]
+      },
+      "sha256": "7227ddafb1df107c2bb638b7cceab8876b4de8255e250f4603528ccb9082bc49",
+      "mime": "image/jpeg",
+      "width": 1144,
+      "height": 804,
+      "retrieved_at": "2026-11-21T23:26:04.092244+08:00",
+      "notes": "target '帕特农神庙' (verified); multi-target requirement: only the first target was acquired; not covered: ['Chrysler Building'] (split in C / revise)",
+      "shared_with": null,
+      "uncovered_targets": [
+        "Chrysler Building"
+      ],
+      "candidates": [
+        {
+          "title": "File:Parthenon from west.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_from_west.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.141 < 0.3",
+          "score": 0.14069777727127075
+        },
+        {
+          "title": "File:Parthenon from south.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg",
+          "license": "CC BY-SA 2.5",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.236 < 0.3",
+          "score": 0.23575712740421295
+        },
+        {
+          "title": "File:Parthenon, Arkansas - playground and buildings.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_playground_and_buildings.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.137 < 0.3",
+          "score": 0.13714641332626343
+        },
+        {
+          "title": "File:Parthenon, Arkansas - Parthenon First Baptist Church.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_Parthenon_First_Baptist_Church.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.046 < 0.3",
+          "score": 0.045897647738456726
+        },
+        {
+          "title": "File:Parthenon, Arkansas - signs.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_signs.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score -0.015 < 0.3",
+          "score": -0.014602186158299446
+        },
+        {
+          "title": "File:Parthenon, Arkansas - post office.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_post_office.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score -0.019 < 0.3",
+          "score": -0.01907915621995926
+        },
+        {
+          "title": "File:Attica 06-13 Athens 50 View from Philopappos - Acropolis Hill.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Attica_06-13_Athens_50_View_from_Philopappos_-_Acropolis_Hill.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '帕特农神庙' (expected one of ['parthenon', 'pathenonas', '巴特農神廟', '巴特農神殿', '帕德嫩神廟'])",
+          "score": 0.4412795603275299
+        },
+        {
+          "title": "File:Parthenon, Acropolis, Athens, Greece.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Acropolis,_Athens,_Greece.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.47589465975761414
+        },
+        {
+          "title": "File:Parthenon - facade ouest.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_-_facade_ouest.jpg",
+          "license": "CC BY 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4617500305175781
+        },
+        {
+          "title": "File:Athens Acropolis Parthenon (27828101733).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Athens_Acropolis_Parthenon_(27828101733).jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4236355125904083
+        },
+        {
+          "title": "File:Athens Acropolis Parthenon (27827579884).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Athens_Acropolis_Parthenon_(27827579884).jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4188228249549866
+        },
+        {
+          "title": "File:Athens Acropolis Parthenon (27827974593).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Athens_Acropolis_Parthenon_(27827974593).jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.41129007935523987
+        },
+        {
+          "title": "File:Athens Acropolis Parthenon (28161166840).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Athens_Acropolis_Parthenon_(28161166840).jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4095400869846344
+        },
+        {
+          "title": "File:Parthenon Columns, Acropolis, Athens (10045385934).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_Columns,_Acropolis,_Athens_(10045385934).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.40271657705307007
+        },
+        {
+          "title": "File:Attica 06-13 Athens 35 Parthenon.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Attica_06-13_Athens_35_Parthenon.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.3215726613998413
+        },
+        {
+          "title": "File:The Parthenon in Athens.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg",
+          "license": "CC BY 2.0",
+          "origin": "wikidata_p18",
+          "decision": "selected",
+          "reason": "Wikidata P18 of Q10288 Parthenon (representative image chosen on Wikidata); pixel_rules: clip_pos=0.337, neg='a screenshot of text':0.236, ocr_ratio=0.000",
+          "score": 0.3368
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; Wikidata P18 of Q10288 Parthenon (representative image chosen on Wikidata); image content NOT visually inspected",
+        "usability": "licence CC BY 2.0; attribution required",
+        "format": "image/jpeg 1144x804, 347181 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.337, neg='a screenshot of text':0.236, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A002",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A002.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Acropolis_and_full_moon_...Eternal_Light.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)",
+      "author": "Dim Leventis",
+      "attribution": "Dim Leventis, CC BY-SA 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Acropolis_and_full_moon_...Eternal_Light.jpg)",
+      "identifier": "File:Acropolis and full moon ...Eternal Light.jpg",
+      "entity": {
+        "name": "帕特农神庙",
+        "qid": "Q10288",
+        "label": "Parthenon",
+        "description": "former temple of Athena on the Athenian Acropolis, Greece",
+        "url": "https://www.wikidata.org/wiki/Q10288",
+        "chosen_by": "exact_label_match",
+        "alternatives": [
+          "Q3753726 帕特农神庙的山形墙浮雕 - sculpture by Phidias"
+        ]
+      },
+      "sha256": "2d1570ee44cc03fe25f6c68d1e27763d9fcf25eeca68323f20424895358e9feb",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 802,
+      "retrieved_at": "2026-11-21T23:26:18.097466+08:00",
+      "notes": "target '帕特农神庙' (verified)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:Ancient Athens (IA cu31924021536325).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Ancient_Athens_(IA_cu31924021536325).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Ancient Athens (IA ancientathens02gard).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Ancient_Athens_(IA_ancientathens02gard).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Ancient Athens (IA ancientathens00gardiala).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Ancient_Athens_(IA_ancientathens00gardiala).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Ancient Athens (IA ancientathens00gard).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Ancient_Athens_(IA_ancientathens00gard).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:The near East; Dalmatia, Greece and Constantinople (1913) (14788578403).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_near_East;_Dalmatia,_Greece_and_Constantinople_(1913)_(14788578403).jpg",
+          "license": "No restrictions",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "licence not on the allowlist (No restrictions)",
+          "score": null
+        },
+        {
+          "title": "File:Parthenon from west.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_from_west.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.139 < 0.3",
+          "score": 0.1394614577293396
+        },
+        {
+          "title": "File:Parthenon from south.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg",
+          "license": "CC BY-SA 2.5",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.200 < 0.3",
+          "score": 0.19992046058177948
+        },
+        {
+          "title": "File:Parthenon, Arkansas - playground and buildings.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_playground_and_buildings.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.068 < 0.3",
+          "score": 0.06759316474199295
+        },
+        {
+          "title": "File:Parthenon, Arkansas - Parthenon First Baptist Church.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_Parthenon_First_Baptist_Church.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.057 < 0.3",
+          "score": 0.056562043726444244
+        },
+        {
+          "title": "File:Parthenon, Arkansas - signs.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_signs.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score -0.054 < 0.3",
+          "score": -0.0540648028254509
+        },
+        {
+          "title": "File:Parthenon, Arkansas - post office.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon,_Arkansas_-_post_office.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score -0.077 < 0.3",
+          "score": -0.07745161652565002
+        },
+        {
+          "title": "File:Parthenon at night with full moon - panoramio.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Parthenon_at_night_with_full_moon_-_panoramio.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.244 < 0.3",
+          "score": 0.24445278942584991
+        },
+        {
+          "title": "File:Ancient temple Parthenon in Acropolis Athens.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Ancient_temple_Parthenon_in_Acropolis_Athens.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.311, neg='a screenshot of text':0.216, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.3112
+        },
+        {
+          "title": "File:Attica 06-13 Athens 35 Parthenon.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Attica_06-13_Athens_35_Parthenon.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.310, neg='a screenshot of text':0.215, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.3101
+        },
+        {
+          "title": "File:The Parthenon in Athens.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg",
+          "license": "CC BY 2.0",
+          "origin": "wikidata_p18",
+          "decision": "rejected",
+          "reason": "demoted: already used by A001",
+          "score": null
+        },
+        {
+          "title": "File:Acropolis and full moon ...Eternal Light.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Acropolis_and_full_moon_...Eternal_Light.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.48 (metadata text vs target/purpose); pixel_rules: clip_pos=0.324, neg='a screenshot of text':0.211, ocr_ratio=0.000",
+          "score": 0.3237
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.48 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY-SA 2.0; attribution required",
+        "format": "image/jpeg 1280x802, 211684 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.324, neg='a screenshot of text':0.211, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A003",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A004",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A004.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Westfassade_Chartres.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "Public domain",
+      "author": "BT",
+      "attribution": "BT, Public domain, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Westfassade_Chartres.jpg)",
+      "identifier": "File:Westfassade Chartres.jpg",
+      "entity": {
+        "name": "沙特尔大教堂",
+        "qid": "Q180274",
+        "label": "Notre-Dame de Chartres",
+        "description": "medieval Catholic cathedral in Chartres, France",
+        "url": "https://www.wikidata.org/wiki/Q180274",
+        "chosen_by": "only_candidate",
+        "alternatives": []
+      },
+      "sha256": "a1319e75740ee722a955f9190078277b029a3c665caeaf6ebc6d599f3517a4dd",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 1973,
+      "retrieved_at": "2026-11-21T23:26:29.590231+08:00",
+      "notes": "target '沙特尔大教堂' (to_verify); target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:South rose window of Chartres Cathedral crop1m.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:South_rose_window_of_Chartres_Cathedral_crop1m.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "too small (254px wide < 600)",
+          "score": null
+        },
+        {
+          "title": "File:The city of Chartres; its cathedral & churches (IA cityofchartresit00massuoft).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:The_city_of_Chartres;_its_cathedral_%26_churches_(IA_cityofchartresit00massuoft).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:A guide to the Cathedral Church of Saint John the Divine in the city of New York, (IA guidetocathedral00hall 0).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:A_guide_to_the_Cathedral_Church_of_Saint_John_the_Divine_in_the_city_of_New_York,_(IA_guidetocathedral00hall_0).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Notre Dame de Paris; a short history & description of the cathedral, with some account of the churches which preceded it (IA notredamedeparis00hiatiala).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Notre_Dame_de_Paris;_a_short_history_%26_description_of_the_cathedral,_with_some_account_of_the_churches_which_preceded_it_(IA_notredamedeparis00hiatiala).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Cathedrals and cloisters of the Isle de France (IA cathedralsandclo01rose).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Cathedrals_and_cloisters_of_the_Isle_de_France_(IA_cathedralsandclo01rose).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Architectural record (IA architecturalre4319unse 0).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Architectural_record_(IA_architecturalre4319unse_0).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Classification systems used in the Library (IA classificationsy00metr).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Classification_systems_used_in_the_Library_(IA_classificationsy00metr).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Catalogues of the drawings, prints and photographs in the Library of the Royal Institute of British Architects, complete to end of the session 1870-71 (IA cataloguesofdraw00royauoft).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Catalogues_of_the_drawings,_prints_and_photographs_in_the_Library_of_the_Royal_Institute_of_British_Architects,_complete_to_end_of_the_session_1870-71_(IA_cataloguesofdraw00royauoft).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Catalogue of exhibition of school and church architecture- held in the Club building, 16 Somerset Street, Boston, December, 1910 (IA catalogueofexhib00bost 0).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Catalogue_of_exhibition_of_school_and_church_architecture-_held_in_the_Club_building,_16_Somerset_Street,_Boston,_December,_1910_(IA_catalogueofexhib00bost_0).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Cathédrale de Chartres - rosace ouest, extérieur.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Cath%C3%A9drale_de_Chartres_-_rosace_ouest,_ext%C3%A9rieur.JPG",
+          "license": "CC BY 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7122916579246521
+        },
+        {
+          "title": "File:Cathédrale Notre-Dame (Chartres) (2).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Cath%C3%A9drale_Notre-Dame_(Chartres)_(2).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6947339177131653
+        },
+        {
+          "title": "File:Cathédrale Notre-Dame - cadran solaire (Chartres).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Cath%C3%A9drale_Notre-Dame_-_cadran_solaire_(Chartres).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6388505697250366
+        },
+        {
+          "title": "File:Cathédrale Notre-Dame - intérieur - chapelle (Chartres).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Cath%C3%A9drale_Notre-Dame_-_int%C3%A9rieur_-_chapelle_(Chartres).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6267349123954773
+        },
+        {
+          "title": "File:Vitrail Chartres 210209 07.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Vitrail_Chartres_210209_07.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.611518383026123
+        },
+        {
+          "title": "File:Chartres - portail royal, tympan central.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chartres_-_portail_royal,_tympan_central.jpg",
+          "license": "CC BY 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6062982678413391
+        },
+        {
+          "title": "File:Chartres RosetteNord 121 DSC08241.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chartres_RosetteNord_121_DSC08241.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.39258214831352234
+        },
+        {
+          "title": "File:Westfassade Chartres.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Westfassade_Chartres.jpg",
+          "license": "Public domain",
+          "origin": "wikidata_p18",
+          "decision": "selected",
+          "reason": "Wikidata P18 of Q180274 Notre-Dame de Chartres (representative image chosen on Wikidata); pixel_rules: clip_pos=0.350, neg='a screenshot of text':0.224, ocr_ratio=0.001",
+          "score": 0.35
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; Wikidata P18 of Q180274 Notre-Dame de Chartres (representative image chosen on Wikidata); image content NOT visually inspected",
+        "usability": "licence Public domain",
+        "format": "image/jpeg 1280x1973, 844721 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.350, neg='a screenshot of text':0.224, ocr_ratio=0.001)"
+      }
+    },
+    {
+      "asset_id": "A005",
+      "status": "acquired",
+      "type": "reference",
+      "file_path": "assets/A005.json",
+      "source_url": "https://doi.org/10.70121/001c.143045",
+      "source_name": "OpenAlex",
+      "license_or_terms": "OpenAlex metadata, CC0; bibliographic record only",
+      "author": "Catherine Liao",
+      "attribution": null,
+      "identifier": "10.70121/001c.143045",
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": "2026-11-21T23:26:32.382006+08:00",
+      "notes": "target 'Gothic cathedrals and churches' (verified)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "Economic Power and Architectural Innovation in Gothic Cathedrals",
+          "url": "https://doi.org/10.70121/001c.143045",
+          "license": "",
+          "origin": "openalex",
+          "decision": "selected",
+          "reason": "embedding score 0.79",
+          "score": 0.7920693159103394
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": "embedding score 0.79 on title/venue; abstract not read",
+        "usability": "citation metadata only; full text not retrieved",
+        "format": "Crossref title similarity 1.00: 'Economic Power and Architectural Innovation in Gothic Cathedrals'",
+        "quality": "not assessed in D"
+      }
+    },
+    {
+      "asset_id": "A006",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A006.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_8.JPG",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0/)",
+      "author": "Angus Cepka",
+      "attribution": "Angus Cepka, CC BY-SA 3.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Foguang_Temple_8.JPG)",
+      "identifier": "File:Foguang Temple 8.JPG",
+      "entity": null,
+      "sha256": "b41ab9e0121dd9ae4b1293cf68dfe5a30307d7b67fc8bd452788d59762d00139",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 960,
+      "retrieved_at": "2026-11-21T23:26:47.244212+08:00",
+      "notes": "target '佛光寺东大殿' (to_verify); Wikidata candidate Q121353103 佛光寺东大殿造像组合及相关问题探讨 - rejected: instance of scholarly article; Wikidata candidate Q119476769 佛光寺东大殿尺度规律探讨 - rejected: instance of scholarly article; Wikidata candidate Q119477242 佛光寺东大殿结构特征——《中国古代木结构建筑技术（战国—北宋）》相关内容再议 - rejected: instance of scholarly article; target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:CADAL09007227 唐兩京城坊考.一.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:CADAL09007227_%E5%94%90%E5%85%A9%E4%BA%AC%E5%9F%8E%E5%9D%8A%E8%80%83.%E4%B8%80.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Foguang Temple 7.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_7.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.293, neg='a screenshot of text':0.195, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.2925
+        },
+        {
+          "title": "File:Foguang Temple 10.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_10.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.287, neg='a screenshot of text':0.221, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.2871
+        },
+        {
+          "title": "File:Foguang Temple Plaque3.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_Plaque3.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6706867218017578
+        },
+        {
+          "title": "File:3东大殿3.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:3%E4%B8%9C%E5%A4%A7%E6%AE%BF3.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6694380044937134
+        },
+        {
+          "title": "File:Foguang Temple 9.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_9.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6626490950584412
+        },
+        {
+          "title": "File:Foguang Temple 4.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_4.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6498215198516846
+        },
+        {
+          "title": "File:Wutai 2009 487.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Wutai_2009_487.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6132785081863403
+        },
+        {
+          "title": "File:Foguang Temple 8.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_8.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.71 (metadata text vs target/purpose); pixel_rules: clip_pos=0.328, neg='a screenshot of text':0.210, ocr_ratio=0.000",
+          "score": 0.3275
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.71 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY-SA 3.0; attribution required",
+        "format": "image/jpeg 1280x960, 291575 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.328, neg='a screenshot of text':0.210, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A007",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A008",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A008.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "Public domain",
+      "author": "Benh LIEU SONG",
+      "attribution": "Benh LIEU SONG, Public domain, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg)",
+      "identifier": "File:Tour Eiffel Wikimedia Commons.jpg",
+      "entity": {
+        "name": "埃菲尔铁塔",
+        "qid": "Q243",
+        "label": "Eiffel Tower",
+        "description": "tower located on the Champ de Mars in Paris, France",
+        "url": "https://www.wikidata.org/wiki/Q243",
+        "chosen_by": "exact_label_match",
+        "alternatives": [
+          "Q97164958 埃菲尔铁塔 - 2021年的電影",
+          "Q162873 埃菲尔铁塔上所刻的72人列表 - 维基媒体列表条目",
+          "Q3821251 埃菲尔铁塔 (修拉) - painting by Georges Seurat",
+          "Q119925035 埃菲尔铁塔的花边 - rejected: instance of scholarly article"
+        ]
+      },
+      "sha256": "fd65af359ffad55d8a2489024c5bd52c15439a808e5a759cd92238bb53dcab29",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 2369,
+      "retrieved_at": "2026-11-21T23:27:00.609495+08:00",
+      "notes": "target '埃菲尔铁塔' (to_verify); Wikidata candidate Q119925035 埃菲尔铁塔的花边 - rejected: instance of scholarly article; target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content; multi-target requirement: only the first target was acquired; not covered: ['水晶宫'] (split in C / revise)",
+      "shared_with": null,
+      "uncovered_targets": [
+        "水晶宫"
+      ],
+      "candidates": [
+        {
+          "title": "File:Steel engraving; Crystal Palace, 1851 exhibition Wellcome L0023919.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Steel_engraving;_Crystal_Palace,_1851_exhibition_Wellcome_L0023919.jpg",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['france'], but Commons metadata/categories indicate ['uk']",
+          "score": 0.5010377168655396
+        },
+        {
+          "title": "File:The Crystal Palace page 38.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_38.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.3983045518398285
+        },
+        {
+          "title": "File:The Crystal Palace page 18.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_18.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.38817545771598816
+        },
+        {
+          "title": "File:The Crystal Palace page 40f.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_40f.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.37439703941345215
+        },
+        {
+          "title": "File:The Crystal Palace page 61.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_61.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.3726312518119812
+        },
+        {
+          "title": "File:The Crystal Palace page 37.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_37.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.4019976556301117
+        },
+        {
+          "title": "File:The Crystal Palace page 55.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_55.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.4094492197036743
+        },
+        {
+          "title": "File:The Crystal Palace page 58.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Crystal_Palace_page_58.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '埃菲尔铁塔' (expected one of ['eiffel', '埃菲尔', '埃菲尔铁塔', '埃菲爾鐵塔'])",
+          "score": 0.36961111426353455
+        },
+        {
+          "title": "File:Eiffel Tower, full-view looking toward the Trocadero, Exposition Universal, 1900, Paris, France.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Eiffel_Tower,_full-view_looking_toward_the_Trocadero,_Exposition_Universal,_1900,_Paris,_France.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6245002746582031
+        },
+        {
+          "title": "File:Louis-Emile Durandelle, The Eiffel Tower - State of the Construction, 1888.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Louis-Emile_Durandelle,_The_Eiffel_Tower_-_State_of_the_Construction,_1888.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.617831826210022
+        },
+        {
+          "title": "File:Paris - Eiffel Tower in the evening - 4210.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Paris_-_Eiffel_Tower_in_the_evening_-_4210.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.5783337354660034
+        },
+        {
+          "title": "File:Eiffel Tower and Pont Alexandre III at night.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Eiffel_Tower_and_Pont_Alexandre_III_at_night.jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.5538063645362854
+        },
+        {
+          "title": "File:Reflet-tour-Eiffel-Paris-Luc-Viatour.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Reflet-tour-Eiffel-Paris-Luc-Viatour.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.5513113141059875
+        },
+        {
+          "title": "File:Tour Eiffel - 20150801 15h30 (10621).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Tour_Eiffel_-_20150801_15h30_(10621).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4654104709625244
+        },
+        {
+          "title": "File:Paris - The Eiffel Tower in spring - 2307.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Paris_-_The_Eiffel_Tower_in_spring_-_2307.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4408133625984192
+        },
+        {
+          "title": "File:Tour eiffel at sunrise from the trocadero.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Tour_eiffel_at_sunrise_from_the_trocadero.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.43177980184555054
+        },
+        {
+          "title": "File:Champ de Mars from the Eiffel Tower - July 2006 edit.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Champ_de_Mars_from_the_Eiffel_Tower_-_July_2006_edit.jpg",
+          "license": "CC BY 2.5",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.4125064015388489
+        },
+        {
+          "title": "File:Lightning striking the Eiffel Tower - NOAA.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Lightning_striking_the_Eiffel_Tower_-_NOAA.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.3682095408439636
+        },
+        {
+          "title": "File:Tour Eiffel Wikimedia Commons.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg",
+          "license": "Public domain",
+          "origin": "wikidata_p18",
+          "decision": "selected",
+          "reason": "Wikidata P18 of Q243 Eiffel Tower (representative image chosen on Wikidata); pixel_rules: clip_pos=0.329, neg='a screenshot of text':0.246, ocr_ratio=0.000",
+          "score": 0.3293
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; Wikidata P18 of Q243 Eiffel Tower (representative image chosen on Wikidata); image content NOT visually inspected",
+        "usability": "licence Public domain",
+        "format": "image/jpeg 1280x2369, 614616 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.329, neg='a screenshot of text':0.246, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A009",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A010",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A010.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Villa_Savoye32.JPG_-_Flickr_-_scarletgreen.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)",
+      "author": "scarletgreen from Japan",
+      "attribution": "scarletgreen from Japan, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Villa_Savoye32.JPG_-_Flickr_-_scarletgreen.jpg)",
+      "identifier": "File:Villa Savoye32.JPG - Flickr - scarletgreen.jpg",
+      "entity": null,
+      "sha256": "1a045e9d704d30f99e8122589e0640c020e370b99e1f42c77120ada909fd1d0f",
+      "mime": "image/jpeg",
+      "width": 856,
+      "height": 1280,
+      "retrieved_at": "2026-11-21T23:27:10.830322+08:00",
+      "notes": "target '萨伏伊别墅' (to_verify); Wikidata candidate Q119477278 萨伏伊别墅（1928-1929）:一个独立世界的创生——勒·柯布西耶“建筑散步”思想溯源 - rejected: instance of scholarly article; target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:CADAL09007818 呂東萊文集·（三）.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:CADAL09007818_%E5%91%82%E6%9D%B1%E8%90%8A%E6%96%87%E9%9B%86%C2%B7%EF%BC%88%E4%B8%89%EF%BC%89.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:CADAL04601502 （乾隆）鄠縣新志：卷六.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:CADAL04601502_%EF%BC%88%E4%B9%BE%E9%9A%86%EF%BC%89%E9%84%A0%E7%B8%A3%E6%96%B0%E5%BF%97%EF%BC%9A%E5%8D%B7%E5%85%AD.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:CADAL11104388 中國革命運動二十六年組織史.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:CADAL11104388_%E4%B8%AD%E5%9C%8B%E9%9D%A9%E5%91%BD%E9%81%8B%E5%8B%95%E4%BA%8C%E5%8D%81%E5%85%AD%E5%B9%B4%E7%B5%84%E7%B9%94%E5%8F%B2.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:CADAL06211699 婁東周氏叢刊.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:CADAL06211699_%E5%A9%81%E6%9D%B1%E5%91%A8%E6%B0%8F%E5%8F%A2%E5%88%8A.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:唐書合鈔(九十九).djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:%E5%94%90%E6%9B%B8%E5%90%88%E9%88%94(%E4%B9%9D%E5%8D%81%E4%B9%9D).djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Chinese wikipedia 2004.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Chinese_wikipedia_2004.pdf",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "file has restrictions: trademarked",
+          "score": null
+        },
+        {
+          "title": "File:CADAL11110257 因話錄.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:CADAL11110257_%E5%9B%A0%E8%A9%B1%E9%8C%84.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:摛藻堂四庫全書薈要.第450冊.集部103冊.djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:%E6%91%9B%E8%97%BB%E5%A0%82%E5%9B%9B%E5%BA%AB%E5%85%A8%E6%9B%B8%E8%96%88%E8%A6%81.%E7%AC%AC450%E5%86%8A.%E9%9B%86%E9%83%A8103%E5%86%8A.djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Les heures claires...^1 - Flickr - Biscarotte.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Les_heures_claires...%5E1_-_Flickr_-_Biscarotte.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.221 < 0.3",
+          "score": 0.220661461353302
+        },
+        {
+          "title": "File:Villa Savoye (8237925975).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Villa_Savoye_(8237925975).jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.185, neg='a screenshot of text':0.181, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.185
+        },
+        {
+          "title": "File:Villa Savoye32.JPG - Flickr - scarletgreen.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Villa_Savoye32.JPG_-_Flickr_-_scarletgreen.jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.58 (metadata text vs target/purpose); pixel_rules: clip_pos=0.261, neg='a document page':0.186, ocr_ratio=0.000",
+          "score": 0.261
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.58 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY 2.0; attribution required",
+        "format": "image/jpeg 856x1280, 202071 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.261, neg='a document page':0.186, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A011",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A011.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "Public domain",
+      "author": "w:User:Overand derivative work: Overand ( talk )",
+      "attribution": "w:User:Overand derivative work: Overand ( talk ), Public domain, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg)",
+      "identifier": "File:Chrysler Building by David Shankbone Retouched.jpg",
+      "entity": {
+        "name": "Chrysler Building",
+        "qid": "Q11274",
+        "label": "Chrysler Building",
+        "description": "building in New York City",
+        "url": "https://www.wikidata.org/wiki/Q11274",
+        "chosen_by": "exact_label_match",
+        "alternatives": [
+          "Q49269840 Chrysler Building - painting by Barbro .stlihn",
+          "Q64155237 Chrysler Building, New York - photograph in the National Gallery of Art (NGA 119500)",
+          "Q98820777 Chrysler Building, New York - photograph by Margaret Bourke-White (MET, 1987.1100.338)",
+          "Q80078735 Chrysler Building, Park Avenue, New York - photograph by Charles Harbutt (American, 1935-2015) (2012.445)"
+        ]
+      },
+      "sha256": "1230628896d6a20be60d8b4046f2ca4dfc138f950dc65c54491f5eeb4d6af4ec",
+      "mime": "image/jpeg",
+      "width": 1036,
+      "height": 3055,
+      "retrieved_at": "2026-11-21T23:27:22.230440+08:00",
+      "notes": "target 'Chrysler Building' (verified)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:Manhattan from Weehawken, NJ.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Manhattan_from_Weehawken,_NJ.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "extreme aspect ratio 4335x1200 (> 3:1, not usable as a slide picture)",
+          "score": null
+        },
+        {
+          "title": "File:Chrysler Building logo.svg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_logo.svg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "file has restrictions: trademarked",
+          "score": null
+        },
+        {
+          "title": "File:Chrysler Building 6a (4689463180).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_6a_(4689463180).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7881140112876892
+        },
+        {
+          "title": "File:Chrysler Building 1 (4684845155).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_1_(4684845155).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7771826386451721
+        },
+        {
+          "title": "File:Chrysler Building 2 (4685482230).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_2_(4685482230).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7726746201515198
+        },
+        {
+          "title": "File:Chrysler Building 6 (4693825893).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_6_(4693825893).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7689754366874695
+        },
+        {
+          "title": "File:Chrysler Building 2 (4668755702).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_2_(4668755702).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7688165903091431
+        },
+        {
+          "title": "File:The Chrysler Building (5918428133).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_Chrysler_Building_(5918428133).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7598255276679993
+        },
+        {
+          "title": "File:Looking Down 42nd Avenue to Chrysler Building, Manhattan, New York (7237730886).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Looking_Down_42nd_Avenue_to_Chrysler_Building,_Manhattan,_New_York_(7237730886).jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.74184650182724
+        },
+        {
+          "title": "File:Chrysler Building - 05.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_-_05.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7417362928390503
+        },
+        {
+          "title": "File:Chrysler Building 2011.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_2011.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7311583161354065
+        },
+        {
+          "title": "File:Chrysler Building NYC-20090519-RM-094845.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_NYC-20090519-RM-094845.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7012156248092651
+        },
+        {
+          "title": "File:Chrysler Central Elevator 2019-10-03 20-18.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Central_Elevator_2019-10-03_20-18.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6987696290016174
+        },
+        {
+          "title": "File:View of Chrysler Building from Empire State Building, New York City, 20231001 1510 1364.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:View_of_Chrysler_Building_from_Empire_State_Building,_New_York_City,_20231001_1510_1364.jpg",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6731481552124023
+        },
+        {
+          "title": "File:New York Art Deco (298508448).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:New_York_Art_Deco_(298508448).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.3504090905189514
+        },
+        {
+          "title": "File:Chrysler Building by David Shankbone Retouched.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg",
+          "license": "Public domain",
+          "origin": "wikidata_p18",
+          "decision": "selected",
+          "reason": "Wikidata P18 of Q11274 Chrysler Building (representative image chosen on Wikidata); pixel_rules: clip_pos=0.326, neg='a screenshot of text':0.228, ocr_ratio=0.000",
+          "score": 0.3256
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; Wikidata P18 of Q11274 Chrysler Building (representative image chosen on Wikidata); image content NOT visually inspected",
+        "usability": "licence Public domain",
+        "format": "image/jpeg 1036x3055, 611677 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.326, neg='a screenshot of text':0.228, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A012",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A012.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0002.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)",
+      "author": "Stefan Fussan",
+      "attribution": "Stefan Fussan, CC BY-SA 3.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0002.jpg)",
+      "identifier": "File:Shanghai - Shanghai Tower - 0002.jpg",
+      "entity": {
+        "name": "上海中心大厦",
+        "qid": "Q18547",
+        "label": "Shanghai Tower",
+        "description": "megatall skyscraper in Lujiazui, Shanghai, China",
+        "url": "https://www.wikidata.org/wiki/Q18547",
+        "chosen_by": "only_candidate",
+        "alternatives": [
+          "Q66876921 上海中心大厦巨型悬挂式幕墙系统结构设计与思考 - rejected: instance of scholarly article",
+          "Q98787978 上海中心大厦裙房深大基坑工程围护墙变形分析 - rejected: instance of scholarly article",
+          "Q119478418 上海中心大厦电梯辅助疏散技术应用设计 - rejected: instance of scholarly article",
+          "Q119478417 上海中心大厦的城市性实践 - rejected: instance of scholarly article"
+        ]
+      },
+      "sha256": "ac7a62996ec34a6d9ee96275e39b7a758a1915c25b24878b498eb74297fd1d76",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 853,
+      "retrieved_at": "2026-11-21T23:27:42.715742+08:00",
+      "notes": "target '上海中心大厦' (to_verify); Wikidata candidate Q66876921 上海中心大厦巨型悬挂式幕墙系统结构设计与思考 - rejected: instance of scholarly article; Wikidata candidate Q98787978 上海中心大厦裙房深大基坑工程围护墙变形分析 - rejected: instance of scholarly article; Wikidata candidate Q119478418 上海中心大厦电梯辅助疏散技术应用设计 - rejected: instance of scholarly article; target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:Shanghai Tower in 2015 (2).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_Tower_in_2015_(2).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "wikidata_p18",
+          "decision": "rejected",
+          "reason": "too small (432px wide < 600)",
+          "score": null
+        },
+        {
+          "title": "File:Hydrogen production from the air.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Hydrogen_production_from_the_air.pdf",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:How We Advertised America (1920).djvu",
+          "url": "https://commons.wikimedia.org/wiki/File:How_We_Advertised_America_(1920).djvu",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format image/vnd.djvu not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:বাংলাদেশ গেজেট, সাপ্তাহিক, ১ম সপ্তাহ, নভেম্বর ২০১৩ - খণ্ড ৪ (পেটেন্ট অফিসের প্রজ্ঞাপন).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:%E0%A6%AC%E0%A6%BE%E0%A6%82%E0%A6%B2%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B6_%E0%A6%97%E0%A7%87%E0%A6%9C%E0%A7%87%E0%A6%9F,_%E0%A6%B8%E0%A6%BE%E0%A6%AA%E0%A7%8D%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%BF%E0%A6%95,_%E0%A7%A7%E0%A6%AE_%E0%A6%B8%E0%A6%AA%E0%A7%8D%E0%A6%A4%E0%A6%BE%E0%A6%B9,_%E0%A6%A8%E0%A6%AD%E0%A7%87%E0%A6%AE%E0%A7%8D%E0%A6%AC%E0%A6%B0_%E0%A7%A8%E0%A7%A6%E0%A7%A7%E0%A7%A9_-_%E0%A6%96%E0%A6%A3%E0%A7%8D%E0%A6%A1_%E0%A7%AA_(%E0%A6%AA%E0%A7%87%E0%A6%9F%E0%A7%87%E0%A6%A8%E0%A7%8D%E0%A6%9F_%E0%A6%85%E0%A6%AB%E0%A6%BF%E0%A6%B8%E0%A7%87%E0%A6%B0_%E0%A6%AA%E0%A7%8D%E0%A6%B0%E0%A6%9C%E0%A7%8D%E0%A6%9E%E0%A6%BE%E0%A6%AA%E0%A6%A8).pdf",
+          "license": "EdictGov-Bangladesh",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "licence not on the allowlist (EdictGov-Bangladesh)",
+          "score": null
+        },
+        {
+          "title": "File:বাংলাদেশ গেজেট, সাপ্তাহিক, ১ম সপ্তাহ, মে ২০১৮ - খণ্ড ৪ (পেটেন্ট অফিসের প্রজ্ঞাপন).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:%E0%A6%AC%E0%A6%BE%E0%A6%82%E0%A6%B2%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B6_%E0%A6%97%E0%A7%87%E0%A6%9C%E0%A7%87%E0%A6%9F,_%E0%A6%B8%E0%A6%BE%E0%A6%AA%E0%A7%8D%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%BF%E0%A6%95,_%E0%A7%A7%E0%A6%AE_%E0%A6%B8%E0%A6%AA%E0%A7%8D%E0%A6%A4%E0%A6%BE%E0%A6%B9,_%E0%A6%AE%E0%A7%87_%E0%A7%A8%E0%A7%A6%E0%A7%A7%E0%A7%AE_-_%E0%A6%96%E0%A6%A3%E0%A7%8D%E0%A6%A1_%E0%A7%AA_(%E0%A6%AA%E0%A7%87%E0%A6%9F%E0%A7%87%E0%A6%A8%E0%A7%8D%E0%A6%9F_%E0%A6%85%E0%A6%AB%E0%A6%BF%E0%A6%B8%E0%A7%87%E0%A6%B0_%E0%A6%AA%E0%A7%8D%E0%A6%B0%E0%A6%9C%E0%A7%8D%E0%A6%9E%E0%A6%BE%E0%A6%AA%E0%A6%A8).pdf",
+          "license": "EdictGov-Bangladesh",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "licence not on the allowlist (EdictGov-Bangladesh)",
+          "score": null
+        },
+        {
+          "title": "File:Victoria Daily Times (1904-08-30) (IA victoriadailytimes19040830).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Victoria_Daily_Times_(1904-08-30)_(IA_victoriadailytimes19040830).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Paper Trade Journal 1915-08-19- Vol 61 Iss 8 (IA sim paper-trade-journal 1915-08-19 61 8).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Paper_Trade_Journal_1915-08-19-_Vol_61_Iss_8_(IA_sim_paper-trade-journal_1915-08-19_61_8).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:State 2009-11- Iss 539 (IA sim state-magazine 2009-11 539).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:State_2009-11-_Iss_539_(IA_sim_state-magazine_2009-11_539).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:The International studio (IA internationalstu4818unse).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:The_International_studio_(IA_internationalstu4818unse).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Shanghai - Shanghai Tower - 0001.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.348, neg='a screenshot of text':0.215, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.3482
+        },
+        {
+          "title": "File:Shanghai - Shanghai Tower - 0003.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0003.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.326, neg='a screenshot of text':0.203, ocr_ratio=0.001] but ranked below selected candidate by CLIP positive score",
+          "score": 0.3262
+        },
+        {
+          "title": "File:Shanghai Shanghai Tower 5166304.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_Shanghai_Tower_5166304.jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.7048618197441101
+        },
+        {
+          "title": "File:Shanghai - Shanghai Tower - 0003(cropped).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0003(cropped).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.672892689704895
+        },
+        {
+          "title": "File:Shanghai - Yu Garden - 0035.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_-_Yu_Garden_-_0035.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6665590405464172
+        },
+        {
+          "title": "File:Shanghai People's Square-20150516-RM-143756.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_People%27s_Square-20150516-RM-143756.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.6466678380966187
+        },
+        {
+          "title": "File:Shanghai - Shanghai Tower - 0002.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0002.jpg",
+          "license": "CC BY-SA 3.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.75 (metadata text vs target/purpose); pixel_rules: clip_pos=0.354, neg='a logo':0.207, ocr_ratio=0.000",
+          "score": 0.3538
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.75 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY-SA 3.0; attribution required",
+        "format": "image/jpeg 1280x853, 245959 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.354, neg='a logo':0.207, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A013",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A014",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    }
+  ],
+  "sources": [
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "帕特农神庙 [zh]",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.684,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q10288,Q3753726",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 2.478,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q10288",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.488,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "The Parthenon in Athens.jpg",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 3.097,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Parthenon",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.257,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Parthenon photo Athens Acropolis",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.254,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://upload.wikimedia.org/wikipedia/commons/d/da/The_Parthenon_in_Athens.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/da/The_Parthenon_in_Athens.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "elapsed_s": 15.644,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "帕特农神庙 [zh]",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.57,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q10288,Q3753726",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.502,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q10288",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.188,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "The Parthenon in Athens.jpg",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.791,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Parthenon",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.236,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Parthenon Athens full view photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.218,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Ancient_temple_Parthenon_in_Acropolis_Athens.jpg/1280px-Ancient_temple_Parthenon_in_Acropolis_Athens.jpg?utm_source=commons.wikimedia.org&utm_c",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Ancient_temple_Parthenon_in_Acropolis_Athens.jpg/1280px-Ancient_temple_Parthenon_in_Acropolis_Athens.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.289,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Acropolis_and_full_moon_...Eternal_Light.jpg/1280px-Acropolis_and_full_moon_...Eternal_Light.jpg?utm_source=commons.wikimedia.org&utm_campaign=",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Acropolis_and_full_moon_...Eternal_Light.jpg/1280px-Acropolis_and_full_moon_...Eternal_Light.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 0.619,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Attica_06-13_Athens_35_Parthenon.jpg/1280px-Attica_06-13_Athens_35_Parthenon.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_co",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Attica_06-13_Athens_35_Parthenon.jpg/1280px-Attica_06-13_Athens_35_Parthenon.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 0.616,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "沙特尔大教堂 [zh]",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.144,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q180274",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.196,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q180274",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.064,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "Westfassade Chartres.jpg",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.746,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Notre-Dame de Chartres",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.215,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Chartres Cathedral exterior interior stained glass photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.209,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Westfassade_Chartres.jpg/1280px-Westfassade_Chartres.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Westfassade_Chartres.jpg/1280px-Westfassade_Chartres.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.261,
+      "attempts": 1
+    },
+    {
+      "backend": "openalex",
+      "purpose": "search works",
+      "query": "Gothic cathedrals structure ribbed vault flying buttress review",
+      "status": "ok",
+      "hits": 6,
+      "error": null,
+      "url": "https://api.openalex.org/works",
+      "elapsed_s": 1.327,
+      "attempts": 1
+    },
+    {
+      "backend": "crossref",
+      "purpose": "verify DOI",
+      "query": "10.70121/001c.143045",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://api.crossref.org/works/10.70121/001c.143045",
+      "elapsed_s": 1.172,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "佛光寺东大殿 [zh]",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.183,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q121353103,Q119476769,Q119477242,Q65020392,Q63501318",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.754,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Foguang Temple East Hall photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.729,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "佛光寺东大殿 斗拱",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.205,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Foguang_Temple_7.JPG/1280px-Foguang_Temple_7.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Foguang_Temple_7.JPG/1280px-Foguang_Temple_7.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.241,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Foguang_Temple_10.JPG/1280px-Foguang_Temple_10.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Foguang_Temple_10.JPG/1280px-Foguang_Temple_10.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 0.633,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Foguang_Temple_8.JPG/1280px-Foguang_Temple_8.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Foguang_Temple_8.JPG/1280px-Foguang_Temple_8.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 0.611,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "埃菲尔铁塔 [zh]",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.981,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q243,Q97164958,Q162873,Q3821251,Q119925035",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.824,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q243",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.331,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "Tour Eiffel Wikimedia Commons.jpg",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.718,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Eiffel Tower",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.196,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Eiffel Tower photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.207,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Crystal Palace 1851 engraving",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.187,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/1280px-Tour_Eiffel_Wikimedia_Commons.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/1280px-Tour_Eiffel_Wikimedia_Commons.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.241,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "萨伏伊别墅 [zh]",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.2,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q119477278",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 0.551,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Villa Savoye photo Le Corbusier",
+      "status": "ok",
+      "hits": 3,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.734,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "萨伏伊别墅",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.198,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Villa_Savoye32.JPG_-_Flickr_-_scarletgreen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Villa_Savoye32.JPG_-_Flickr_-_scarletgreen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "elapsed_s": 1.013,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Villa_Savoye_%288237925975%29.jpg/1280px-Villa_Savoye_%288237925975%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Villa_Savoye_%288237925975%29.jpg/1280px-Villa_Savoye_%288237925975%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.281,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "Chrysler Building [en]",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.994,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q11274,Q49269840,Q64155237,Q98820777,Q80078735",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.538,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q11274",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.169,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "Chrysler Building by David Shankbone Retouched.jpg",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.73,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Chrysler Building",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.2,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Chrysler Building Art Deco photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.192,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://upload.wikimedia.org/wikipedia/commons/7/76/Chrysler_Building_by_David_Shankbone_Retouched.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Chrysler_Building_by_David_Shankbone_Retouched.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "elapsed_s": 1.193,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "上海中心大厦 [zh]",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.131,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q18547,Q66876921,Q98787978,Q119478418,Q119478417",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.209,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q18547",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 0.827,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "Shanghai Tower in 2015 (2).jpg",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.8,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Shanghai Tower",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.21,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Shanghai Tower sustainable design photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.22,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Shanghai_-_Shanghai_Tower_-_0003.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0003.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_co",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Shanghai_-_Shanghai_Tower_-_0003.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0003.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.289,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Shanghai_-_Shanghai_Tower_-_0002.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_co",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Shanghai_-_Shanghai_Tower_-_0002.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 1.877,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e0/Shanghai_-_Shanghai_Tower_-_0001.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_co",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e0/Shanghai_-_Shanghai_Tower_-_0001.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 0.709,
+      "attempts": 1
+    }
+  ],
+  "relevance_filter": {
+    "mode": "auto",
+    "rules_version": "1",
+    "scorer": "fastembed",
+    "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "threshold": 0.3,
+    "n_candidates": 85,
+    "n_kept": 71,
+    "n_filtered": 14,
+    "note": "pixel_rules: active (CLIP + RapidOCR)"
+  },
+  "summary": "9/14 requirements acquired; 5 missing"
+}

@@ -1,0 +1,48 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.01s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) done elapsed=4.19s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.05s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 2.46s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 0.95s
+[stage-D] 1/7 start A001 (diagram) remaining_budget=180.0s
+[stage-D] 1/7 done A001 provider=none result=missing elapsed=0.00s
+[stage-D] 2/7 start A002 (reference) remaining_budget=180.0s
+[stage-D] 2/7 done A002 provider=openalex result=acquired elapsed=4.97s
+[stage-D] 3/7 start A003 (diagram) remaining_budget=175.0s
+[stage-D] 3/7 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/7 start A004 (icon) remaining_budget=175.0s
+[stage-D] 4/7 done A004 provider=none result=missing elapsed=0.00s
+[stage-D] 5/7 start A005 (diagram) remaining_budget=175.0s
+[stage-D] 5/7 done A005 provider=none result=missing elapsed=0.00s
+[stage-D] 6/7 start A006 (reference) remaining_budget=175.0s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=AI+hallucination+definition&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=0.30s attempts=1 detail=OpenAlex quota/rate limit reached (429): set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.ope
+[stage-D] openalex: circuit_open after 429 at 2026-11-21T23:10:06+08:00; skipping remaining OpenAlex queries and routing directly to Crossref
+[stage-D] 6/7 done A006 provider=openalex,crossref result=acquired elapsed=1.48s
+[stage-D] 7/7 start A007 (diagram) remaining_budget=173.5s
+[stage-D] 7/7 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] openalex: circuit_open after 429 at 2026-11-21T23:10:06+08:00 (skipped 0 request(s), est. saved ~6.0s)
+[pptv01] stage D (asset_retrieval) done elapsed=15.25s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.01s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.33s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=46.08s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=45.73s
+run_dir: runs\smoke6\T36
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: 50d26c7ef5981270dc575f6e73b4c42907518747
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 5 placeholders

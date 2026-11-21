@@ -1,0 +1,112 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T12",
+  "results": [
+    {
+      "gate": "contract:production_plan",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:research_brief",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:slide_plan",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:asset_requirements",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:asset_registry",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:user_input_requests",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:slide_asset_mapping",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:page_design",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "contract:qa_report",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "run_id_consistent",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "page_constraint",
+      "status": "pass",
+      "detail": "user stated no page limit"
+    },
+    {
+      "gate": "assets_have_source_and_license",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "gate": "layout_diversity",
+      "status": "pass",
+      "detail": "4 distinct layout(s) across 7 slide(s) (threshold degraded from 5 to 4 realizable slot(s) for 4 eligible families: anchor, breathing, statement, visual-split): cover, section, image-right, quote, section, quote, section"
+    },
+    {
+      "gate": "fill_rate",
+      "status": "pass",
+      "detail": "all 1 non-exempt slide(s) pass fill_rate (max_void=0.24in < 1.60in) | exempt: S001 (cover anchor title slide), S002 (section divider breathing slide), S004 (editorial statement breathing slide), S005 (section divider breathing slide), S006 (editorial statement breathing slide), S007 (section divider breathing slide)"
+    },
+    {
+      "gate": "no_text_only_visuals",
+      "status": "pass",
+      "detail": "2 image visual(s) checked cleanly (max OCR area ratio <= 0.12)"
+    },
+    {
+      "gate": "mapped_visuals_placed",
+      "status": "pass",
+      "detail": "all 2 accepted visual mapping(s) placed in page_design"
+    },
+    {
+      "gate": "no_fabricated_visuals",
+      "status": "pass",
+      "detail": "all visual elements sha256-verified and shapes whitelisted"
+    },
+    {
+      "gate": "placeholders_marked",
+      "status": "pass",
+      "detail": "9 placeholder(s) properly marked"
+    },
+    {
+      "gate": "pptx_opens",
+      "status": "pass",
+      "detail": "opened deck.pptx with 7 slides"
+    },
+    {
+      "gate": "native_content_not_screenshots",
+      "status": "pass",
+      "detail": "all 7 slide(s) contain native text/shapes"
+    },
+    {
+      "gate": "attribution_present",
+      "status": "pass",
+      "detail": "all attribution-required assets credited"
+    }
+  ],
+  "overall": "pass"
+}

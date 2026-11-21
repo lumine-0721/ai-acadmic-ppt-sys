@@ -1,0 +1,22 @@
+  pass     contract:production_plan  
+  pass     contract:research_brief  
+  pass     contract:slide_plan  
+  pass     contract:asset_requirements  
+  pass     contract:asset_registry  
+  pass     contract:user_input_requests  
+  pass     contract:slide_asset_mapping  
+  pass     contract:page_design  
+  pass     contract:qa_report  
+  pass     run_id_consistent  
+  pass     page_constraint  user max 5 pages; slide plan has 5
+  pass     assets_have_source_and_license  
+  pass     layout_diversity  3 distinct layout(s) across 5 slide(s) (threshold degraded from 5 to 3 realizable slot(s) for 3 eligible families: anchor, breathing, statement): cover, quote, section, quote, section
+  pass     fill_rate  all 0 non-exempt slide(s) pass fill_rate (max_void=0.00in < 1.60in) | exempt: S001 (cover anchor title slide), S002 (editorial statement breathing slide), S003 (section divider breathing slide), S004 (editorial statement breathing slide), S005 (section divider breathing slide)
+  pass     no_text_only_visuals  0 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  pass     mapped_visuals_placed  all 0 accepted visual mapping(s) placed in page_design
+  pass     no_fabricated_visuals  all visual elements sha256-verified and shapes whitelisted
+  pass     placeholders_marked  5 placeholder(s) properly marked
+  pass     pptx_opens  opened deck.pptx with 5 slides
+  pass     native_content_not_screenshots  all 5 slide(s) contain native text/shapes
+  pass     attribution_present  all attribution-required assets credited
+overall: pass

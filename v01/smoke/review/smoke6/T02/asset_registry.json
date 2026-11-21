@@ -1,0 +1,1542 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T02",
+  "assets": [
+    {
+      "asset_id": "A001",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A001.png",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Be%27er_Sheva_heat_island_at_night.png",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)",
+      "author": "Xmidrashnik",
+      "attribution": "Xmidrashnik, CC BY 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Be%27er_Sheva_heat_island_at_night.png)",
+      "identifier": "File:Be'er Sheva heat island at night.png",
+      "entity": null,
+      "sha256": "b6c58f51749fdbf5d57ef904647d5ed4536b168b7b7436c6077f2209fe8eeaae",
+      "mime": "image/png",
+      "width": 626,
+      "height": 798,
+      "retrieved_at": "2026-11-21T23:20:12.373312+08:00",
+      "notes": "target '某大城市的城市热岛地表温度热像图' (to_verify); target is still to_verify: the file matches the target only by Commons/Wikidata metadata, not by content",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:Atlanta thermal.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Atlanta_thermal.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "too small (540px wide < 600)",
+          "score": null
+        },
+        {
+          "title": "File:DEPARTMENTS OF VETERANS AFFAIRS AND HOUSING AND URBAN DEVELOPMENT, AND INDEPENDENT AGENCIES APPROPRIATIONS FOR 2003 (IA gov.gpo.fdsys.CHRG-107hhrg79524).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:DEPARTMENTS_OF_VETERANS_AFFAIRS_AND_HOUSING_AND_URBAN_DEVELOPMENT,_AND_INDEPENDENT_AGENCIES_APPROPRIATIONS_FOR_2003_(IA_gov.gpo.fdsys.CHRG-107hhrg79524).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:A Visit To The Philippine Islands-1859 (IA AVisitToThePhilippineIslandsBySirJohnBowring1859).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:A_Visit_To_The_Philippine_Islands-1859_(IA_AVisitToThePhilippineIslandsBySirJohnBowring1859).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:CLIMATE CHANGE IMPACTS AND RESPONSES IN ISLAND COMMUNITIES (IA gov.gpo.fdsys.CHRG-110shrg75205).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:CLIMATE_CHANGE_IMPACTS_AND_RESPONSES_IN_ISLAND_COMMUNITIES_(IA_gov.gpo.fdsys.CHRG-110shrg75205).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Spatio-temporal analysis of land use dynamics and its potential indications on land surface temperature in Sokoto Metropolis, Nigeria.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Spatio-temporal_analysis_of_land_use_dynamics_and_its_potential_indications_on_land_surface_temperature_in_Sokoto_Metropolis,_Nigeria.pdf",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Fire bibliography; selected urban, and mixed urban-rural fires, 1940-1964 (IA CAT10507902).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Fire_bibliography;_selected_urban,_and_mixed_urban-rural_fires,_1940-1964_(IA_CAT10507902).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Restoring surface-mined land (IA restoringsurface1082unit 0).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Restoring_surface-mined_land_(IA_restoringsurface1082unit_0).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Restoring surface-mined land (slightly rev. June 1971 (IA restoringsurface1082whit).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Restoring_surface-mined_land_(slightly_rev._June_1971_(IA_restoringsurface1082whit).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Global Urban Heat Island (UHI) Data Set, 2013 Summer Daytime Urban-Rural Temperature Difference (30563445286).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Global_Urban_Heat_Island_(UHI)_Data_Set,_2013_Summer_Daytime_Urban-Rural_Temperature_Difference_(30563445286).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "OCR rejected: text area ratio 0.209 > 0.12 [clip_pos=0.270, neg='a screenshot of text':0.215, ocr_ratio=0.209]",
+          "score": 0.2696
+        },
+        {
+          "title": "File:Global Urban Heat Island (UHI) Data Set, 2013 Summer Nighttime Urban-Rural Temperature Difference (30563444636).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Global_Urban_Heat_Island_(UHI)_Data_Set,_2013_Summer_Nighttime_Urban-Rural_Temperature_Difference_(30563444636).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "OCR rejected: text area ratio 0.211 > 0.12 [clip_pos=0.261, neg='a screenshot of text':0.221, ocr_ratio=0.211]",
+          "score": 0.2611
+        },
+        {
+          "title": "File:Global Urban Heat Island (UHI) Data Set, 2013 Average Summer Daytime Maximum Surface Temperature (30563444826).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Global_Urban_Heat_Island_(UHI)_Data_Set,_2013_Average_Summer_Daytime_Maximum_Surface_Temperature_(30563444826).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "OCR rejected: text area ratio 0.205 > 0.12 [clip_pos=0.268, neg='a screenshot of text':0.213, ocr_ratio=0.205]",
+          "score": 0.2681
+        },
+        {
+          "title": "File:NASA SLC Urban Heat Island Effect Roof.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:NASA_SLC_Urban_Heat_Island_Effect_Roof.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.263, neg='a map legend':0.196, ocr_ratio=0.011] but ranked below selected candidate by CLIP positive score",
+          "score": 0.2628
+        },
+        {
+          "title": "File:Global Urban Heat Island (UHI) Data Set, 2013 Average Summer Nighttime Minimum Surface Temperature (29968026924).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Global_Urban_Heat_Island_(UHI)_Data_Set,_2013_Average_Summer_Nighttime_Minimum_Surface_Temperature_(29968026924).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.5487703680992126
+        },
+        {
+          "title": "File:Running Through Paris Heat (153178 - oli2 20240607 lrg).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Running_Through_Paris_Heat_(153178_-_oli2_20240607_lrg).jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.5364043116569519
+        },
+        {
+          "title": "File:Running Through Paris Heat (153178 - vir 20240806 lrg).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Running_Through_Paris_Heat_(153178_-_vir_20240806_lrg).jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed the filters but ranked below the selected file",
+          "score": 0.5346235036849976
+        },
+        {
+          "title": "File:Be'er Sheva heat island at night.png",
+          "url": "https://commons.wikimedia.org/wiki/File:Be%27er_Sheva_heat_island_at_night.png",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.61 (metadata text vs target/purpose); pixel_rules: clip_pos=0.337, neg='a map legend':0.222, ocr_ratio=0.052",
+          "score": 0.3369
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.61 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY 4.0; attribution required",
+        "format": "image/png 626x798, 884258 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.337, neg='a map legend':0.222, ocr_ratio=0.052)"
+      }
+    },
+    {
+      "asset_id": "A002",
+      "status": "acquired",
+      "type": "reference",
+      "file_path": "assets/A002.json",
+      "source_url": "https://doi.org/10.1007/978-3-032-11580-5_1",
+      "source_name": "OpenAlex",
+      "license_or_terms": "OpenAlex metadata, CC0; bibliographic record only",
+      "author": "Vijayakumar Anitha",
+      "attribution": null,
+      "identifier": "10.1007/978-3-032-11580-5_1",
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": "2026-11-21T23:20:16.444454+08:00",
+      "notes": "target '城市热岛' (verified)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "Understanding Urban Heat Islands: Definition, Causes, and Effects",
+          "url": "https://doi.org/10.1007/978-3-032-11580-5_1",
+          "license": "",
+          "origin": "openalex",
+          "decision": "selected",
+          "reason": "embedding score 0.64",
+          "score": 0.6433596014976501
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": "embedding score 0.64 on title/venue; abstract not read",
+        "usability": "citation metadata only; full text not retrieved",
+        "format": "Crossref title similarity 1.00: 'Understanding Urban Heat Islands: Definition, Causes, and Effects'",
+        "quality": "not assessed in D"
+      }
+    },
+    {
+      "asset_id": "A003",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A004",
+      "status": "acquired",
+      "type": "reference",
+      "file_path": "assets/A004.json",
+      "source_url": "https://doi.org/10.1007/978-981-96-3541-2_2",
+      "source_name": "OpenAlex",
+      "license_or_terms": "OpenAlex metadata, CC0; bibliographic record only",
+      "author": "Youpeng Lu",
+      "attribution": null,
+      "identifier": "10.1007/978-981-96-3541-2_2",
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": "2026-11-21T23:20:19.006793+08:00",
+      "notes": "target 'Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones' (verified)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones",
+          "url": "https://doi.org/10.1007/978-981-96-3541-2_2",
+          "license": "",
+          "origin": "openalex",
+          "decision": "selected",
+          "reason": "exact title of the cited publication",
+          "score": 1.0
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": "exact title match",
+        "usability": "citation metadata only; full text not retrieved",
+        "format": "Crossref title similarity 1.00: 'Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Isla'",
+        "quality": "not assessed in D"
+      }
+    },
+    {
+      "asset_id": "A005",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A006",
+      "status": "acquired",
+      "type": "reference",
+      "file_path": "assets/A006.json",
+      "source_url": "https://doi.org/10.11648/j.ijema.20150302.15",
+      "source_name": "OpenAlex",
+      "license_or_terms": "OpenAlex metadata, CC0; bibliographic record only",
+      "author": "Md Nuruzzaman",
+      "attribution": null,
+      "identifier": "10.11648/j.ijema.20150302.15",
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": "2026-11-21T23:20:21.083450+08:00",
+      "notes": "target '城市热岛成因综述' (to_verify)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "Urban Heat Island: Causes, Effects and Mitigation Measures - A Review",
+          "url": "https://doi.org/10.11648/j.ijema.20150302.15",
+          "license": "",
+          "origin": "openalex",
+          "decision": "selected",
+          "reason": "embedding score 0.62",
+          "score": 0.6239840984344482
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": "embedding score 0.62 on title/venue; abstract not read",
+        "usability": "citation metadata only; full text not retrieved",
+        "format": "Crossref title similarity 1.00: 'Urban Heat Island: Causes, Effects and Mitigation Measures - A Review'",
+        "quality": "not assessed in D"
+      }
+    },
+    {
+      "asset_id": "A007",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A008",
+      "status": "acquired",
+      "type": "reference",
+      "file_path": "assets/A008.json",
+      "source_url": "https://doi.org/10.3390/su14159234",
+      "source_name": "OpenAlex",
+      "license_or_terms": "OpenAlex metadata, CC0; bibliographic record only",
+      "author": "Awais Piracha, Muhammad Tariq A. Chaudhary",
+      "attribution": null,
+      "identifier": "10.3390/su14159234",
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": "2026-11-21T23:20:23.669933+08:00",
+      "notes": "target '城市热岛对能耗与健康影响的研究' (to_verify)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "Urban Air Pollution, Urban Heat Island and Human Health: A Review of the Literature",
+          "url": "https://doi.org/10.3390/su14159234",
+          "license": "",
+          "origin": "openalex",
+          "decision": "selected",
+          "reason": "embedding score 0.61",
+          "score": 0.6065256595611572
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": "embedding score 0.61 on title/venue; abstract not read",
+        "usability": "citation metadata only; full text not retrieved",
+        "format": "Crossref title similarity 1.00: 'Urban Air Pollution, Urban Heat Island and Human Health: A Review of the Literat'",
+        "quality": "not assessed in D"
+      }
+    },
+    {
+      "asset_id": "A009",
+      "status": "missing",
+      "type": "image",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": {
+        "name": "北京",
+        "qid": "Q578328",
+        "label": "Pekin",
+        "description": "city and county seat of Tazewell County, Illinois, United States",
+        "url": "https://www.wikidata.org/wiki/Q578328",
+        "chosen_by": "exact_label_match",
+        "alternatives": [
+          "Q110977398 大名府 - 水滸傳虛構地名",
+          "Q1530127 大名府 - 中国古地名",
+          "Q148 中华人民共和国 - 东亚国家",
+          "Q956 北京市 - 中華人民共和國首都暨直轄市"
+        ]
+      },
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "candidates found for '北京' but none passed licence/format/relevance/download (see candidates)",
+      "shared_with": null,
+      "uncovered_targets": [
+        "纽约"
+      ],
+      "candidates": [
+        {
+          "title": "File:Spatio-temporal analysis of land use dynamics and its potential indications on land surface temperature in Sokoto Metropolis, Nigeria.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Spatio-temporal_analysis_of_land_use_dynamics_and_its_potential_indications_on_land_surface_temperature_in_Sokoto_Metropolis,_Nigeria.pdf",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Investigation of the changing patterns of the land use land cover over Osogbo and its environs.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Investigation_of_the_changing_patterns_of_the_land_use_land_cover_over_Osogbo_and_its_environs.pdf",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Fire management notes - U.S. Department of Agriculture, Forest Service. (IA CAT77680365050).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Fire_management_notes_-_U.S._Department_of_Agriculture,_Forest_Service._(IA_CAT77680365050).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:2010 Census Urbanized Area Reference Map for Rochester, New York - DPLA - 828378646f4986faa556f55dec339a6d.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:2010_Census_Urbanized_Area_Reference_Map_for_Rochester,_New_York_-_DPLA_-_828378646f4986faa556f55dec339a6d.pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:New York City wholesale butter, margarine, egg, and cheese market facilities (IA newyorkcitywhole561utte).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:New_York_City_wholesale_butter,_margarine,_egg,_and_cheese_market_facilities_(IA_newyorkcitywhole561utte).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:2010 Census Urban Cluster Reference Map for Aspen, Colorado - DPLA - fd25c445504d13cda3d40a9f0d90a1ed.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:2010_Census_Urban_Cluster_Reference_Map_for_Aspen,_Colorado_-_DPLA_-_fd25c445504d13cda3d40a9f0d90a1ed.pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:2010 Census Urban Cluster Reference Map for Patton, Pennsylvania - DPLA - beebdd8e6947660c4fa61f46d03de8af.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:2010_Census_Urban_Cluster_Reference_Map_for_Patton,_Pennsylvania_-_DPLA_-_beebdd8e6947660c4fa61f46d03de8af.pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:2010 Census Urban Cluster Reference Map for Dickson, Tennessee - DPLA - eae191c0779175683f1d8a57ab0a3879.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:2010_Census_Urban_Cluster_Reference_Map_for_Dickson,_Tennessee_-_DPLA_-_eae191c0779175683f1d8a57ab0a3879.pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:2010 Census Urban Cluster Reference Map for Chickasha, Oklahoma - DPLA - 5d105a7ce825e3e578fae561794d5b71.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:2010_Census_Urban_Cluster_Reference_Map_for_Chickasha,_Oklahoma_-_DPLA_-_5d105a7ce825e3e578fae561794d5b71.pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:2010 Census Urban Cluster Reference Map for Clarksdale, Mississippi - DPLA - b4897bf28e5a1de1afdea8d8da7a99c5.pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:2010_Census_Urban_Cluster_Reference_Map_for_Clarksdale,_Mississippi_-_DPLA_-_b4897bf28e5a1de1afdea8d8da7a99c5.pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Pekin park 20231019 0017.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Pekin_park_20231019_0017.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "wikidata_p18",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['china'], but Commons metadata/categories indicate ['usa']",
+          "score": null
+        },
+        {
+          "title": "File:Tazewell County Justice Center Pekin 20231112 0068.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Tazewell_County_Justice_Center_Pekin_20231112_0068.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "wikidata_p18",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['china'], but Commons metadata/categories indicate ['usa']",
+          "score": null
+        },
+        {
+          "title": "File:Union League of America Pekin 20231112 0013.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Union_League_of_America_Pekin_20231112_0013.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score -0.013 < 0.3",
+          "score": -0.01270419079810381
+        },
+        {
+          "title": "File:Greetings from Pekin, Illinois - Large Letter Postcard (7850188884).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Greetings_from_Pekin,_Illinois_-_Large_Letter_Postcard_(7850188884).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.028 < 0.3",
+          "score": 0.027809234336018562
+        },
+        {
+          "title": "File:Pekin 20240415 0028.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Pekin_20240415_0028.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.140 < 0.3",
+          "score": 0.13985563814640045
+        },
+        {
+          "title": "File:Illinois River Lift Bridge, Pekin, IL.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Illinois_River_Lift_Bridge,_Pekin,_IL.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.037 < 0.3",
+          "score": 0.037429578602313995
+        },
+        {
+          "title": "File:Pekin Bridge 20231018 0731.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Pekin_Bridge_20231018_0731.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['china'], but Commons metadata/categories indicate ['usa']",
+          "score": 0.3532851040363312
+        },
+        {
+          "title": "File:Pekin bridge pier 20231018 0747.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Pekin_bridge_pier_20231018_0747.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['china'], but Commons metadata/categories indicate ['usa']",
+          "score": 0.3649088740348816
+        },
+        {
+          "title": "File:Pekin Business Center - Pekin, North Dakota 5-31-2009.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Pekin_Business_Center_-_Pekin,_North_Dakota_5-31-2009.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['china'], but Commons metadata/categories indicate ['usa']",
+          "score": 0.431867390871048
+        },
+        {
+          "title": "File:ISS-39 New York City.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:ISS-39_New_York_City.jpg",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "geographic/entity conflict: target expects country ['china'], but Commons metadata/categories indicate ['usa']",
+          "score": 0.3115805387496948
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A010",
+      "status": "missing",
+      "type": "chart_data",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "chart_data: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    },
+    {
+      "asset_id": "A011",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A011.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Green_Roof_at_the_WIPO_Headquarters_7.jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)",
+      "author": "Emmanuel Berrod",
+      "attribution": "Emmanuel Berrod, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Green_Roof_at_the_WIPO_Headquarters_7.jpg)",
+      "identifier": "File:Green Roof at the WIPO Headquarters 7.jpg",
+      "entity": {
+        "name": "屋顶花园",
+        "qid": "Q1156696",
+        "label": "roof garden",
+        "description": "planted area on the top covering of a building",
+        "url": "https://www.wikidata.org/wiki/Q1156696",
+        "chosen_by": "only_candidate",
+        "alternatives": [
+          "Q119464366 屋顶花园 - rejected: instance of scholarly article"
+        ]
+      },
+      "sha256": "af46dae4d930003acf507a88c53edc96d50901e6b144f2079e7a045b410318ee",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 853,
+      "retrieved_at": "2026-11-21T23:21:34.875696+08:00",
+      "notes": "target '屋顶花园' (verified); Wikidata candidate Q119464366 屋顶花园 - rejected: instance of scholarly article",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:A Solarpunk tower.png",
+          "url": "https://commons.wikimedia.org/wiki/File:A_Solarpunk_tower.png",
+          "license": "CC BY 4.0",
+          "origin": "wikidata_p18",
+          "decision": "rejected",
+          "reason": "non-photographic artwork/illustration (concept/sci-fi art: matched 'Solarpunk') cannot serve as real-world scene evidence",
+          "score": null
+        },
+        {
+          "title": "File:El car on the roof of the Google office in Chicago.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:El_car_on_the_roof_of_the_Google_office_in_Chicago.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.3035508692264557
+        },
+        {
+          "title": "File:Roof garden – Panorama (Andreas Mischok via Poly Haven).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Roof_garden_%E2%80%93_Panorama_(Andreas_Mischok_via_Poly_Haven).jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.6088159084320068
+        },
+        {
+          "title": "File:RoofGarden GlamorousCoventry.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:RoofGarden_GlamorousCoventry.jpg",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.650885283946991
+        },
+        {
+          "title": "File:Roof Garden, Ginza Six, Tokyo - Jun 26, 2017 (3).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Roof_Garden,_Ginza_Six,_Tokyo_-_Jun_26,_2017_(3).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.42974817752838135
+        },
+        {
+          "title": "File:RoofGarden InfinityCoventry.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:RoofGarden_InfinityCoventry.jpg",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.6216328740119934
+        },
+        {
+          "title": "File:Roof Garden, Ginza Six, Tokyo - Jun 26, 2017 (1).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Roof_Garden,_Ginza_Six,_Tokyo_-_Jun_26,_2017_(1).jpg",
+          "license": "CC BY 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.5039798617362976
+        },
+        {
+          "title": "File:Green roof (geograph 6928705).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Green_roof_(geograph_6928705).jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.6600645780563354
+        },
+        {
+          "title": "File:Green Roof - geograph.org.uk - 544737.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Green_Roof_-_geograph.org.uk_-_544737.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.4390101432800293
+        },
+        {
+          "title": "File:The green roof - geograph.org.uk - 164639.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:The_green_roof_-_geograph.org.uk_-_164639.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.546890377998352
+        },
+        {
+          "title": "File:Green roof (48820773896).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Green_roof_(48820773896).jpg",
+          "license": "CC0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.6256856918334961
+        },
+        {
+          "title": "File:Green roof J1.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Green_roof_J1.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.5872453451156616
+        },
+        {
+          "title": "File:Sheep (models) grazing on the green roof of Chester racecourse - geograph.org.uk - 3556562.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Sheep_(models)_grazing_on_the_green_roof_of_Chester_racecourse_-_geograph.org.uk_-_3556562.jpg",
+          "license": "CC BY-SA 2.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.41555342078208923
+        },
+        {
+          "title": "File:EVA- Lanxmeer Green roof 2009.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:EVA-_Lanxmeer_Green_roof_2009.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "target entity mismatch: candidate metadata does not mention target '屋顶花园' (expected one of ['rooftop', 'skycourt', 'skygarden'])",
+          "score": 0.5619862079620361
+        },
+        {
+          "title": "File:Rooftop farm at the Essex (65787p).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.248, neg='a document page':0.191, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.2483
+        },
+        {
+          "title": "File:Fordham University School of Law roof garden 2026 jeh.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Fordham_University_School_of_Law_roof_garden_2026_jeh.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "passed pixel rules [clip_pos=0.213, neg='a sign with text':0.208, ocr_ratio=0.000] but ranked below selected candidate by CLIP positive score",
+          "score": 0.213
+        },
+        {
+          "title": "File:Green Roof at the WIPO Headquarters 7.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Green_Roof_at_the_WIPO_Headquarters_7.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.54 (metadata text vs target/purpose); pixel_rules: clip_pos=0.292, neg='a screenshot of text':0.193, ocr_ratio=0.000",
+          "score": 0.2916
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.54 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY-SA 4.0; attribution required",
+        "format": "image/jpeg 1280x853, 611363 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.292, neg='a screenshot of text':0.193, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A012",
+      "status": "acquired",
+      "type": "image",
+      "file_path": "assets/A012.jpg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Tianjin_Qiaoyuan_Park_(Tianjin_City,_built_2008).jpg",
+      "source_name": "Wikimedia Commons",
+      "license_or_terms": "CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)",
+      "author": "Mydogistiaotiaohu",
+      "attribution": "Mydogistiaotiaohu, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Tianjin_Qiaoyuan_Park_(Tianjin_City,_built_2008).jpg)",
+      "identifier": "File:Tianjin Qiaoyuan Park (Tianjin City, built 2008).jpg",
+      "entity": {
+        "name": "海绵城市",
+        "qid": "Q63441182",
+        "label": "sponge city",
+        "description": "city that has the capacity to mainstream urban water management into the urban planning policies and designs",
+        "url": "https://www.wikidata.org/wiki/Q63441182",
+        "chosen_by": "exact_label_match",
+        "alternatives": [
+          "Q140876297 海绵城市建设水系统科学湖北省重点实验室(武汉大学) - facility in Wuhan, China",
+          "Q121115765 海绵城市 - rejected: instance of scholarly article",
+          "Q121045149 海绵城市PPP项目运营维护服务契约设计 - rejected: instance of scholarly article",
+          "Q64500143 海绵城市视角下城市水系规划编制方法的探索 - rejected: instance of scholarly article"
+        ]
+      },
+      "sha256": "524234c226fb1c9c08857b7a8578f1f0b3ef21288713a38b5543cbf843f29279",
+      "mime": "image/jpeg",
+      "width": 1280,
+      "height": 943,
+      "retrieved_at": "2026-11-21T23:22:18.589624+08:00",
+      "notes": "target '海绵城市' (verified); Wikidata candidate Q121115765 海绵城市 - rejected: instance of scholarly article; Wikidata candidate Q121045149 海绵城市PPP项目运营维护服务契约设计 - rejected: instance of scholarly article; Wikidata candidate Q64500143 海绵城市视角下城市水系规划编制方法的探索 - rejected: instance of scholarly article",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [
+        {
+          "title": "File:Shanghai13.JPG",
+          "url": "https://commons.wikimedia.org/wiki/File:Shanghai13.JPG",
+          "license": "CC BY-SA 3.0",
+          "origin": "wikidata_p18",
+          "decision": "rejected",
+          "reason": "licence requires attribution but Commons gives no author/credit",
+          "score": null
+        },
+        {
+          "title": "File:The business directory of New York City, and Newark City, N.J (IA businessdirector1889amer).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:The_business_directory_of_New_York_City,_and_Newark_City,_N.J_(IA_businessdirector1889amer).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:The secret of pictorial art, or, Self-instructor in painting on glass, china, satin and paper it teaches the oil photo-miniature, Grecian oil, antique, oriental (IA secretofpictoria00mors).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:The_secret_of_pictorial_art,_or,_Self-instructor_in_painting_on_glass,_china,_satin_and_paper_it_teaches_the_oil_photo-miniature,_Grecian_oil,_antique,_oriental_(IA_secretofpictoria00mors).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Annual record of science and industry (IA annualrecordofsc1874bair).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Annual_record_of_science_and_industry_(IA_annualrecordofsc1874bair).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Radio broadcast .. (IA radiobroadcast04gardrich).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Radio_broadcast_.._(IA_radiobroadcast04gardrich).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:A flora of the north-east of Ireland - including the Phanerogamia, the Cryptogamia vascularia, and the Muscineae (IA floraofnortheast00stew).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:A_flora_of_the_north-east_of_Ireland_-_including_the_Phanerogamia,_the_Cryptogamia_vascularia,_and_the_Muscineae_(IA_floraofnortheast00stew).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:New York, New York, business directory (IA newyorknewyorkbu00trow).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:New_York,_New_York,_business_directory_(IA_newyorknewyorkbu00trow).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:The opal sea; continued studies in impressions and appearances (IA opalseacontinued00vand).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:The_opal_sea;_continued_studies_in_impressions_and_appearances_(IA_opalseacontinued00vand).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Sierra Madre News 1920-07-16 (IA csie 000723).pdf",
+          "url": "https://commons.wikimedia.org/wiki/File:Sierra_Madre_News_1920-07-16_(IA_csie_000723).pdf",
+          "license": "Public domain",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "format application/pdf not supported in V0.1",
+          "score": null
+        },
+        {
+          "title": "File:Schwammstadt.png",
+          "url": "https://commons.wikimedia.org/wiki/File:Schwammstadt.png",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.124 < 0.3",
+          "score": 0.12390778213739395
+        },
+        {
+          "title": "File:Erster Schritt auf dem Weg zur Schwammstadt. 15.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Erster_Schritt_auf_dem_Weg_zur_Schwammstadt._15.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.078 < 0.3",
+          "score": 0.07806245982646942
+        },
+        {
+          "title": "File:Erster Schritt auf dem Weg zur Schwammstadt. 11.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Erster_Schritt_auf_dem_Weg_zur_Schwammstadt._11.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.067 < 0.3",
+          "score": 0.06720197200775146
+        },
+        {
+          "title": "File:Erster Schritt auf dem Weg zur Schwammstadt. 12.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Erster_Schritt_auf_dem_Weg_zur_Schwammstadt._12.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.059 < 0.3",
+          "score": 0.05911502614617348
+        },
+        {
+          "title": "File:Erster Schritt auf dem Weg zur Schwammstadt. 07.jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Erster_Schritt_auf_dem_Weg_zur_Schwammstadt._07.jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "low_relevance: fastembed score 0.045 < 0.3",
+          "score": 0.04528532177209854
+        },
+        {
+          "title": "File:Sponge City.png",
+          "url": "https://commons.wikimedia.org/wiki/File:Sponge_City.png",
+          "license": "CC BY 4.0",
+          "origin": "commons_search",
+          "decision": "rejected",
+          "reason": "OCR rejected: text area ratio 0.143 > 0.12 [clip_pos=0.374, neg='a sign with text':0.298, ocr_ratio=0.143]",
+          "score": 0.3742
+        },
+        {
+          "title": "File:Tianjin Qiaoyuan Park (Tianjin City, built 2008).jpg",
+          "url": "https://commons.wikimedia.org/wiki/File:Tianjin_Qiaoyuan_Park_(Tianjin_City,_built_2008).jpg",
+          "license": "CC BY-SA 4.0",
+          "origin": "commons_search",
+          "decision": "selected",
+          "reason": "embedding score 0.64 (metadata text vs target/purpose); pixel_rules: clip_pos=0.221, neg='a map legend':0.199, ocr_ratio=0.000",
+          "score": 0.2208
+        }
+      ],
+      "visual_relevance": "not_assessed",
+      "needs_review": true,
+      "checks": {
+        "relevance": "not_assessed; embedding score 0.64 (metadata text vs target/purpose); image content NOT visually inspected",
+        "usability": "licence CC BY-SA 4.0; attribution required",
+        "format": "image/jpeg 1280x943, 621107 bytes, opened with Pillow, sha256 recorded",
+        "quality": "pixel_rules passed (clip_pos=0.221, neg='a map legend':0.199, ocr_ratio=0.000)"
+      }
+    },
+    {
+      "asset_id": "A013",
+      "status": "missing",
+      "type": "diagram",
+      "file_path": null,
+      "source_url": null,
+      "source_name": null,
+      "license_or_terms": null,
+      "author": null,
+      "attribution": null,
+      "identifier": null,
+      "entity": null,
+      "sha256": null,
+      "mime": null,
+      "width": null,
+      "height": null,
+      "retrieved_at": null,
+      "notes": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "shared_with": null,
+      "uncovered_targets": [],
+      "candidates": [],
+      "visual_relevance": "not_assessed",
+      "needs_review": false,
+      "checks": {
+        "relevance": null,
+        "usability": null,
+        "format": null,
+        "quality": null
+      }
+    }
+  ],
+  "sources": [
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "urban heat island thermal image city",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 2.876,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "land surface temperature urban rural map",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.021,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Summer_Daytime_Urban-Rural_Temperature_Difference_%2830563445286%29.jpg/1280px-Global_Urban",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Summer_Daytime_Urban-Rural_Temperature_Difference_%2830563445286%29.jpg/1280px-Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Summer_Daytime_Urban-Rural_Temperature_Difference_%2830563445286%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 2.591,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Summer_Nighttime_Urban-Rural_Temperature_Difference_%2830563444636%29.jpg/1280px-Global_Urb",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Summer_Nighttime_Urban-Rural_Temperature_Difference_%2830563444636%29.jpg/1280px-Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Summer_Nighttime_Urban-Rural_Temperature_Difference_%2830563444636%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 2.281,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Be%27er_Sheva_heat_island_at_night.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Be%27er_Sheva_heat_island_at_night.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "elapsed_s": 4.545,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Average_Summer_Daytime_Maximum_Surface_Temperature_%2830563444826%29.jpg/1280px-Global_Urba",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Average_Summer_Daytime_Maximum_Surface_Temperature_%2830563444826%29.jpg/1280px-Global_Urban_Heat_Island_%28UHI%29_Data_Set%2C_2013_Average_Summer_Daytime_Maximum_Surface_Temperature_%2830563444826%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 2.275,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://upload.wikimedia.org/wikipedia/commons/f/fb/NASA_SLC_Urban_Heat_Island_Effect_Roof.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/NASA_SLC_Urban_Heat_Island_Effect_Roof.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "elapsed_s": 1.684,
+      "attempts": 1
+    },
+    {
+      "backend": "openalex",
+      "purpose": "search works",
+      "query": "urban heat island definition",
+      "status": "ok",
+      "hits": 6,
+      "error": null,
+      "url": "https://api.openalex.org/works",
+      "elapsed_s": 2.118,
+      "attempts": 1
+    },
+    {
+      "backend": "crossref",
+      "purpose": "verify DOI",
+      "query": "10.1007/978-3-032-11580-5_1",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://api.crossref.org/works/10.1007/978-3-032-11580-5_1",
+      "elapsed_s": 1.381,
+      "attempts": 1
+    },
+    {
+      "backend": "openalex",
+      "purpose": "search works",
+      "query": "Urban Heat Island Spatial Pattern and Urban Form Features of Different Heat Island Intensity Zones",
+      "status": "ok",
+      "hits": 6,
+      "error": null,
+      "url": "https://api.openalex.org/works",
+      "elapsed_s": 1.688,
+      "attempts": 1
+    },
+    {
+      "backend": "crossref",
+      "purpose": "verify DOI",
+      "query": "10.1007/978-981-96-3541-2_2",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://api.crossref.org/works/10.1007/978-981-96-3541-2_2",
+      "elapsed_s": 0.437,
+      "attempts": 1
+    },
+    {
+      "backend": "openalex",
+      "purpose": "search works",
+      "query": "urban heat island causes review",
+      "status": "ok",
+      "hits": 6,
+      "error": null,
+      "url": "https://api.openalex.org/works",
+      "elapsed_s": 1.281,
+      "attempts": 1
+    },
+    {
+      "backend": "crossref",
+      "purpose": "verify DOI",
+      "query": "10.11648/j.ijema.20150302.15",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://api.crossref.org/works/10.11648/j.ijema.20150302.15",
+      "elapsed_s": 0.42,
+      "attempts": 1
+    },
+    {
+      "backend": "openalex",
+      "purpose": "search works",
+      "query": "urban heat island energy consumption health impact review",
+      "status": "ok",
+      "hits": 6,
+      "error": null,
+      "url": "https://api.openalex.org/works",
+      "elapsed_s": 1.576,
+      "attempts": 1
+    },
+    {
+      "backend": "crossref",
+      "purpose": "verify DOI",
+      "query": "10.3390/su14159234",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://api.crossref.org/works/10.3390/su14159234",
+      "elapsed_s": 0.635,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "北京 [zh]",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.572,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q578328,Q110977398,Q1530127,Q148,Q956",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 7.521,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q578328",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 2.184,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "Tazewell County Justice Center Pekin 20231112 0068.jpg,Pekin park 20231019 0017.jpg",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.363,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Pekin",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.199,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "Beijing urban heat island land surface temperature map",
+      "status": "ok",
+      "hits": 3,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.189,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "New York City urban heat island map",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.334,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "屋顶花园 [zh]",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 1.358,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q1156696,Q119464366",
+      "status": "ok",
+      "hits": 2,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 0.901,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q1156696",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 0.887,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "A Solarpunk tower.png",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.548,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "roof garden",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.55,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "green roof photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.198,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Green_Roof_at_the_WIPO_Headquarters_7.jpg/1280px-Green_Roof_at_the_WIPO_Headquarters_7.jpg?utm_source=commons.wikimedia.org&utm_campaign=imagei",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Green_Roof_at_the_WIPO_Headquarters_7.jpg/1280px-Green_Roof_at_the_WIPO_Headquarters_7.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 9.344,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Rooftop_farm_at_the_Essex_%2865787p%29.jpg/1280px-Rooftop_farm_at_the_Essex_%2865787p%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imag",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Rooftop_farm_at_the_Essex_%2865787p%29.jpg/1280px-Rooftop_farm_at_the_Essex_%2865787p%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 7.182,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Fordham_University_School_of_Law_roof_garden_2026_jeh.jpg/1280px-Fordham_University_School_of_Law_roof_garden_2026_jeh.jpg?utm_source=commons.w",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Fordham_University_School_of_Law_roof_garden_2026_jeh.jpg/1280px-Fordham_University_School_of_Law_roof_garden_2026_jeh.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 19.385,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "disambiguate target",
+      "query": "海绵城市 [zh]",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 2.685,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity classes (P31)",
+      "query": "Q63441182,Q121115765,Q140876297,Q121045149,Q64500143",
+      "status": "ok",
+      "hits": 5,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 0.93,
+      "attempts": 1
+    },
+    {
+      "backend": "wikidata",
+      "purpose": "entity details (labels, P18)",
+      "query": "Q63441182",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://www.wikidata.org/w/api.php",
+      "elapsed_s": 0.664,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "Wikidata P18 file info",
+      "query": "Shanghai13.JPG",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 1.57,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "sponge city",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.971,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "search images",
+      "query": "sponge city rain garden photo",
+      "status": "ok",
+      "hits": 8,
+      "error": null,
+      "url": "https://commons.wikimedia.org/w/api.php",
+      "elapsed_s": 0.971,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Tianjin_Qiaoyuan_Park_%28Tianjin_City%2C_built_2008%29.jpg/1280px-Tianjin_Qiaoyuan_Park_%28Tianjin_City%2C_built_2008%29.jpg?utm_source=commons",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Tianjin_Qiaoyuan_Park_%28Tianjin_City%2C_built_2008%29.jpg/1280px-Tianjin_Qiaoyuan_Park_%28Tianjin_City%2C_built_2008%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 27.607,
+      "attempts": 1
+    },
+    {
+      "backend": "commons",
+      "purpose": "download image",
+      "query": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Sponge_City.png/1280px-Sponge_City.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "status": "ok",
+      "hits": 1,
+      "error": null,
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Sponge_City.png/1280px-Sponge_City.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "elapsed_s": 3.039,
+      "attempts": 1
+    }
+  ],
+  "relevance_filter": {
+    "mode": "auto",
+    "rules_version": "1",
+    "scorer": "fastembed",
+    "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "threshold": 0.3,
+    "n_candidates": 63,
+    "n_kept": 54,
+    "n_filtered": 9,
+    "note": "pixel_rules: active (CLIP + RapidOCR)"
+  },
+  "summary": "7/13 requirements acquired; 6 missing"
+}
