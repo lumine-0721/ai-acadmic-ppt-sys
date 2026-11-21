@@ -2,7 +2,7 @@
 
 > 读者：接手写代码的 Agent。本文自包含：读完即可开工，不需要别的上下文。
 > 仓库：<https://github.com/lumine-0721/ai-acadmic-ppt-sys>，本项目目录 `v01/`。
-> **代码基线（重要）：** 当前是 `feature/v01-office-renderer` 头提交 `51703f4`（第 3 轮 N0/N2 已通过，见第 5 节）。**下一步是用户按第 5B 节在本机做真实 Windows 冒烟**（跑之前必须先关掉所有 PowerPoint）。N7 等 5B 回传通过后再做；未完成项不要另开无关分支乱推。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
+> **代码基线（重要）：** 当前是 `feature/v01-office-renderer` 头提交 `57765f5`（第 4 轮已通过，见第 5 节）。**最新（2026-11-21 美东）：先做第 5 轮 R5-1（D 阶段挂死），然后由你自己在用户的 Windows 机器上跑 Smoke 5（R5-2）；用户不再手动跑冒烟。**N7 等 5B 回传通过后再做；未完成项不要另开无关分支乱推。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
 > **环境已确认（用户实测，2026-11-20）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel），不是 Office 2021。策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑。**
@@ -232,10 +232,120 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 任务清单（第 3 轮已通过；5B 进行中，尚未验收；先看第 4 轮）
+## 5. 任务清单（第 4 轮已通过；先看第 5 轮：D 挂死 + 你自己跑 Smoke 5）
 
-> **基线：** 继续在 `feature/v01-office-renderer`（头 `51703f4`，第 3 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
+> **基线：** 继续在 `feature/v01-office-renderer`（头 `57765f5`，第 4 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
 > **先决：** 5B 尚未验收，**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮现在有两件必须做：① 先修 N2 全量 pytest 误杀；② 重做 F 的版式多样性（见下，这是用户对真机效果的首要不满）。另有一件**可选**的 Bivia 判断器（见第 4 轮末「可选：Bivia 判断器」），不挡前两件。T02/T26 的 `E_response_2.json` 已放进 `v01/smoke/agent-answers/`，由用户在本机续跑。
+
+### 第 5 轮（2026-11-21 美东，宝特）：第 4 轮已通过；先治 D 挂死，再由你自己跑 Smoke 5，并修第 4 轮评审遗留
+
+**第 4 轮已通过（对象 `feature/v01-office-renderer` 头 `57765f5`）。** 用户在 Windows 真机清环境跑全量 `pytest`：**退出码 0，529 passed，1 skipped（soffice）**；N2 验收（全量、单跑 `test_n2_watchdog_timeout_never_kills_preexisting_user_powerpoint`、先跑 `windows_com` 再跑该用例）都已完成。宝特 Linux 清环境复核：退出码 0，524 passed，6 skipped（`windows_com`）。版式多样性：Linux 上用 `--renderer compile-only` / `legacy` 回放 T12/T26/T36，`layout_diversity`、`no_fabricated_visuals`、`placeholders_marked`、`attribution_present` 全过（T12 七页 7 种版式，T26 八页 6 种，T36 五页 5 种；单条占位条 6.98 平方英寸，约占内容区 9.7%）。可选的 Bivia 判断器未做，按约定不挡验收。
+
+**Smoke 5 在真机上挂死（这是本轮第一优先级）：** 用户在本机跑 T36（约当地 16:31 开始）。运行目录里只写到 C：`A/B/C_request_*.json`、`production_plan.json`、`slide_plan.json`、`asset_requirements.json`、`llm_trace`；之后再无任何文件，**没有拉起 POWERPNT.EXE**。`T36.log` 全程是**空的**——运行用 `> file 2>&1` 重定向，Python 的 stdout 是块缓冲，挂住时一行都没刷出来。所以卡在 **D（素材获取 / 联网）**。第二次重跑同样挂死（无更多细节）。用户在国内网络，可能经过代理。**用户已经无法再手动跑冒烟：从本轮起，Smoke 由你（Antigravity）在用户的 Windows 机器上自己跑、自己收集结果、自己推送。**
+
+宝特读代码看到的嫌疑点（请先核实再改，不要只改这几处）：
+
+- `src/pptv01/d_retrieve/sources.py:258-275` `pyalex_fetch`：pyalex 0.21 内部用 `requests` 的 `session.get(...)`，**没有传 `timeout`**，网络半通（握手成功但不回包、代理吊住）时会**永久阻塞**；`max_retries = 1` 管不住这种情况。
+- `src/pptv01/retrieval/relevance.py:121` `TextEmbedding(model)`：fastembed 首次使用会从 Hugging Face 下载模型，国内直连常卡住，且没有超时；需要确认缓存目录、超时和失败降级（降级为 structural-only 并在报告里写明，见该模块已有的「无打分器」路径）。
+- `src/pptv01/retrieval/backends.py:53-55` `make_http`：httpx 只有一个总的 `timeout=30`（`PPTV01_ASSETS_TIMEOUT_S`），没有分开的 connect/read；`:62-86` 有 2 次重试，429 时按 `Retry-After` 最多睡 10 秒。单次请求有上限，但**整个 D 没有总时限**：素材多、每个都超时重试时，累计可以到几十分钟，看起来就是「挂死」。
+- 整个运行**没有逐素材的进度输出**，挂在哪个 URL 完全看不出来。
+
+#### R5-1（阻塞项，先做）：D 阶段绝不允许挂死
+
+1. **每一个联网调用都要显式超时**：httpx 用 `httpx.Timeout(connect=…, read=…, write=…, pool=…)`（建议 connect 10s、read 20s，可用环境变量配置）；pyalex/requests 必须带 `timeout=(connect, read)`——pyalex 本身不支持就自己包一层（如给它的 `requests.Session` 挂默认超时的 adapter，或改用已有的 httpx 客户端直接调 OpenAlex REST）。fastembed 模型下载同样要有超时，或在 D 开始前探测缓存、没有缓存就降级。
+2. **有界重试**：每个请求最多 N 次（保留现有 `RETRIES = 2` 的量级），退避总和有上限；`Retry-After` 继续封顶。
+3. **D 阶段总时间预算**：新增可配置的总预算（建议默认 180s，环境变量如 `PPTV01_ASSETS_BUDGET_S`）。预算用完后，**剩下的需求一律按「未获取」处理**：照常进 `user_input_requests.json` / 占位，状态写清 `not acquired: D budget exhausted`。**绝不允许**用猜测、默认图、同名图或任何自绘内容去填。
+4. **超时要可诊断**：每次超时 / 放弃都在 D 报告和日志里写出 **provider（Wikidata / Commons / OpenAlex / Crossref / fastembed）、URL（去掉密钥类参数）、耗时、重试次数**。
+5. **进度日志**：每个素材需求开始和结束各打一行（需求 id、provider、结果、耗时），并 `flush=True`（或统一 `sys.stdout.reconfigure(line_buffering=True)`）；CLI 入口也要保证 `> file` 重定向时日志是实时的。冒烟命令另外用 `python -u`（见 R5-2）。
+6. **代理**：在汇报里写清 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 是怎么生效的——httpx 的 `trust_env`（默认 True）、requests 的环境变量代理、fastembed / huggingface_hub 下载走不走代理、`HF_ENDPOINT` 是否支持。doctor 里加一条**非阻塞**提示：显示检测到的代理变量（只显示主机和端口，不显示账号密码）。
+7. **测试（Linux 可跑，默认 `pytest` 不准出网）**：用假的慢 / 挂住的 fetcher（httpx `MockTransport` 里 `sleep`、或抛 `httpx.ReadTimeout`；假的 OpenAlex fetch 永久阻塞）证明：① 单个请求按超时返回；② 总预算到点后 D 在预算加少量余量之内结束；③ 超时的需求变成诚实的占位 / 「未获取」，报告里有 provider 和 URL；④ 后续阶段照常进行，`overall` 是 `complete_with_placeholders` 而不是挂住。测试里的「挂住」必须用可中断的方式实现（线程 + 事件或短 sleep），不要真的让测试进程卡死。
+
+**验收：** 任何阶段都不允许超过 5 分钟没有输出；D 在网络不通 / 代理吊住的情况下也能在预算内结束并给出诚实占位。
+
+#### R5-2：你自己跑 Smoke 5（T36 → T12 → T26 → T02）
+
+> 前提：R5-1 已合入你的分支，且 Windows 全量 `pytest` 退出码 0。冒烟一律用你分支的最新提交。
+> 环境：用户机器，仓库 `F:\ggagy\ai-acadmic-ppt-sys\v01`，PowerShell 7，Office 2021 Home & Student（16.0.20625.20108）。
+> **每行一条命令，不要把多条命令拼成一行，也不要写跨行的 `foreach`**（长段粘贴在用户的 pwsh 里会被打乱）。
+> 每题必须用**全新的** `runs\smoke5\<id>` 目录；**不要**复制 `runs\smoke4\<id>`（`--resume` 只比对输入哈希，会复用旧的 `page_design.json`）。
+
+**0. 准备与检查单（同第 5B 节「冒烟前检查单」）**
+```powershell
+cd F:\ggagy\ai-acadmic-ppt-sys
+git fetch --all
+git checkout feature/v01-office-renderer
+git pull
+git log --oneline -1
+git checkout origin/feature/v01-pipeline -- v01/smoke
+cd v01
+Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue
+```
+关掉所有 PowerPoint 窗口，结束残留的 `POWERPNT.EXE`（无法结束的、不属于本次的 Excel 进程不用管，记下 PID 即可）。然后：
+```powershell
+Get-ChildItem Env:PPTV01_* -ErrorAction SilentlyContinue | Remove-Item
+.\.venv\Scripts\python.exe -m pptv01.cli doctor
+.\.venv\Scripts\python.exe -m pytest -o addopts="" -rs -p no:cacheprovider > pytest_all.txt 2>&1
+"PYTEST_ALL_EXIT=$LASTEXITCODE"
+Get-Content pytest_all.txt -Tail 3
+$env:PPTV01_LLM_BACKEND = "agent"
+$env:PYTHONUNBUFFERED = "1"
+```
+
+**1. 每题一组（以 T36 为例；T12/T26/T02 把所有路径里的 `T36` 换成对应 id，提示词换成下表）**
+```powershell
+New-Item -ItemType Directory -Force runs\smoke5\T36,runs\smoke5\io_T36 | Out-Null
+Copy-Item smoke\agent-answers\T36\io\*.json runs\smoke5\io_T36\
+Copy-Item smoke\agent-answers\T36\research_brief.json runs\smoke5\T36\
+$env:PPTV01_AGENT_RESPONSES_DIR = "runs\smoke5\io_T36"
+.\.venv\Scripts\python.exe -u -m pptv01.cli run "做一份不超过5页的人工智能介绍，尽量少用文字。" --out runs\smoke5 --run-id T36 --resume --renderer powerpoint-com --on-missing placeholder 2>&1 | Tee-Object -FilePath runs\smoke5\T36.log
+"RUN_EXIT_T36=$LASTEXITCODE"
+.\.venv\Scripts\python.exe -u -m pptv01.cli gates runs\smoke5\T36 2>&1 | Tee-Object -FilePath runs\smoke5\T36.gates.log
+"GATES_EXIT_T36=$LASTEXITCODE"
+```
+
+| id | 提示词（原样） |
+| --- | --- |
+| T36 | 做一份不超过5页的人工智能介绍，尽量少用文字。 |
+| T12 | 帮我准备一个咖啡店创业计划展示。 |
+| T26 | 做一份介绍世界著名建筑的PPT。 |
+| T02 | 帮我介绍一下城市热岛效应。 |
+
+- **挂死规则：** 任何一题超过 5 分钟没有新日志行，就 Ctrl+C，按第 5B 节「挂了怎么恢复」只清本次进程，把日志最后 50 行和运行目录里最新的文件名单记进报告，标为 `HUNG`，然后回 R5-1 修，**不要跳过继续交差**。
+- **退出码 3，或 E 因为 D 取到的素材和已提交的答案对不上而失败（例如「usable assets neither accepted on any page nor listed in unused_assets」）：立刻停下这一题。** 不得自己编写、修改或「补」任何 `*_response_*.json`——agent 后端的答案只能由宝特写。把 `runs\smoke5\io_<id>\` 里**最新的** `*_request_*.json` 和日志一起提交（见下），在 summary 里写明，等宝特补答案后再续跑。
+- 期望：`RUN_EXIT=0`（`overall=complete_with_placeholders`）、`GATES_EXIT=0`，`render\slide_*.png` 由 H 自动导出。
+
+**2. 结果提交（推到 `feature/v01-office-renderer`，目录 `v01/smoke/review/smoke5/<id>/`）**
+
+每题提交：
+- `render/slide_*.png`（全部；或拼一张 contact sheet 加上原图）；
+- `gate_report.json`、`qa_report.json`、`page_design.json`；
+- `run.log.tail.txt`（`runs\smoke5\<id>.log` 最后 200 行）和 `gates.log`；
+- `deck.pptx`：≤ 10MB 就提交，超过就不提交并在 summary 里写大小；
+- 若停在 3 / E 失败：最新的 `*_request_*.json`；
+- `summary.md`：`RUN_EXIT`、`GATES_EXIT`、各阶段耗时（特别是 D）、D 报告里超时 / 未获取的条目（provider + URL）、`layout_diversity` 那一行原文、你看图后的一句话观感，以及 smoke4 同题对照（`runs\smoke4\<id>\render`，有就并排列出页号）。
+
+`runs/` 被 gitignore，复制到 `v01/smoke/review/smoke5/<id>/` 再提交。**不要**提交 `io_*` 里的答案文件、任何密钥或代理账号。
+
+#### R5-3：修第 4 轮评审遗留（文件:行号以 `57765f5` 为准）
+
+1. **（中）Excel 误杀**：`renderers/powerpoint_com/session.py:295-311`（`record_spawned_excel_pids`）以及 `:607`、`:621-625`（`__exit__`）。现在「我们拉起的 Excel」是用「当前 PID − 基线」算的，并在 `_collect_spawned_excel_pids` 里写进 `_spawned_excel_pids`；用户运行期间自己打开的 Excel 会被算进去，正常退出时等 2 秒后被 `taskkill`。改为：只在 `executor.py:666`（`add_chart` 之后）那一刻记录新 PID，并且只记录能和本次图表操作对上的那个 Excel（例如对比 add_chart 前后的差，而不是和会话开始时的基线比）；`_on_timeout` 和 `__exit__` **只杀已记录的集合**，不再重新求差。加测试：会话中途出现一个与图表无关的新 Excel PID，退出时不被终止。
+2. **（低）`probe_excel_com` 留下 Excel**：`session.py:177-211`。基线枚举失败时 `spawned` 为空，于是既不 `Quit()` 也不清理，DispatchEx 拉起的 Excel 一直挂着。改为：`DispatchEx` 得到的实例总是 `Quit()`；只有「确实记录到的 PID」才允许在 `Quit` 失败后终止。
+3. **（中）回退选版时静默丢掉第 2 张及以后的真实图**：`f_layout/layouts.py:328-342`（Pass 2 的回退）会把 `TEXT_CAPABLE_LAYOUTS` 里的版式派给有 2 张以上真实图的页，而 `cover`（`:811-877`）、`section`（`:1023-1029`）、`quote`（`:1330-1334`）、`big-number`（`:1494-1495`）只放 `real_visuals[0]`。宝特复现：5 页、每页 2 张图，结果 `['cover','section','image-left','image-right','comparison']`，cover 和 section 页各只放了 1 张，没有任何门槛或备注报出来。改为：选版时只给「能放下该页全部真实图」的版式，或者让这些版式能放下多张；并新增门槛（可并入 `layout_diversity`，或新开 `mapped_visuals_placed`）：E 里 `accepted` 的每一个视觉素材（图片 / 图表 / 表格 / 图示，不含只作为文献引用的 reference）都必须出现在该页 `page_design` 里，否则判 fail。
+4. **（低）编造的请求号**：`layouts.py:421` `req_id = item.request_id or "U001"`；没有 `request_id` 时元素名还会变成 `PLACEHOLDER_None`（`:477`、`:512`）。没有请求号的占位是上游 bug：应报错或用明确的 `U???`/`unassigned` 标记并让 `placeholders_marked` 报出，**不得编号冒充**。
+5. **（低）门槛静默跳过 / 吞异常**：`grading/gates.py:584`（`deck_ops` 页数和 `page_design` 不一致时直接跳过比对）、`:590`（`except Exception: pass`）。改为：页数不一致本身判 fail；读 / 解析 `deck_ops.json` 失败写进 `detail`（至少降为 warn），不得吞掉。`:533` 的「最大内容槽」目前把标题和正文文本框也算进去，请改成只比主视觉 / 主内容槽，或在 `detail` 写清比的是什么。
+6. **（外观）** `tests/test_round4_layout_diversity.py:11-12` 未使用的 `Presentation` / `Inches` 导入删掉。另外 T36 五页每页都有一条 12.03×0.58 英寸的通栏黄色虚线条：面积合规，但请在 Smoke 5 的真机截图里确认它是否仍然抢眼；如果是，改成角标、窄条，或汇总到 `needs-input-list` 末页（HANDOFF 第 4 轮允许的做法），并在 summary 里贴前后对比。
+
+#### R5-4：Bivia 判断器继续可选、延后
+
+不做也不挡本轮验收；要做仍须完全遵守第 4 轮「可选：Bivia 判断器」的五条（默认关闭，只读 `A8_API_KEY` 环境变量，不得进代码 / 日志 / 提交，单测用假客户端、不出网）。
+
+#### 第 5 轮验收（全部满足才算过）
+
+1. Windows 清环境全量 `pytest` 退出码 0，命令原样：`.\.venv\Scripts\python.exe -m pytest -o addopts="" -rs -p no:cacheprovider > pytest_all.txt 2>&1`，然后 `"PYTEST_ALL_EXIT=$LASTEXITCODE"`；把最后一行摘要写进汇报。
+2. 任何阶段都没有超过 5 分钟没有输出；D 有总预算，超时有 provider + URL 记录。
+3. 四题 Smoke 5 的结果都已推到 `feature/v01-office-renderer` 的 `v01/smoke/review/smoke5/<id>/`（停在 3 或 E 失败的题，交的是请求文件和日志，不是编出来的答案）。
+4. 没有任何编造：没有自写的 agent 答案、没有凭空的图片 / 数据 / 请求号；缺的就是诚实占位。
+5. 只推你自己的分支；不碰 master/main，不 force push，不往 `feature/v01-pipeline` 推代码。
 
 ### 第 4 轮（2026-11-21 美东，宝特）：5B 尚未通过；先修 N2 误杀，并重做版式多样性
 
