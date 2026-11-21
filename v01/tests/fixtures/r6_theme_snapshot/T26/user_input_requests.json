@@ -1,0 +1,149 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T26",
+  "requests": [
+    {
+      "request_id": "U001",
+      "kind": "diagram",
+      "asset_id": "A003",
+      "page_ids": [
+        "S002"
+      ],
+      "need": "示意多立克柱式的构成",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U002",
+      "kind": "image",
+      "asset_id": "A006",
+      "page_ids": [
+        "S004"
+      ],
+      "need": "展示一座东亚木构古建筑的外观，突出屋檐与斗拱",
+      "why": "candidates found for '佛光寺东大殿' but none passed licence/format/relevance/download (see candidates); Wikidata candidate Q121353103 佛光寺东大殿造像组合及相关问题探讨 - rejected: instance of scholarly article; Wikidata candidate Q119476769 佛光寺东大殿尺度规律探讨 - rejected: instance of scholarly article; Wikidata candidate Q119477242 佛光寺东大殿结构特征——《中国古代木结构建筑技术（战国—北宋）》相关内容再议 - rejected: instance of scholarly article",
+      "format_wanted": "PNG/JPG/WEBP/SVG 图片（≥1280px），注明来源 URL 与许可（如 CC BY 4.0 / CC0）",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U003",
+      "kind": "diagram",
+      "asset_id": "A007",
+      "page_ids": [
+        "S004"
+      ],
+      "need": "示意斗拱的构造与受力方式",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U004",
+      "kind": "diagram",
+      "asset_id": "A009",
+      "page_ids": [
+        "S005"
+      ],
+      "need": "对比砖石结构与钢框架结构的受力方式",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U005",
+      "kind": "image",
+      "asset_id": "A010",
+      "page_ids": [
+        "S006"
+      ],
+      "need": "展示现代主义代表作的外观，说明其简洁的形式",
+      "why": "candidates found for '萨伏伊别墅' but none passed licence/format/relevance/download (see candidates); Wikidata candidate Q119477278 萨伏伊别墅（1928-1929）:一个独立世界的创生——勒·柯布西耶“建筑散步”思想溯源 - rejected: instance of scholarly article",
+      "format_wanted": "PNG/JPG/WEBP/SVG 图片（≥1280px），注明来源 URL 与许可（如 CC BY 4.0 / CC0）",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U006",
+      "kind": "diagram",
+      "asset_id": "A013",
+      "page_ids": [
+        "S007"
+      ],
+      "need": "示意被动式节能的几种设计手法",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U007",
+      "kind": "diagram",
+      "asset_id": "A014",
+      "page_ids": [
+        "S008"
+      ],
+      "need": "画一张把前面几座建筑按时代排开的时间线",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    }
+  ],
+  "summary": "0 open (0 blocking), 7 placeholder_rendered"
+}

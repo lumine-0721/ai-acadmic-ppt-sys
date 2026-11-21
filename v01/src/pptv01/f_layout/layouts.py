@@ -34,6 +34,7 @@ from pptv01.contracts import (
     ProductionPlan,
     SlidePage,
 )
+from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens
 
 from .capacity import estimate_slot_capacity, estimate_text_height_in, fit_text_to_box, wrap_mixed_text
 from .validate import MIN_FONT_PT
@@ -82,25 +83,25 @@ TEXT_CAPABLE_LAYOUTS: tuple[str, ...] = (
 
 IMAGE_REQUIRING_LAYOUTS: frozenset[str] = frozenset({"image-left", "image-right", "full-bleed"})
 
-# ------------------------------------------------------------------ Palette (modern editorial slate + deep navy + sky)
-C_NAVY_DEEP = "#0F2544"
-C_NAVY = "#1B365D"
-C_ACCENT = "#0284C7"
-C_SKY = "#38BDF8"
-C_TEAL = "#0D9488"
-C_TEXT = "#0F172A"
-C_TEXT_SOFT = "#334155"
-C_MUTED = "#64748B"
-C_WHITE = "#FFFFFF"
-C_ICE = "#E2E8F0"
-C_SLATE_LIGHT = "#F8FAFC"
-C_WARM_BG = "#F1F5F9"
-C_FACT_BG = "#EFF6FF"
-C_BORDER = "#CBD5E1"
-C_PH_FILL = "#FFFBEB"
-C_PH_LINE = "#D97706"
-C_PH_TEXT = "#92400E"
-DEFAULT_FONT = "Microsoft YaHei"
+# ------------------------------------------------------------------ Palette defaults resolved from theme tokens
+C_NAVY_DEEP = ACADEMIC_DEFAULT_THEME.primary_deep
+C_NAVY = ACADEMIC_DEFAULT_THEME.primary
+C_ACCENT = ACADEMIC_DEFAULT_THEME.accent
+C_SKY = ACADEMIC_DEFAULT_THEME.accent_light
+C_TEAL = ACADEMIC_DEFAULT_THEME.teal
+C_TEXT = ACADEMIC_DEFAULT_THEME.background_text
+C_TEXT_SOFT = ACADEMIC_DEFAULT_THEME.text_secondary
+C_MUTED = ACADEMIC_DEFAULT_THEME.text_muted
+C_WHITE = ACADEMIC_DEFAULT_THEME.primary_text
+C_ICE = ACADEMIC_DEFAULT_THEME.text_on_dark_soft
+C_SLATE_LIGHT = ACADEMIC_DEFAULT_THEME.surface_light
+C_WARM_BG = ACADEMIC_DEFAULT_THEME.surface_warm
+C_FACT_BG = ACADEMIC_DEFAULT_THEME.surface_fact
+C_BORDER = ACADEMIC_DEFAULT_THEME.stroke
+C_PH_FILL = ACADEMIC_DEFAULT_THEME.placeholder_fill
+C_PH_LINE = ACADEMIC_DEFAULT_THEME.placeholder_line
+C_PH_TEXT = ACADEMIC_DEFAULT_THEME.placeholder_text
+DEFAULT_FONT = ACADEMIC_DEFAULT_THEME.font_family
 
 # Standard 16:9 slide grid (13.333 x 7.5 in, 0.65 in side margins -> 12.03 in usable width)
 GRID_MARGIN_X = 0.65
@@ -375,6 +376,7 @@ def _make_fitted_text(
     align: str = "left",
     bold: bool = False,
     color_hex: str = C_TEXT,
+    font: str = DEFAULT_FONT,
     role: str = "",
     page_notes: list[str],
 ) -> DesignElement:
@@ -392,7 +394,7 @@ def _make_fitted_text(
         z_index=z_index,
         align=align,  # type: ignore[arg-type]
         text=fit.text,
-        font=DEFAULT_FONT,
+        font=font,
         font_size_pt=fit.font_size_pt,
         bold=bold,
         color_hex=color_hex,
@@ -468,6 +470,7 @@ def _place_compact_placeholder_tray(
     tray_h: float = 0.60,
     page_notes: list[str],
     dark_theme: bool = False,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> None:
     """Place all missing U### requests as compact dashed corner badges/pills (<= 15% content area total, never hero)."""
     n = len(placeholders)
@@ -475,9 +478,9 @@ def _place_compact_placeholder_tray(
         return
     content_area = slide_content_area_in2()
     max_each_area = content_area * 0.125  # safely under the 15% hard cap
-    ph_fill = "#172A45" if dark_theme else C_PH_FILL
-    ph_line = "#F59E0B" if dark_theme else C_PH_LINE
-    ph_text = "#FDE68A" if dark_theme else C_PH_TEXT
+    ph_fill = theme.dark_placeholder_fill if dark_theme else theme.placeholder_fill
+    ph_line = theme.dark_placeholder_line if dark_theme else theme.placeholder_line
+    ph_text = theme.dark_placeholder_text if dark_theme else theme.placeholder_text
 
     if n == 1:
         item = placeholders[0]
@@ -501,7 +504,7 @@ def _place_compact_placeholder_tray(
                 z_index=3,
                 align="left",
                 text=txt,
-                font=DEFAULT_FONT,
+                font=theme.font_family,
                 font_size_pt=pt,
                 color_hex=ph_text,
                 fill_hex=ph_fill,
@@ -537,7 +540,7 @@ def _place_compact_placeholder_tray(
                 z_index=3,
                 align="left",
                 text=txt,
-                font=DEFAULT_FONT,
+                font=theme.font_family,
                 font_size_pt=pt,
                 color_hex=ph_text,
                 fill_hex=ph_fill,
@@ -558,10 +561,12 @@ def _design_real_visual(
     h: float,
     page_notes: list[str],
     *,
-    caption_color: str = C_MUTED,
+    caption_color: str | None = None,
     suppress_caption: bool = False,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> list[DesignElement]:
     out: list[DesignElement] = []
+    cap_color = caption_color if caption_color is not None else theme.caption_on_light
     if item.slot_type == "image":
         cap_text = "" if suppress_caption else item.attribution.strip()
         cap_h = 0.0
@@ -618,7 +623,8 @@ def _design_real_visual(
                     cap_text,
                     9.5,
                     z_index=2,
-                    color_hex=caption_color,
+                    color_hex=cap_color,
+                    font=theme.font_family,
                     role="attribution_caption",
                     page_notes=page_notes,
                 )
@@ -654,8 +660,8 @@ def _design_real_visual(
             w_in=round(w, 3),
             h_in=round(h, 3),
             z_index=1,
-            fill_hex=C_SLATE_LIGHT,
-            line_hex=C_ACCENT,
+            fill_hex=theme.surface_light,
+            line_hex=theme.accent,
             role="diagram_json",
             asset_id=item.asset_id,
             request_id=item.request_id,
@@ -674,8 +680,9 @@ def _place_real_visuals_group(
     h: float,
     page_notes: list[str],
     *,
-    caption_color: str = C_MUTED,
+    caption_color: str | None = None,
     start_idx: int = 1,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> None:
     """Place ALL real visuals inside ``(x, y, w, h)`` without silently dropping any."""
     n_vis = len(real_visuals)
@@ -684,7 +691,7 @@ def _place_real_visuals_group(
     if n_vis == 1:
         elements.extend(
             _design_real_visual(
-                real_visuals[0], start_idx, x, y, w, h, page_notes, caption_color=caption_color
+                real_visuals[0], start_idx, x, y, w, h, page_notes, caption_color=caption_color, theme=theme
             )
         )
         return
@@ -697,7 +704,7 @@ def _place_real_visuals_group(
                 vw = round(x + w - vx, 3) if i == n_vis - 1 else cw
                 elements.extend(
                     _design_real_visual(
-                        item, start_idx + i, vx, y, vw, h, page_notes, caption_color=caption_color
+                        item, start_idx + i, vx, y, vw, h, page_notes, caption_color=caption_color, theme=theme
                     )
                 )
         else:
@@ -708,7 +715,7 @@ def _place_real_visuals_group(
                 vh = round(y + h - vy, 3) if i == n_vis - 1 else ch
                 elements.extend(
                     _design_real_visual(
-                        item, start_idx + i, x, vy, w, vh, page_notes, caption_color=caption_color
+                        item, start_idx + i, x, vy, w, vh, page_notes, caption_color=caption_color, theme=theme
                     )
                 )
         return
@@ -728,7 +735,7 @@ def _place_real_visuals_group(
         vh = round(y + h - vy, 3) if r == rows - 1 else ch
         elements.extend(
             _design_real_visual(
-                item, start_idx + i, vx, vy, vw, vh, page_notes, caption_color=caption_color
+                item, start_idx + i, vx, vy, vw, vh, page_notes, caption_color=caption_color, theme=theme
             )
         )
 
@@ -741,12 +748,14 @@ def _place_anchored_citation(
     y: float,
     w: float,
     max_bottom: float,
-    color_hex: str = C_MUTED,
+    color_hex: str | None = None,
     page_notes: list[str],
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> None:
     """Anchor reference citations tightly below the content block (never floating in empty whitespace)."""
     if not citations:
         return
+    cite_color = color_hex if color_hex is not None else theme.citation_on_light
     cite_text = " | ".join(citations)
     avail_h = round(max_bottom - y, 3)
     if avail_h < 0.34:
@@ -764,7 +773,8 @@ def _place_anchored_citation(
             cite_text,
             9.5,
             z_index=2,
-            color_hex=color_hex,
+            color_hex=cite_color,
+            font=theme.font_family,
             role="anchored_citation",
             page_notes=page_notes,
         )
@@ -782,13 +792,16 @@ def _place_content_fitted_bullets(
     notes: list[str],
     *,
     element_id: str = "bullets",
-    color_hex: str = C_TEXT,
-    rail_color: str = C_ACCENT,
+    color_hex: str | None = None,
+    rail_color: str | None = None,
     with_accent_rail: bool = True,
     rail_id: str = "accent_rail",
     min_box_h: float = 0.80,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> float:
     """Place content-fitted bullets with an optional matching-height left accent rail."""
+    txt_color = color_hex if color_hex is not None else theme.background_text
+    r_color = rail_color if rail_color is not None else theme.accent
     rail_offset = 0.20 if with_accent_rail else 0.0
     txt_x = round(x + rail_offset, 3)
     txt_w = round(max(1.5, w - rail_offset), 3)
@@ -810,8 +823,8 @@ def _place_content_fitted_bullets(
                 w_in=0.06,
                 h_in=box_h,
                 z_index=1,
-                fill_hex=rail_color,
-                line_hex=rail_color,
+                fill_hex=r_color,
+                line_hex=r_color,
                 role="accent_rail",
             )
         )
@@ -829,10 +842,10 @@ def _place_content_fitted_bullets(
             z_index=2,
             align="left",
             text=fit.text,
-            font=DEFAULT_FONT,
+            font=theme.font_family,
             font_size_pt=fit.font_size_pt,
             bold=False,
-            color_hex=color_hex,
+            color_hex=txt_color,
             role="key_points",
         )
     )
@@ -854,6 +867,7 @@ def build_layout_elements(
     notes: list[str],
     *,
     concise: bool = False,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> list[DesignElement]:
     """Build all DesignElements for the requested canonical `layout_id`."""
     lid = normalize_layout_id(layout_id) or "section"
@@ -880,8 +894,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=CANVAS_H_IN,
                 z_index=0,
-                fill_hex=C_NAVY_DEEP,
-                line_hex=C_NAVY_DEEP,
+                fill_hex=theme.primary_deep,
+                line_hex=theme.primary_deep,
                 role="canvas_bg",
             )
         )
@@ -894,8 +908,8 @@ def build_layout_elements(
                 w_in=0.18,
                 h_in=CANVAS_H_IN,
                 z_index=1,
-                fill_hex=C_SKY,
-                line_hex=C_SKY,
+                fill_hex=theme.accent_light,
+                line_hex=theme.accent_light,
                 role="left_accent",
             )
         )
@@ -914,7 +928,8 @@ def build_layout_elements(
                     36.0,
                     z_index=2,
                     bold=True,
-                    color_hex=C_WHITE,
+                    color_hex=theme.primary_text,
+                    font=theme.font_family,
                     role="cover_title",
                     page_notes=notes,
                 )
@@ -928,8 +943,8 @@ def build_layout_elements(
                     w_in=1.60,
                     h_in=0.07,
                     z_index=1,
-                    fill_hex=C_SKY,
-                    line_hex=C_SKY,
+                    fill_hex=theme.accent_light,
+                    line_hex=theme.accent_light,
                     role="cover_divider",
                 )
             )
@@ -944,10 +959,11 @@ def build_layout_elements(
                 bullet_text,
                 base_pt,
                 notes,
-                color_hex=C_ICE,
-                rail_color=C_SKY,
+                color_hex=theme.text_on_dark_soft,
+                rail_color=theme.accent_light,
                 with_accent_rail=False,
                 min_box_h=1.40,
+                theme=theme,
             )
             if citations:
                 _place_anchored_citation(
@@ -957,14 +973,23 @@ def build_layout_elements(
                     y=round(bul_y + bh + 0.14, 3),
                     w=left_w,
                     max_bottom=content_bottom,
-                    color_hex="#94A3B8",
+                    color_hex=theme.citation_on_dark,
                     page_notes=notes,
+                    theme=theme,
                 )
             vis_x = round(GRID_MARGIN_X + left_w + 0.38, 3)
             vis_w = round(GRID_RIGHT_X - vis_x, 3)
             vis_h = round(content_bottom - 0.65, 3)
             _place_real_visuals_group(
-                elements, real_visuals, vis_x, 0.65, vis_w, vis_h, notes, caption_color="#CBD5E1"
+                elements,
+                real_visuals,
+                vis_x,
+                0.65,
+                vis_w,
+                vis_h,
+                notes,
+                caption_color=theme.caption_on_dark,
+                theme=theme,
             )
         else:
             # Full-width dark typographic cover (ideal for sparse decks like T36 slide 1!)
@@ -980,7 +1005,8 @@ def build_layout_elements(
                     42.0,
                     z_index=2,
                     bold=True,
-                    color_hex=C_WHITE,
+                    color_hex=theme.primary_text,
+                    font=theme.font_family,
                     role="cover_title",
                     page_notes=notes,
                 )
@@ -994,8 +1020,8 @@ def build_layout_elements(
                     w_in=2.20,
                     h_in=0.08,
                     z_index=1,
-                    fill_hex=C_SKY,
-                    line_hex=C_SKY,
+                    fill_hex=theme.accent_light,
+                    line_hex=theme.accent_light,
                     role="cover_divider",
                 )
             )
@@ -1010,10 +1036,11 @@ def build_layout_elements(
                 bullet_text,
                 22.0 if concise else 20.0,
                 notes,
-                color_hex=C_ICE,
-                rail_color=C_SKY,
+                color_hex=theme.text_on_dark_soft,
+                rail_color=theme.accent_light,
                 with_accent_rail=False,
                 min_box_h=1.50,
+                theme=theme,
             )
             if citations:
                 _place_anchored_citation(
@@ -1023,12 +1050,13 @@ def build_layout_elements(
                     y=round(bul_y + bh + 0.16, 3),
                     w=GRID_USABLE_W,
                     max_bottom=content_bottom,
-                    color_hex="#94A3B8",
+                    color_hex=theme.citation_on_dark,
                     page_notes=notes,
+                    theme=theme,
                 )
         if has_ph:
             _place_compact_placeholder_tray(
-                elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, dark_theme=True
+                elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, dark_theme=True, theme=theme
             )
         return elements
 
@@ -1044,8 +1072,8 @@ def build_layout_elements(
                 w_in=split_x,
                 h_in=CANVAS_H_IN,
                 z_index=0,
-                fill_hex=C_NAVY,
-                line_hex=C_NAVY,
+                fill_hex=theme.primary,
+                line_hex=theme.primary,
                 role="section_bg_left",
             )
         )
@@ -1058,8 +1086,8 @@ def build_layout_elements(
                 w_in=round(CANVAS_W_IN - split_x, 3),
                 h_in=CANVAS_H_IN,
                 z_index=0,
-                fill_hex=C_SLATE_LIGHT,
-                line_hex=C_SLATE_LIGHT,
+                fill_hex=theme.surface_light,
+                line_hex=theme.surface_light,
                 role="section_bg_right",
             )
         )
@@ -1072,8 +1100,8 @@ def build_layout_elements(
                 w_in=0.08,
                 h_in=CANVAS_H_IN,
                 z_index=1,
-                fill_hex=C_ACCENT,
-                line_hex=C_ACCENT,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
                 role="section_stripe",
             )
         )
@@ -1089,7 +1117,8 @@ def build_layout_elements(
                 34.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_WHITE,
+                color_hex=theme.primary_text,
+                font=theme.font_family,
                 role="section_title",
                 page_notes=notes,
             )
@@ -1103,8 +1132,8 @@ def build_layout_elements(
                 w_in=1.20,
                 h_in=0.07,
                 z_index=1,
-                fill_hex=C_SKY,
-                line_hex=C_SKY,
+                fill_hex=theme.accent_light,
+                line_hex=theme.accent_light,
                 role="section_divider",
             )
         )
@@ -1113,14 +1142,21 @@ def build_layout_elements(
         rw = round(GRID_RIGHT_X - rx, 3)  # 7.13 in
         if real_visuals:
             bh = _place_content_fitted_bullets(
-                elements, rx, 0.70, rw, 1.85, bullet_text, 17.0, notes, min_box_h=0.95
+                elements, rx, 0.70, rw, 1.85, bullet_text, 17.0, notes, min_box_h=0.95, theme=theme
             )
             vis_y = round(0.70 + bh + 0.25, 3)
             vis_h = round(content_bottom - vis_y - (0.45 if citations else 0.0), 3)
-            _place_real_visuals_group(elements, real_visuals, rx, vis_y, rw, vis_h, notes)
+            _place_real_visuals_group(elements, real_visuals, rx, vis_y, rw, vis_h, notes, theme=theme)
             if citations:
                 _place_anchored_citation(
-                    elements, citations, x=rx, y=round(vis_y + vis_h + 0.08, 3), w=rw, max_bottom=content_bottom, page_notes=notes
+                    elements,
+                    citations,
+                    x=rx,
+                    y=round(vis_y + vis_h + 0.08, 3),
+                    w=rw,
+                    max_bottom=content_bottom,
+                    page_notes=notes,
+                    theme=theme,
                 )
         else:
             bul_y = 1.60
@@ -1135,16 +1171,26 @@ def build_layout_elements(
                 22.0 if concise else 20.0,
                 notes,
                 min_box_h=2.00,
+                theme=theme,
             )
             if citations:
                 _place_anchored_citation(
-                    elements, citations, x=rx, y=round(bul_y + bh + 0.16, 3), w=rw, max_bottom=content_bottom, page_notes=notes
+                    elements,
+                    citations,
+                    x=rx,
+                    y=round(bul_y + bh + 0.16, 3),
+                    w=rw,
+                    max_bottom=content_bottom,
+                    page_notes=notes,
+                    theme=theme,
                 )
         if has_ph:
             if len(placeholders) <= 2:
-                _place_compact_placeholder_tray(elements, placeholders, x=rx, y=tray_y, max_w=rw, tray_h=tray_h, page_notes=notes)
+                _place_compact_placeholder_tray(
+                    elements, placeholders, x=rx, y=tray_y, max_w=rw, tray_h=tray_h, page_notes=notes, theme=theme
+                )
             else:
-                _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+                _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
         return elements
 
     # ================================================================ 3) FULL-BLEED (edge-to-edge hero image + dark lower band)
@@ -1179,8 +1225,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=band_h,
                 z_index=0,
-                fill_hex=C_NAVY_DEEP,
-                line_hex=C_NAVY_DEEP,
+                fill_hex=theme.primary_deep,
+                line_hex=theme.primary_deep,
                 role="bleed_editorial_band",
             )
         )
@@ -1193,8 +1239,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=0.06,
                 z_index=1,
-                fill_hex=C_SKY,
-                line_hex=C_SKY,
+                fill_hex=theme.accent_light,
+                line_hex=theme.accent_light,
                 role="bleed_accent",
             )
         )
@@ -1219,7 +1265,8 @@ def build_layout_elements(
                 28.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_WHITE,
+                color_hex=theme.primary_text,
+                font=theme.font_family,
                 role="bleed_title",
                 page_notes=notes,
             )
@@ -1236,7 +1283,8 @@ def build_layout_elements(
                     cap_text,
                     9.5,
                     z_index=2,
-                    color_hex="#CBD5E1",
+                    color_hex=theme.caption_on_dark,
+                    font=theme.font_family,
                     role="attribution_caption",
                     page_notes=notes,
                 )
@@ -1251,10 +1299,11 @@ def build_layout_elements(
             bullet_text,
             16.5,
             notes,
-            color_hex=C_ICE,
-            rail_color=C_SKY,
+            color_hex=theme.text_on_dark_soft,
+            rail_color=theme.accent_light,
             with_accent_rail=False,
             min_box_h=0.90,
+            theme=theme,
         )
         if citations:
             _place_anchored_citation(
@@ -1264,12 +1313,13 @@ def build_layout_elements(
                 y=round(text_top + bh + 0.08, 3),
                 w=right_w,
                 max_bottom=band_bottom,
-                color_hex="#94A3B8",
+                color_hex=theme.citation_on_dark,
                 page_notes=notes,
+                theme=theme,
             )
         if has_ph:
             _place_compact_placeholder_tray(
-                elements, placeholders, y=6.62, tray_h=0.58, page_notes=notes, dark_theme=True
+                elements, placeholders, y=6.62, tray_h=0.58, page_notes=notes, dark_theme=True, theme=theme
             )
         return elements
 
@@ -1289,8 +1339,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=0.06,
                 z_index=1,
-                fill_hex=C_NAVY,
-                line_hex=C_NAVY,
+                fill_hex=theme.primary,
+                line_hex=theme.primary,
                 role="top_accent",
             )
         )
@@ -1311,7 +1361,8 @@ def build_layout_elements(
                 28.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="split_title",
                 page_notes=notes,
             )
@@ -1325,8 +1376,8 @@ def build_layout_elements(
                 w_in=1.10,
                 h_in=0.05,
                 z_index=1,
-                fill_hex=C_ACCENT,
-                line_hex=C_ACCENT,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
                 role="title_underline",
             )
         )
@@ -1342,6 +1393,7 @@ def build_layout_elements(
             base_pt,
             notes,
             with_accent_rail=True,
+            theme=theme,
         )
         if citations:
             _place_anchored_citation(
@@ -1352,13 +1404,14 @@ def build_layout_elements(
                 w=SPLIT_TEXT_W,
                 max_bottom=content_bottom,
                 page_notes=notes,
+                theme=theme,
             )
 
         # Hero visual(s) in the dedicated visual column
-        _place_real_visuals_group(elements, real_visuals, vis_x, top_y, SPLIT_VIS_W, slot_h, notes)
+        _place_real_visuals_group(elements, real_visuals, vis_x, top_y, SPLIT_VIS_W, slot_h, notes, theme=theme)
 
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
         return elements
 
     # ================================================================ 5) QUOTE (minimalist warm editorial thesis / statement)
@@ -1372,8 +1425,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=CANVAS_H_IN,
                 z_index=0,
-                fill_hex=C_WARM_BG,
-                line_hex=C_WARM_BG,
+                fill_hex=theme.surface_warm,
+                line_hex=theme.surface_warm,
                 role="quote_bg",
             )
         )
@@ -1389,7 +1442,8 @@ def build_layout_elements(
                 24.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY,
+                color_hex=theme.primary,
+                font=theme.font_family,
                 role="quote_kicker_title",
                 page_notes=notes,
             )
@@ -1403,8 +1457,8 @@ def build_layout_elements(
                 w_in=1.40,
                 h_in=0.05,
                 z_index=1,
-                fill_hex=C_ACCENT,
-                line_hex=C_ACCENT,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
                 role="quote_rule",
             )
         )
@@ -1417,7 +1471,7 @@ def build_layout_elements(
             quote_w = round(SPLIT_TEXT_W - 0.36, 3)
             vis_x = round(GRID_MARGIN_X + SPLIT_TEXT_W + GRID_GUTTER, 3)
             vis_h = round(content_bottom - 1.70, 3)
-            _place_real_visuals_group(elements, real_visuals, vis_x, 1.70, SPLIT_VIS_W, vis_h, notes)
+            _place_real_visuals_group(elements, real_visuals, vis_x, 1.70, SPLIT_VIS_W, vis_h, notes, theme=theme)
         else:
             quote_w = round(GRID_RIGHT_X - quote_x, 3)
         quote_h = 2.05 if rest_pts else 3.20
@@ -1431,8 +1485,8 @@ def build_layout_elements(
                 w_in=0.14,
                 h_in=quote_h,
                 z_index=1,
-                fill_hex=C_ACCENT,
-                line_hex=C_ACCENT,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
                 role="quote_accent_bar",
             )
         )
@@ -1448,7 +1502,8 @@ def build_layout_elements(
                 32.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="hero_statement",
                 page_notes=notes,
             )
@@ -1467,17 +1522,18 @@ def build_layout_elements(
                 rest_txt,
                 19.0,
                 notes,
-                color_hex=C_TEXT_SOFT,
+                color_hex=theme.text_secondary,
                 with_accent_rail=False,
+                theme=theme,
             )
             cursor_y = round(cursor_y + bh + 0.14, 3)
 
         if citations:
             _place_anchored_citation(
-                elements, citations, x=quote_x, y=cursor_y, w=quote_w, max_bottom=content_bottom, page_notes=notes
+                elements, citations, x=quote_x, y=cursor_y, w=quote_w, max_bottom=content_bottom, page_notes=notes, theme=theme
             )
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
         return elements
 
     # ================================================================ 6) BIG-NUMBER / FACT (bold focal callout + supporting takeaways)
@@ -1491,8 +1547,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=0.08,
                 z_index=1,
-                fill_hex=C_ACCENT,
-                line_hex=C_ACCENT,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
                 role="top_accent",
             )
         )
@@ -1508,7 +1564,8 @@ def build_layout_elements(
                 30.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="fact_title",
                 page_notes=notes,
             )
@@ -1539,8 +1596,8 @@ def build_layout_elements(
                 w_in=left_w,
                 h_in=fact_box_h,
                 z_index=0,
-                fill_hex=C_FACT_BG,
-                line_hex=C_FACT_BG,
+                fill_hex=theme.surface_fact,
+                line_hex=theme.surface_fact,
                 role="fact_highlight_bg",
             )
         )
@@ -1553,8 +1610,8 @@ def build_layout_elements(
                 w_in=0.12,
                 h_in=fact_box_h,
                 z_index=1,
-                fill_hex=C_NAVY,
-                line_hex=C_NAVY,
+                fill_hex=theme.primary,
+                line_hex=theme.primary,
                 role="fact_accent_bar",
             )
         )
@@ -1570,7 +1627,8 @@ def build_layout_elements(
                 26.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="big_fact",
                 page_notes=notes,
             )
@@ -1578,7 +1636,7 @@ def build_layout_elements(
 
         # Right column: real chart/visual(s) if available, else supporting key points
         if real_visuals:
-            _place_real_visuals_group(elements, real_visuals, right_x, panel_y, right_w, panel_h, notes)
+            _place_real_visuals_group(elements, real_visuals, right_x, panel_y, right_w, panel_h, notes, theme=theme)
             if citations:
                 _place_anchored_citation(
                     elements,
@@ -1588,6 +1646,7 @@ def build_layout_elements(
                     w=left_w,
                     max_bottom=content_bottom,
                     page_notes=notes,
+                    theme=theme,
                 )
         else:
             if other_pts:
@@ -1603,6 +1662,7 @@ def build_layout_elements(
                     notes,
                     with_accent_rail=False,
                     min_box_h=1.80,
+                    theme=theme,
                 )
                 if citations:
                     _place_anchored_citation(
@@ -1613,6 +1673,7 @@ def build_layout_elements(
                         w=right_w,
                         max_bottom=content_bottom,
                         page_notes=notes,
+                        theme=theme,
                     )
             elif citations:
                 _place_anchored_citation(
@@ -1623,10 +1684,11 @@ def build_layout_elements(
                     w=GRID_USABLE_W,
                     max_bottom=content_bottom,
                     page_notes=notes,
+                    theme=theme,
                 )
 
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
         return elements
 
     # ================================================================ 7) COMPARISON / TWO-COLS (balanced dual-column layout)
@@ -1643,7 +1705,8 @@ def build_layout_elements(
                 30.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="comparison_title",
                 page_notes=notes,
             )
@@ -1657,8 +1720,8 @@ def build_layout_elements(
                 w_in=GRID_USABLE_W,
                 h_in=0.03,
                 z_index=1,
-                fill_hex=C_BORDER,
-                line_hex=C_BORDER,
+                fill_hex=theme.stroke,
+                line_hex=theme.stroke,
                 role="title_divider",
             )
         )
@@ -1684,8 +1747,8 @@ def build_layout_elements(
                 w_in=col_w,
                 h_in=0.08,
                 z_index=1,
-                fill_hex=C_NAVY,
-                line_hex=C_NAVY,
+                fill_hex=theme.primary,
+                line_hex=theme.primary,
                 role="col_accent_left",
             )
         )
@@ -1698,8 +1761,8 @@ def build_layout_elements(
                 w_in=col_w,
                 h_in=0.08,
                 z_index=1,
-                fill_hex=C_ACCENT,
-                line_hex=C_ACCENT,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
                 role="col_accent_right",
             )
         )
@@ -1708,30 +1771,30 @@ def build_layout_elements(
         if len(real_visuals) >= 2:
             # Multiple real visuals distributed cleanly beneath compact points
             bh = _place_content_fitted_bullets(
-                elements, left_x, col_top, GRID_USABLE_W, 1.30, bullet_text, 16.0, notes, with_accent_rail=False, min_box_h=0.65
+                elements, left_x, col_top, GRID_USABLE_W, 1.30, bullet_text, 16.0, notes, with_accent_rail=False, min_box_h=0.65, theme=theme
             )
             vis_y = round(col_top + bh + 0.16, 3)
             vis_h = round(max(1.80, col_bottom - vis_y), 3)
             n_vis = len(real_visuals)
             if n_vis == 2:
-                elements.extend(_design_real_visual(real_visuals[0], 1, left_x, vis_y, col_w, vis_h, notes))
-                elements.extend(_design_real_visual(real_visuals[1], 2, right_x, vis_y, col_w, vis_h, notes))
+                elements.extend(_design_real_visual(real_visuals[0], 1, left_x, vis_y, col_w, vis_h, notes, theme=theme))
+                elements.extend(_design_real_visual(real_visuals[1], 2, right_x, vis_y, col_w, vis_h, notes, theme=theme))
             elif n_vis == 3:
                 vgap = 0.24
                 vcw = round((GRID_USABLE_W - vgap * (n_vis - 1)) / n_vis, 3)
                 for i, item in enumerate(real_visuals):
                     vx = round(GRID_MARGIN_X + i * (vcw + vgap), 3)
                     cw = round(GRID_RIGHT_X - vx, 3) if i == n_vis - 1 else vcw
-                    elements.extend(_design_real_visual(item, i + 1, vx, vis_y, cw, vis_h, notes))
+                    elements.extend(_design_real_visual(item, i + 1, vx, vis_y, cw, vis_h, notes, theme=theme))
             else:
-                _place_real_visuals_group(elements, real_visuals, left_x, vis_y, GRID_USABLE_W, vis_h, notes)
+                _place_real_visuals_group(elements, real_visuals, left_x, vis_y, GRID_USABLE_W, vis_h, notes, theme=theme)
             last_y = round(vis_y + vis_h, 3)
             divider_h = 0.0
         elif len(real_visuals) == 1:
             bh = _place_content_fitted_bullets(
-                elements, left_x, col_top, col_w, col_h, bullet_text, base_pt, notes, with_accent_rail=False, min_box_h=1.60
+                elements, left_x, col_top, col_w, col_h, bullet_text, base_pt, notes, with_accent_rail=False, min_box_h=1.60, theme=theme
             )
-            elements.extend(_design_real_visual(real_visuals[0], 1, right_x, col_top, col_w, col_h, notes))
+            elements.extend(_design_real_visual(real_visuals[0], 1, right_x, col_top, col_w, col_h, notes, theme=theme))
             last_y = round(col_top + max(bh, col_h), 3)
             divider_h = round(max(bh, min(col_h, 3.20)), 3)
         else:
@@ -1751,6 +1814,7 @@ def build_layout_elements(
                 element_id="col_left",
                 with_accent_rail=False,
                 min_box_h=1.60,
+                theme=theme,
             )
             bh_r = 0.0
             if right_pts:
@@ -1767,6 +1831,7 @@ def build_layout_elements(
                     element_id="col_right",
                     with_accent_rail=False,
                     min_box_h=1.60,
+                    theme=theme,
                 )
             last_y = round(col_top + max(bh_l, bh_r), 3)
             divider_h = round(max(bh_l, bh_r), 3)
@@ -1781,18 +1846,18 @@ def build_layout_elements(
                     w_in=0.03,
                     h_in=divider_h,
                     z_index=1,
-                    fill_hex=C_BORDER,
-                    line_hex=C_BORDER,
+                    fill_hex=theme.stroke,
+                    line_hex=theme.stroke,
                     role="col_divider",
                 )
             )
 
         if citations:
             _place_anchored_citation(
-                elements, citations, x=GRID_MARGIN_X, y=round(last_y + 0.14, 3), w=GRID_USABLE_W, max_bottom=content_bottom, page_notes=notes
+                elements, citations, x=GRID_MARGIN_X, y=round(last_y + 0.14, 3), w=GRID_USABLE_W, max_bottom=content_bottom, page_notes=notes, theme=theme
             )
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
         return elements
 
     # ================================================================ 8) TIMELINE (horizontal step progression)
@@ -1809,7 +1874,8 @@ def build_layout_elements(
                 30.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="timeline_title",
                 page_notes=notes,
             )
@@ -1831,15 +1897,15 @@ def build_layout_elements(
                 w_in=GRID_USABLE_W,
                 h_in=0.05,
                 z_index=1,
-                fill_hex=C_BORDER,
-                line_hex=C_BORDER,
+                fill_hex=theme.stroke,
+                line_hex=theme.stroke,
                 role="timeline_track",
             )
         )
 
         step_gap = 0.30
         step_w = round((GRID_USABLE_W - step_gap * (n_steps - 1)) / n_steps, 3)
-        step_colors = [C_NAVY, C_ACCENT, C_TEAL, "#2563EB"]
+        step_colors = [theme.graph_0, theme.graph_1, theme.graph_2, theme.graph_3]
         step_top = 2.24
         if real_visuals:
             step_h = 1.55
@@ -1881,24 +1947,25 @@ def build_layout_elements(
                     19.0 if n_steps <= 3 else 17.0,
                     z_index=2,
                     bold=(len(bucket) == 1),
-                    color_hex=C_TEXT,
+                    color_hex=theme.background_text,
+                    font=theme.font_family,
                     role="timeline_step",
                     page_notes=notes,
                 )
             )
 
         if real_visuals:
-            _place_real_visuals_group(elements, real_visuals, GRID_MARGIN_X, vis_y, GRID_USABLE_W, vis_h, notes)
+            _place_real_visuals_group(elements, real_visuals, GRID_MARGIN_X, vis_y, GRID_USABLE_W, vis_h, notes, theme=theme)
             cite_y = round(vis_y + vis_h + 0.10, 3)
         else:
             cite_y = round(step_top + step_h + 0.16, 3)
 
         if citations:
             _place_anchored_citation(
-                elements, citations, x=GRID_MARGIN_X, y=cite_y, w=GRID_USABLE_W, max_bottom=content_bottom, page_notes=notes
+                elements, citations, x=GRID_MARGIN_X, y=cite_y, w=GRID_USABLE_W, max_bottom=content_bottom, page_notes=notes, theme=theme
             )
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
         return elements
 
     # ================================================================ 9) NEEDS-INPUT-LIST (dedicated appendix checklist)
@@ -1912,8 +1979,8 @@ def build_layout_elements(
                 w_in=CANVAS_W_IN,
                 h_in=0.08,
                 z_index=1,
-                fill_hex=C_PH_LINE,
-                line_hex=C_PH_LINE,
+                fill_hex=theme.placeholder_line,
+                line_hex=theme.placeholder_line,
                 role="top_accent",
             )
         )
@@ -1929,13 +1996,14 @@ def build_layout_elements(
                 28.0,
                 z_index=2,
                 bold=True,
-                color_hex=C_NAVY_DEEP,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
                 role="needs_input_title",
                 page_notes=notes,
             )
         )
         bh = _place_content_fitted_bullets(
-            elements, GRID_MARGIN_X, 1.50, GRID_USABLE_W, 1.65, bullet_text, 16.0, notes, with_accent_rail=True
+            elements, GRID_MARGIN_X, 1.50, GRID_USABLE_W, 1.65, bullet_text, 16.0, notes, with_accent_rail=True, theme=theme
         )
         list_y = round(1.50 + bh + 0.24, 3)
         for i, item in enumerate(placeholders):
@@ -1957,11 +2025,11 @@ def build_layout_elements(
                     z_index=2,
                     align="left",
                     text=txt,
-                    font=DEFAULT_FONT,
+                    font=theme.font_family,
                     font_size_pt=pt,
-                    color_hex=C_PH_TEXT,
-                    fill_hex=C_PH_FILL,
-                    line_hex=C_PH_LINE,
+                    color_hex=theme.placeholder_text,
+                    fill_hex=theme.placeholder_fill,
+                    line_hex=theme.placeholder_line,
                     role="compact_placeholder",
                     asset_id=item.asset_id,
                     request_id=req_id,
@@ -1969,11 +2037,11 @@ def build_layout_elements(
             )
         if citations:
             _place_anchored_citation(
-                elements, citations, x=GRID_MARGIN_X, y=6.78, w=GRID_USABLE_W, max_bottom=7.28, page_notes=notes
+                elements, citations, x=GRID_MARGIN_X, y=6.78, w=GRID_USABLE_W, max_bottom=7.28, page_notes=notes, theme=theme
             )
         return elements
 
     # ================================================================ Fallback: route to section
     return build_layout_elements(
-        "section", page, bullet_points, real_visuals, placeholders, citations, notes, concise=concise
+        "section", page, bullet_points, real_visuals, placeholders, citations, notes, concise=concise, theme=theme
     )

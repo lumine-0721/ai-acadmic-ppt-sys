@@ -1,0 +1,189 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T12",
+  "requests": [
+    {
+      "request_id": "U001",
+      "kind": "statistic",
+      "asset_id": "A002",
+      "page_ids": [
+        "S001"
+      ],
+      "need": "提供咖啡消费趋势的可核验数据",
+      "why": "statistic: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
+      "format_wanted": "结构化 JSON {value,unit,label,source,year} 或 CSV，注明数据集来源 URL/DOI 与许可",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验：有出处、年份与口径，可追溯",
+        "须核实该数据确实存在并来自可信发布方"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U002",
+      "kind": "diagram",
+      "asset_id": "A003",
+      "page_ids": [
+        "S002"
+      ],
+      "need": "画出一到两类目标客群的画像和到店场景",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U003",
+      "kind": "statistic",
+      "asset_id": "A004",
+      "page_ids": [
+        "S002"
+      ],
+      "need": "提供本地消费人群的公开统计",
+      "why": "statistic: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
+      "format_wanted": "结构化 JSON {value,unit,label,source,year} 或 CSV，注明数据集来源 URL/DOI 与许可",
+      "acceptance": [
+        "与这一页要支撑的说法直接相关",
+        "来源可核验：有出处、年份与口径，可追溯",
+        "须核实该数据确实存在并来自可信发布方"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U004",
+      "kind": "diagram",
+      "asset_id": "A005",
+      "page_ids": [
+        "S003"
+      ],
+      "need": "用二维图对比精品、社区和连锁几种定位",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U005",
+      "kind": "diagram",
+      "asset_id": "A007",
+      "page_ids": [
+        "S004"
+      ],
+      "need": "画出选址时人流、租金、竞争三类因素的评估框架",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U006",
+      "kind": "chart",
+      "asset_id": "A008",
+      "page_ids": [
+        "S005"
+      ],
+      "need": "展示一家小型咖啡店的成本结构",
+      "why": "chart_data: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
+      "format_wanted": "结构化 JSON {title,x_label,y_label,series:[{name,labels,values,source}]} 或带出处 CSV，注明来源与许可",
+      "acceptance": [
+        "数据与要比较的对象直接对应",
+        "可合法使用：数据许可或使用条款明确，并记录出处",
+        "数据口径与时间范围清楚",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U007",
+      "kind": "diagram",
+      "asset_id": "A009",
+      "page_ids": [
+        "S005"
+      ],
+      "need": "示意收入、成本与盈亏平衡点的关系",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U008",
+      "kind": "table",
+      "asset_id": "A010",
+      "page_ids": [
+        "S006"
+      ],
+      "need": "风险与应对对照表，逐条配预案",
+      "why": "table: content must be authored or sourced from a cited dataset; not retrievable in D V0.1",
+      "format_wanted": "结构化 JSON {columns:[...],rows:[[...]],source} 或 CSV，注明来源 URL/DOI 与许可",
+      "acceptance": [
+        "内容与这一页的讲解直接对应",
+        "来源明确，若引用外部清单须许可明确",
+        "表格可读、条目不过多",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U009",
+      "kind": "diagram",
+      "asset_id": "A012",
+      "page_ids": [
+        "S007"
+      ],
+      "need": "画出近期验证关键假设的路线图",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    }
+  ],
+  "summary": "0 open (0 blocking), 9 placeholder_rendered"
+}

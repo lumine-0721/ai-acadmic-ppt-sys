@@ -39,6 +39,7 @@ from pptv01.contracts import (
     UserRequestStatus,
     write_contract,
 )
+from pptv01.theme import ACADEMIC_DEFAULT_THEME, DEFAULT_THEME_ID, ThemeTokens, get_theme
 
 from .layouts import (
     CANONICAL_LAYOUT_IDS,
@@ -256,6 +257,8 @@ def _design_single_page(
     citations: list[str],
     run_dir: Path,
     concise_budget: int | None,
+    *,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> PageDesignEntry:
     notes: list[str] = []
 
@@ -279,6 +282,7 @@ def _design_single_page(
         citations,
         notes,
         concise=(concise_budget is not None),
+        theme=theme,
     )
 
     preview_rel = f"previews/{page.page_id}_schematic.png"
@@ -303,8 +307,11 @@ def run_stage_f(
     uir: UserInputRequests | None,
     mapping: SlideAssetMapping,
     run_dir: Path,
+    *,
+    theme_id: str | None = None,
 ) -> PageDesign:
     run_dir = Path(run_dir)
+    theme = get_theme(theme_id or DEFAULT_THEME_ID)
     reg_by_id = {a.asset_id: a for a in reg.assets}
     uir_by_id = {r.request_id: r for r in uir.requests} if uir else {}
     concise_budget = _concise_budget(production)
@@ -333,6 +340,7 @@ def run_stage_f(
             citations_all[idx],
             run_dir,
             concise_budget,
+            theme=theme,
         )
         for idx, p in enumerate(slide_plan.pages)
     ]
@@ -340,6 +348,7 @@ def run_stage_f(
     design = PageDesign(
         schema_version=SCHEMA_VERSION,
         run_id=production.run_id,
+        theme_id=theme.theme_id,
         pages=pages,
     )
     problems = validate_page_design(design, slide_plan, production, mapping, reg, uir, run_dir)

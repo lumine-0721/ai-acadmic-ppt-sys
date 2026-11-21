@@ -1,0 +1,25 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "mappings": [
+    {
+      "page_id": "S001",
+      "asset_id": "A002",
+      "request_id": null,
+      "usage": "在页脚/备注作为「人工智能是什么」页的参考文献条目引用",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    },
+    {
+      "page_id": "S004",
+      "asset_id": "A006",
+      "request_id": null,
+      "usage": "在页脚/备注作为「人工智能局限」页的参考文献条目引用",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    }
+  ],
+  "unused_assets": []
+}

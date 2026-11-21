@@ -38,6 +38,7 @@ from pptv01.contracts import (
     write_contract,
 )
 from pptv01.d_retrieve.license import needs_attribution
+from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens, get_theme
 
 ARTIFACT_OPS = "deck_ops.json"
 
@@ -280,6 +281,8 @@ def _compile_diagram_element(
     data_path: Path,
     base_sources: list[str],
     next_op_id: Any,
+    *,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> tuple[list[DeckOp], list[str]]:
     """Compile a verified diagram JSON into node add_shape + edge add_connector ops."""
     obj = json.loads(data_path.read_text("utf-8"))
@@ -352,14 +355,14 @@ def _compile_diagram_element(
                     "y_in": ny,
                     "w_in": nw,
                     "h_in": nh,
-                    "fill_hex": "#EFF6FF",
-                    "line_hex": "#1E3A8A",
+                    "fill_hex": theme.diagram_fill,
+                    "line_hex": theme.diagram_line,
                     "line_width_pt": 1.25,
                     "text": label,
-                    "font": el.font or "Microsoft YaHei",
+                    "font": el.font or theme.font_family,
                     "font_size_pt": node_font,
                     "bold": False,
-                    "color_hex": "#0F172A",
+                    "color_hex": theme.background_text,
                     "align": "center",
                     "diagram_node_id": nid,
                 },
@@ -402,7 +405,7 @@ def _compile_diagram_element(
                     "end_site": end_site,
                     "connector_type": conn_type,
                     "arrow_style": "triangle",
-                    "line_hex": "#1E3A8A",
+                    "line_hex": theme.diagram_line,
                     "line_width_pt": 1.5,
                     "label": elabel,
                 },
@@ -424,6 +427,7 @@ def compile_deck_ops(
 ) -> DeckOps:
     """Deterministically compile PageDesign into DeckOps (deck_ops.json)."""
     run_dir = Path(run_dir)
+    theme = get_theme(design.theme_id)
     reg_by_id = {a.asset_id: a for a in reg.assets}
     uir_by_id = {r.request_id: r for r in uir.requests} if uir else {}
     sp_by_id = {p.page_id: p for p in slide_plan.pages}
@@ -488,10 +492,10 @@ def compile_deck_ops(
                             "y_in": el.y_in,
                             "w_in": el.w_in,
                             "h_in": el.h_in,
-                            "font": el.font or "Microsoft YaHei",
+                            "font": el.font or theme.font_family,
                             "font_size_pt": el.font_size_pt or 28.0,
                             "bold": bool(el.bold),
-                            "color_hex": el.color_hex or "#1E3A8A",
+                            "color_hex": el.color_hex or theme.title_fallback,
                             "align": el.align,
                         },
                     )
@@ -516,12 +520,12 @@ def compile_deck_ops(
                             "y_in": el.y_in,
                             "w_in": el.w_in,
                             "h_in": el.h_in,
-                            "font": el.font or "Microsoft YaHei",
+                            "font": el.font or theme.font_family,
                             "font_size_pt": el.font_size_pt or 11.5,
                             "bold": bool(el.bold),
-                            "color_hex": el.color_hex or "#92400E",
-                            "fill_hex": el.fill_hex or "#FFFBEB",
-                            "line_hex": el.line_hex or "#D97706",
+                            "color_hex": el.color_hex or theme.placeholder_text,
+                            "fill_hex": el.fill_hex or theme.placeholder_fill,
+                            "line_hex": el.line_hex or theme.placeholder_line,
                             "line_width_pt": 1.25 if el.role == "compact_placeholder" else 2.0,
                             "align": el.align or "left",
                             "dash_style": "dash",
@@ -534,7 +538,7 @@ def compile_deck_ops(
             if el.kind is ElementKind.shape:
                 if el.role == "diagram_json":
                     data_path, base_srcs, note, alt = _resolve_binding(page.page_id, el, reg_by_id, uir_by_id, run_dir)
-                    diag_ops, diag_srcs = _compile_diagram_element(page.page_id, el, data_path, base_srcs, next_op_id)
+                    diag_ops, diag_srcs = _compile_diagram_element(page.page_id, el, data_path, base_srcs, next_op_id, theme=theme)
                     ops.extend(diag_ops)
                     note_lines.append(note)
                     note_lines.append(f"Diagram {el.request_id or el.asset_id} sources: {', '.join(diag_srcs)}")
@@ -719,10 +723,10 @@ def compile_deck_ops(
                         "y_in": el.y_in,
                         "w_in": el.w_in,
                         "h_in": el.h_in,
-                        "font": el.font or "Microsoft YaHei",
+                        "font": el.font or theme.font_family,
                         "font_size_pt": el.font_size_pt or 16.0,
                         "bold": bool(el.bold),
-                        "color_hex": el.color_hex or "#1E293B",
+                        "color_hex": el.color_hex or theme.body_fallback,
                         "align": el.align,
                         "role": el.role,
                     },

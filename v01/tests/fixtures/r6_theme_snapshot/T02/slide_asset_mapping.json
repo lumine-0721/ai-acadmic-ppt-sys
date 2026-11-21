@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T02",
+  "mappings": [
+    {
+      "page_id": "S001",
+      "asset_id": "A002",
+      "request_id": null,
+      "usage": "在页脚/备注作为「城市热岛概念」页的参考文献条目引用（DOI 10.1007/978-3-032-11580-5_1；仅为书目元数据，不代表热像图或数据图）",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    },
+    {
+      "page_id": "S002",
+      "asset_id": "A004",
+      "request_id": null,
+      "usage": "在页脚/备注作为「热岛度量方式」页的参考文献条目引用（DOI 10.1007/978-981-96-3541-2_2；仅为书目元数据）",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    },
+    {
+      "page_id": "S003",
+      "asset_id": "A006",
+      "request_id": null,
+      "usage": "在页脚/备注作为「热岛成因」页的参考文献条目引用（DOI 10.11648/j.ijema.20150302.15；仅为书目元数据，不代替成因示意图）",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    },
+    {
+      "page_id": "S004",
+      "asset_id": "A008",
+      "request_id": null,
+      "usage": "在页脚/备注作为「热岛影响」页的参考文献条目引用（DOI 10.3390/su13020762；仅为书目元数据，不代替影响链条图）",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    },
+    {
+      "page_id": "S006",
+      "asset_id": "A011",
+      "request_id": null,
+      "usage": "置于页面左侧：The Essex 屋顶农场实景照片，作为「屋顶绿化等材料与结构措施」的一个实例；不代表降温效果数据",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "no vision model configured (PPTV01_E_VISION_MODEL unset); image content not visually inspected"
+    },
+    {
+      "page_id": "S006",
+      "asset_id": "A012",
+      "request_id": null,
+      "usage": "置于页面右侧：维基共享上的海绵城市示意图（File:Sponge City.png），对应「改善通风与雨水利用」这一思路；只作概念示意，不代表某一城市的实测效果",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "no vision model configured (PPTV01_E_VISION_MODEL unset); image content not visually inspected"
+    }
+  ],
+  "unused_assets": []
+}

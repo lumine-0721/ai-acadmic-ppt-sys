@@ -1,0 +1,1543 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T12",
+  "canvas_width_in": 13.333,
+  "canvas_height_in": 7.5,
+  "template_path": null,
+  "page_ids": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005",
+    "S006",
+    "S007"
+  ],
+  "ops": [
+    {
+      "op_id": "OP0001",
+      "page_id": "S001",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "cover",
+        "layout_name": "cover"
+      }
+    },
+    {
+      "op_id": "OP0002",
+      "page_id": "S001",
+      "kind": "add_shape",
+      "element_id": "bg_canvas",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_canvas",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 7.5,
+        "fill_hex": "#0F2544",
+        "line_hex": "#0F2544",
+        "role": "canvas_bg",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0003",
+      "page_id": "S001",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 0.18,
+        "h_in": 7.5,
+        "fill_hex": "#38BDF8",
+        "line_hex": "#38BDF8",
+        "role": "left_accent",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0004",
+      "page_id": "S001",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 2.66,
+        "w_in": 1.6,
+        "h_in": 0.07,
+        "fill_hex": "#38BDF8",
+        "line_hex": "#38BDF8",
+        "role": "cover_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0005",
+      "page_id": "S001",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 咖啡店作为社交与日常消费场所的角色\n• 创业者想解决的具体问题或空白\n• 这个项目想成为什么样的店",
+        "x_in": 0.65,
+        "y_in": 2.95,
+        "w_in": 5.65,
+        "h_in": 1.4,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 18.0,
+        "bold": false,
+        "color_hex": "#E2E8F0",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0006",
+      "page_id": "S001",
+      "kind": "add_textbox",
+      "element_id": "cap_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "cap_1",
+        "text": "Arnaud 25, Public domain, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg)",
+        "x_in": 6.68,
+        "y_in": 5.78,
+        "w_in": 6.0,
+        "h_in": 0.54,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#CBD5E1",
+        "align": "left",
+        "role": "attribution_caption"
+      }
+    },
+    {
+      "op_id": "OP0007",
+      "page_id": "S001",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "为什么现在开一家咖啡店",
+        "x_in": 0.65,
+        "y_in": 0.85,
+        "w_in": 5.65,
+        "h_in": 1.65,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 36.0,
+        "bold": true,
+        "color_hex": "#FFFFFF",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0008",
+      "page_id": "S001",
+      "kind": "add_picture",
+      "element_id": "vis_1",
+      "asset_id": "A001",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg"
+      ],
+      "params": {
+        "shape_name": "ASSET_A001__vis_1",
+        "file_path": "assets/A001.jpg",
+        "x_in": 6.68,
+        "y_in": 0.65,
+        "w_in": 6.0,
+        "h_in": 5.07,
+        "crop_mode": "crop_fill"
+      }
+    },
+    {
+      "op_id": "OP0009",
+      "page_id": "S001",
+      "kind": "set_alt_text",
+      "element_id": "vis_1",
+      "asset_id": "A001",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg"
+      ],
+      "params": {
+        "target_element_id": "vis_1",
+        "shape_name": "ASSET_A001__vis_1",
+        "alt_text": "Asset A001: https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg (Public domain)"
+      }
+    },
+    {
+      "op_id": "OP0010",
+      "page_id": "S001",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U001",
+      "asset_id": "A002",
+      "request_id": "U001",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U001",
+        "text": "待补充：提供咖啡消费趋势的可核验数据（U001）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#FDE68A",
+        "fill_hex": "#172A45",
+        "line_hex": "#F59E0B",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0011",
+      "page_id": "S001",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg"
+      ],
+      "params": {
+        "text": "Page S001\nSpeaker/planning summary: 用咖啡店的定位和消费趋势说明机会，不夸大市场。\nLayout notes: planning summary (notes only): 用咖啡店的定位和消费趋势说明机会，不夸大市场。; bullets: shrunk text box height to 1.40in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x5.07in for 1024x768\n[A001] 来源: https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg | 许可: Public domain\n待补充占位 U001: 待补充：提供咖啡消费趋势的可核验数据（U001）"
+      }
+    },
+    {
+      "op_id": "OP0012",
+      "page_id": "S002",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "timeline",
+        "layout_name": "timeline"
+      }
+    },
+    {
+      "op_id": "OP0013",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_step_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_step_1",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.86,
+        "w_in": 0.85,
+        "h_in": 0.16,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "timeline_step_marker",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0014",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_step_2",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_step_2",
+        "shape_type": "rectangle",
+        "x_in": 4.76,
+        "y_in": 1.86,
+        "w_in": 0.85,
+        "h_in": 0.16,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "timeline_step_marker",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0015",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_step_3",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_step_3",
+        "shape_type": "rectangle",
+        "x_in": 8.87,
+        "y_in": 1.86,
+        "w_in": 0.85,
+        "h_in": 0.16,
+        "fill_hex": "#0D9488",
+        "line_hex": "#0D9488",
+        "role": "timeline_step_marker",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0016",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_timeline_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_timeline_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.92,
+        "w_in": 12.03,
+        "h_in": 0.05,
+        "fill_hex": "#CBD5E1",
+        "line_hex": "#CBD5E1",
+        "role": "timeline_track",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0017",
+      "page_id": "S002",
+      "kind": "add_textbox",
+      "element_id": "step_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "step_1",
+        "text": "核心客群的特征与需求",
+        "x_in": 0.65,
+        "y_in": 2.24,
+        "w_in": 3.81,
+        "h_in": 3.3,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": true,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "timeline_step"
+      }
+    },
+    {
+      "op_id": "OP0018",
+      "page_id": "S002",
+      "kind": "add_textbox",
+      "element_id": "step_2",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "step_2",
+        "text": "他们现在去哪里喝咖啡、有什么不满",
+        "x_in": 4.76,
+        "y_in": 2.24,
+        "w_in": 3.81,
+        "h_in": 3.3,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": true,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "timeline_step"
+      }
+    },
+    {
+      "op_id": "OP0019",
+      "page_id": "S002",
+      "kind": "add_textbox",
+      "element_id": "step_3",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "step_3",
+        "text": "我们和他们的场景如何对上",
+        "x_in": 8.87,
+        "y_in": 2.24,
+        "w_in": 3.81,
+        "h_in": 3.3,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": true,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "timeline_step"
+      }
+    },
+    {
+      "op_id": "OP0020",
+      "page_id": "S002",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "目标客群是谁",
+        "x_in": 0.65,
+        "y_in": 0.48,
+        "w_in": 12.03,
+        "h_in": 0.86,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 30.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0021",
+      "page_id": "S002",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U002",
+      "asset_id": "A003",
+      "request_id": "U002",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U002",
+        "text": "待补充：画出一到两类目标客群的画像和到店场景（U002）",
+        "x_in": 0.65,
+        "y_in": 6.56,
+        "w_in": 5.905,
+        "h_in": 0.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0022",
+      "page_id": "S002",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U003",
+      "asset_id": "A004",
+      "request_id": "U003",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U003",
+        "text": "待补充：提供本地消费人群的公开统计（U003）",
+        "x_in": 6.775,
+        "y_in": 6.56,
+        "w_in": 5.905,
+        "h_in": 0.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0023",
+      "page_id": "S002",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "text": "Page S002\nSpeaker/planning summary: 描述一到两类客群画像，并说明待验证的假设。\nLayout notes: planning summary (notes only): 描述一到两类客群画像，并说明待验证的假设。\n待补充占位 U002: 待补充：画出一到两类目标客群的画像和到店场景（U002）\n待补充占位 U003: 待补充：提供本地消费人群的公开统计（U003）"
+      }
+    },
+    {
+      "op_id": "OP0024",
+      "page_id": "S003",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "image-right",
+        "layout_name": "image-right"
+      }
+    },
+    {
+      "op_id": "OP0025",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 0.06,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "top_accent",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0026",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.84,
+        "w_in": 1.1,
+        "h_in": 0.05,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "title_underline",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0027",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_rail",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_rail",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 2.08,
+        "w_in": 0.06,
+        "h_in": 1.34,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "accent_rail",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0028",
+      "page_id": "S003",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 定位：精品、社区还是别的\n• 核心产品与菜单思路\n• 空间与体验上的特点",
+        "x_in": 0.85,
+        "y_in": 2.08,
+        "w_in": 5.4,
+        "h_in": 1.34,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 18.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0029",
+      "page_id": "S003",
+      "kind": "add_textbox",
+      "element_id": "cap_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "cap_1",
+        "text": "Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg)",
+        "x_in": 6.68,
+        "y_in": 5.53,
+        "w_in": 6.0,
+        "h_in": 0.79,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "attribution_caption"
+      }
+    },
+    {
+      "op_id": "OP0030",
+      "page_id": "S003",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "店铺定位与产品",
+        "x_in": 0.65,
+        "y_in": 0.65,
+        "w_in": 5.6,
+        "h_in": 1.1,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 28.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0031",
+      "page_id": "S003",
+      "kind": "add_picture",
+      "element_id": "vis_1",
+      "asset_id": "A006",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg"
+      ],
+      "params": {
+        "shape_name": "ASSET_A006__vis_1",
+        "file_path": "assets/A006.jpg",
+        "x_in": 6.68,
+        "y_in": 0.65,
+        "w_in": 6.0,
+        "h_in": 4.82,
+        "crop_mode": "crop_fill"
+      }
+    },
+    {
+      "op_id": "OP0032",
+      "page_id": "S003",
+      "kind": "set_alt_text",
+      "element_id": "vis_1",
+      "asset_id": "A006",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg"
+      ],
+      "params": {
+        "target_element_id": "vis_1",
+        "shape_name": "ASSET_A006__vis_1",
+        "alt_text": "Asset A006: Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg)"
+      }
+    },
+    {
+      "op_id": "OP0033",
+      "page_id": "S003",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U004",
+      "asset_id": "A005",
+      "request_id": "U004",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U004",
+        "text": "待补充：用二维图对比精品、社区和连锁几种定位（U004）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0034",
+      "page_id": "S003",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg"
+      ],
+      "params": {
+        "text": "Page S003\nSpeaker/planning summary: 讲清定位和产品组合，与常见竞品做对比。\nLayout notes: planning summary (notes only): 讲清定位和产品组合，与常见竞品做对比。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x4.82in for 1280x960\n[A006] Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg\n待补充占位 U004: 待补充：用二维图对比精品、社区和连锁几种定位（U004）"
+      }
+    },
+    {
+      "op_id": "OP0035",
+      "page_id": "S004",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "comparison",
+        "layout_name": "comparison"
+      }
+    },
+    {
+      "op_id": "OP0036",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_col_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_col_divider",
+        "shape_type": "rectangle",
+        "x_in": 6.65,
+        "y_in": 1.94,
+        "w_in": 0.03,
+        "h_in": 1.6,
+        "fill_hex": "#CBD5E1",
+        "line_hex": "#CBD5E1",
+        "role": "col_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0037",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_col_left",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_col_left",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.72,
+        "w_in": 5.75,
+        "h_in": 0.08,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "col_accent_left",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0038",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_col_right",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_col_right",
+        "shape_type": "rectangle",
+        "x_in": 6.93,
+        "y_in": 1.72,
+        "w_in": 5.75,
+        "h_in": 0.08,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "col_accent_right",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0039",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.42,
+        "w_in": 12.03,
+        "h_in": 0.03,
+        "fill_hex": "#CBD5E1",
+        "line_hex": "#CBD5E1",
+        "role": "title_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0040",
+      "page_id": "S004",
+      "kind": "add_textbox",
+      "element_id": "col_left",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "col_left",
+        "text": "• 选址要看哪些因素：人流、租金、竞争\n• 营业时间与人员安排的思路",
+        "x_in": 0.65,
+        "y_in": 1.94,
+        "w_in": 5.75,
+        "h_in": 1.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0041",
+      "page_id": "S004",
+      "kind": "add_textbox",
+      "element_id": "col_right",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "col_right",
+        "text": "供应链与咖啡豆来源的考虑",
+        "x_in": 6.93,
+        "y_in": 1.94,
+        "w_in": 5.75,
+        "h_in": 1.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0042",
+      "page_id": "S004",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "选址与运营方式",
+        "x_in": 0.65,
+        "y_in": 0.48,
+        "w_in": 12.03,
+        "h_in": 0.86,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 30.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0043",
+      "page_id": "S004",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U005",
+      "asset_id": "A007",
+      "request_id": "U005",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U005",
+        "text": "待补充：画出选址时人流、租金、竞争三类因素的评估框架（U005）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0044",
+      "page_id": "S004",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "text": "Page S004\nSpeaker/planning summary: 讲选址判断标准和运营骨架，具体地点作为待确认项。\nLayout notes: planning summary (notes only): 讲选址判断标准和运营骨架，具体地点作为待确认项。; col_left: shrunk text box height to 1.60in (content-fitted, no empty card); col_right: shrunk text box height to 1.60in (content-fitted, no empty card)\n待补充占位 U005: 待补充：画出选址时人流、租金、竞争三类因素的评估框架（U005）"
+      }
+    },
+    {
+      "op_id": "OP0045",
+      "page_id": "S005",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "big-number",
+        "layout_name": "big-number"
+      }
+    },
+    {
+      "op_id": "OP0046",
+      "page_id": "S005",
+      "kind": "add_shape",
+      "element_id": "bg_fact_panel",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_fact_panel",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.65,
+        "w_in": 5.45,
+        "h_in": 1.867,
+        "fill_hex": "#EFF6FF",
+        "line_hex": "#EFF6FF",
+        "role": "fact_highlight_bg",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0047",
+      "page_id": "S005",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 0.08,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "top_accent",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0048",
+      "page_id": "S005",
+      "kind": "add_shape",
+      "element_id": "accent_fact_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_fact_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.65,
+        "w_in": 0.12,
+        "h_in": 1.867,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "fact_accent_bar",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0049",
+      "page_id": "S005",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 收入来源与客单价思路\n• 盈亏平衡是怎么推算的",
+        "x_in": 6.58,
+        "y_in": 1.99,
+        "w_in": 6.1,
+        "h_in": 1.8,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 20.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0050",
+      "page_id": "S005",
+      "kind": "add_textbox",
+      "element_id": "fact_focal",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "fact_focal",
+        "text": "主要成本构成：租金、人工、原料、设备",
+        "x_in": 0.99,
+        "y_in": 1.99,
+        "w_in": 4.89,
+        "h_in": 1.187,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 26.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left",
+        "role": "big_fact"
+      }
+    },
+    {
+      "op_id": "OP0051",
+      "page_id": "S005",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "成本与盈利逻辑",
+        "x_in": 0.65,
+        "y_in": 0.48,
+        "w_in": 12.03,
+        "h_in": 0.88,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 30.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0052",
+      "page_id": "S005",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U006",
+      "asset_id": "A008",
+      "request_id": "U006",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U006",
+        "text": "待补充：展示一家小型咖啡店的成本结构（U006）",
+        "x_in": 0.65,
+        "y_in": 6.56,
+        "w_in": 5.905,
+        "h_in": 0.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0053",
+      "page_id": "S005",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U007",
+      "asset_id": "A009",
+      "request_id": "U007",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U007",
+        "text": "待补充：示意收入、成本与盈亏平衡点的关系（U007）",
+        "x_in": 6.775,
+        "y_in": 6.56,
+        "w_in": 5.905,
+        "h_in": 0.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0054",
+      "page_id": "S005",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "text": "Page S005\nSpeaker/planning summary: 讲清算账的结构，具体数字等调研后再填，不先写结论。\nLayout notes: planning summary (notes only): 讲清算账的结构，具体数字等调研后再填，不先写结论。; bullets: shrunk text box height to 1.80in (content-fitted, no empty card)\n待补充占位 U006: 待补充：展示一家小型咖啡店的成本结构（U006）\n待补充占位 U007: 待补充：示意收入、成本与盈亏平衡点的关系（U007）"
+      }
+    },
+    {
+      "op_id": "OP0055",
+      "page_id": "S006",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "section",
+        "layout_name": "section"
+      }
+    },
+    {
+      "op_id": "OP0056",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "bg_left_panel",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_left_panel",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 4.95,
+        "h_in": 7.5,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "section_bg_left",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0057",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "bg_right_panel",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_right_panel",
+        "shape_type": "rectangle",
+        "x_in": 4.95,
+        "y_in": 0.0,
+        "w_in": 8.383,
+        "h_in": 7.5,
+        "fill_hex": "#F8FAFC",
+        "line_hex": "#F8FAFC",
+        "role": "section_bg_right",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0058",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 4.95,
+        "y_in": 0.0,
+        "w_in": 0.08,
+        "h_in": 7.5,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "section_stripe",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0059",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 3.98,
+        "w_in": 1.2,
+        "h_in": 0.07,
+        "fill_hex": "#38BDF8",
+        "line_hex": "#38BDF8",
+        "role": "section_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0060",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "accent_rail",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_rail",
+        "shape_type": "rectangle",
+        "x_in": 5.55,
+        "y_in": 1.6,
+        "w_in": 0.06,
+        "h_in": 2.0,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "accent_rail",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0061",
+      "page_id": "S006",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 竞争加剧与客流不及预期\n• 成本上升\n• 运营和人员稳定性",
+        "x_in": 5.75,
+        "y_in": 1.6,
+        "w_in": 6.93,
+        "h_in": 2.0,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 20.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0062",
+      "page_id": "S006",
+      "kind": "add_textbox",
+      "element_id": "footer",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "footer",
+        "text": "[A011] The Case of the Tower Cafe: Identifying the Right Technology for a Sma (2020) DOI:10.4135/9781529768466",
+        "x_in": 5.55,
+        "y_in": 3.76,
+        "w_in": 7.13,
+        "h_in": 0.46,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "anchored_citation"
+      }
+    },
+    {
+      "op_id": "OP0063",
+      "page_id": "S006",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "主要风险与应对",
+        "x_in": 0.65,
+        "y_in": 1.6,
+        "w_in": 3.75,
+        "h_in": 2.2,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 34.0,
+        "bold": true,
+        "color_hex": "#FFFFFF",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0064",
+      "page_id": "S006",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U008",
+      "asset_id": "A010",
+      "request_id": "U008",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U008",
+        "text": "待补充：风险与应对对照表，逐条配预案（U008）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0065",
+      "page_id": "S006",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://doi.org/10.4135/9781529768466"
+      ],
+      "params": {
+        "text": "Page S006\nSpeaker/planning summary: 逐条列风险并配上应对思路，诚实说明哪些还不确定。\nLayout notes: planning summary (notes only): 逐条列风险并配上应对思路，诚实说明哪些还不确定。; bullets: shrunk text box height to 2.00in (content-fitted, no empty card)\n待补充占位 U008: 待补充：风险与应对对照表，逐条配预案（U008）\n[A011] Crossref: https://doi.org/10.4135/9781529768466 (Crossref metadata (bibliographic record only))"
+      }
+    },
+    {
+      "op_id": "OP0066",
+      "page_id": "S007",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "quote",
+        "layout_name": "quote"
+      }
+    },
+    {
+      "op_id": "OP0067",
+      "page_id": "S007",
+      "kind": "add_shape",
+      "element_id": "bg_canvas",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_canvas",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 7.5,
+        "fill_hex": "#F1F5F9",
+        "line_hex": "#F1F5F9",
+        "role": "quote_bg",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0068",
+      "page_id": "S007",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.44,
+        "w_in": 1.4,
+        "h_in": 0.05,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "quote_rule",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0069",
+      "page_id": "S007",
+      "kind": "add_shape",
+      "element_id": "accent_quote_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_quote_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.95,
+        "w_in": 0.14,
+        "h_in": 2.05,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "quote_accent_bar",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0070",
+      "page_id": "S007",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 需要的资源与合作\n• 希望听众给出的反馈",
+        "x_in": 1.01,
+        "y_in": 4.26,
+        "w_in": 11.67,
+        "h_in": 1.073,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": false,
+        "color_hex": "#334155",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0071",
+      "page_id": "S007",
+      "kind": "add_textbox",
+      "element_id": "quote_main",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "quote_main",
+        "text": "近期要验证的关键假设",
+        "x_in": 1.01,
+        "y_in": 1.95,
+        "w_in": 11.67,
+        "h_in": 2.05,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 32.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left",
+        "role": "hero_statement"
+      }
+    },
+    {
+      "op_id": "OP0072",
+      "page_id": "S007",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "下一步与需要的支持",
+        "x_in": 0.65,
+        "y_in": 0.6,
+        "w_in": 12.03,
+        "h_in": 0.78,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 24.0,
+        "bold": true,
+        "color_hex": "#1B365D",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0073",
+      "page_id": "S007",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U009",
+      "asset_id": "A012",
+      "request_id": "U009",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U009",
+        "text": "待补充：画出近期验证关键假设的路线图（U009）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0074",
+      "page_id": "S007",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "text": "Page S007\nSpeaker/planning summary: 用清单讲下一步，把关键假设和请求说清楚。\nLayout notes: planning summary (notes only): 用清单讲下一步，把关键假设和请求说清楚。; bullets: shrunk text box height to 1.07in (content-fitted, no empty card)\n待补充占位 U009: 待补充：画出近期验证关键假设的路线图（U009）"
+      }
+    }
+  ]
+}

@@ -279,6 +279,12 @@
       "default": "0.1",
       "title": "Schema Version",
       "type": "string"
+    },
+    "theme_id": {
+      "default": "academic-default",
+      "minLength": 1,
+      "title": "Theme Id",
+      "type": "string"
     }
   },
   "required": [

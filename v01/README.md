@@ -18,7 +18,7 @@ No multi-agent orchestrator, no Deck IR, no legacy handoff files.
 | **C** asset requirements | implemented: every B need is covered or dropped with a reason; checked for traceability, concrete purpose, acceptance criteria |
 | **D** asset registry & user requests | implemented: Wikimedia Commons images (licence allowlist, author, source page) with Wikidata disambiguation/P18, cross-requirement deduplication (`shared_with`), OpenAlex (pyalex) + Crossref DOI verification; deterministic `user_input_requests.json` for `missing` items (`--on-missing wait\|placeholder`, `requests`/`provide` CLI) |
 | **E** slide asset mapping | implemented: maps only acquired/drawn/substituted or user-provided assets; optional VLM relevance (`PPTV01_E_VISION_MODEL`, else `not_assessed`) |
-| **F** page layout design + previews | implemented: 13.333×7.5 in geometry, CJK/Latin `slot_capacity` fitting, aspect-ratio adaptation, `PLACEHOLDER_U###` boxes, Pillow schematic previews (`layout schematic, not a render`) |
+| **F** page layout design + previews | implemented: 13.333×7.5 in geometry, CJK/Latin `slot_capacity` fitting, aspect-ratio adaptation, `PLACEHOLDER_U###` boxes, Pillow schematic previews (`layout schematic, not a render`), centralized `ThemeTokens` (`academic-default` via `PageDesign.theme_id` → Stage G) |
 | **G** native PPTX generation | implemented: `python-pptx` native text/shapes/charts/tables/images, slide notes attribution & licence checks, re-open verification |
 | **H** render, QA & bounded repair | implemented: LibreOffice (`soffice`) → PDF → `pdftoppm` (`render/slide_*.png`), 6-kind QA checks, bounded repair + recheck (`qa_report.json`); fails explicitly when `soffice`/`pdftoppm` missing |
 | Grading | PPTEval rubric (MIT, vendored verbatim) + separate deterministic hard gates: `pptv01 grade`, `pptv01 gates` (see `docs/grading.md`) |
@@ -127,6 +127,7 @@ docs/        technical plan, benchmark spec
 
 ## Rules enforced in code
 
+- Stage F resolves `ThemeTokens` (`src/pptv01/theme/tokens.py`, default `academic-default`) and records `PageDesign.theme_id`; Stage G (`compile_deck_ops`) reads `design.theme_id` to resolve fallback colors, fonts, and diagram tokens uniformly without hardcoded palette literals.
 - Stage A: no page count/duration/page order unless the user said it (regex post-validation; one repair retry); `defaults_applied` must match plan values and can never default page count/duration; no conclusion-style claims or statistics.
 - Stage B: IDs (`S001…`) and `status=provisional` are assigned by code, never by the model; no unsourced numbers/claims; user-stated page limits are enforced.
 - Contracts: `schema_version="0.1"`, `run_id`, `S###`/`A###` IDs, relative paths only, missing assets can't carry files, fixes must be re-checked, etc.

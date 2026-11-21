@@ -1,0 +1,150 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T02",
+  "requests": [
+    {
+      "request_id": "U001",
+      "kind": "image",
+      "asset_id": "A001",
+      "page_ids": [
+        "S001"
+      ],
+      "need": "并排展示城区与郊区的地表温度分布，说明城区相对周边更热",
+      "why": "candidates found for '某大城市的城市热岛地表温度热像图' but none passed licence/format/relevance/download (see candidates)",
+      "format_wanted": "PNG/JPG/WEBP/SVG 图片（≥1280px），注明来源 URL 与许可（如 CC BY 4.0 / CC0）",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U002",
+      "kind": "diagram",
+      "asset_id": "A003",
+      "page_ids": [
+        "S002"
+      ],
+      "need": "并列画出气象站测气温与卫星测地表温度两种方式及其差异",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U003",
+      "kind": "diagram",
+      "asset_id": "A005",
+      "page_ids": [
+        "S003"
+      ],
+      "need": "画出地表材料、人为排热和通风三类成因如何共同抬高城区气温",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U004",
+      "kind": "diagram",
+      "asset_id": "A007",
+      "page_ids": [
+        "S004"
+      ],
+      "need": "画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U005",
+      "kind": "image",
+      "asset_id": "A009",
+      "page_ids": [
+        "S005"
+      ],
+      "need": "并列展示两三座城市的热岛分布图，用来比较差异",
+      "why": "candidates found for '北京' but none passed licence/format/relevance/download (see candidates)",
+      "format_wanted": "PNG/JPG/WEBP/SVG 图片（≥1280px），注明来源 URL 与许可（如 CC BY 4.0 / CC0）",
+      "acceptance": [
+        "与这一页要说明的内容直接相关，主体清楚",
+        "可合法使用：许可明确（如 CC 许可或公有领域），并记录出处",
+        "清晰度足以投影展示，无水印",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U006",
+      "kind": "chart",
+      "asset_id": "A010",
+      "page_ids": [
+        "S005"
+      ],
+      "need": "比较多个城市热岛强度的观测数据",
+      "why": "chart_data: no structured data source is wired in D V0.1; needs a cited dataset (not invented)",
+      "format_wanted": "结构化 JSON {title,x_label,y_label,series:[{name,labels,values,source}]} 或带出处 CSV，注明来源与许可",
+      "acceptance": [
+        "数据与要比较的对象直接对应",
+        "可合法使用：数据许可或使用条款明确，并记录出处",
+        "数据口径与时间范围清楚",
+        "须核实所选对象确实存在并与此页对应"
+      ],
+      "blocking": false,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U007",
+      "kind": "diagram",
+      "asset_id": "A013",
+      "page_ids": [
+        "S007"
+      ],
+      "need": "用一张主线图回顾“现象—度量—成因—影响—缓解”",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    }
+  ],
+  "summary": "0 open (0 blocking), 7 placeholder_rendered"
+}

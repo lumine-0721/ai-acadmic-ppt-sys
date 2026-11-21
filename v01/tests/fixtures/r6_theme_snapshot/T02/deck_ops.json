@@ -1,0 +1,1565 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T02",
+  "canvas_width_in": 13.333,
+  "canvas_height_in": 7.5,
+  "template_path": null,
+  "page_ids": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005",
+    "S006",
+    "S007"
+  ],
+  "ops": [
+    {
+      "op_id": "OP0001",
+      "page_id": "S001",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "cover",
+        "layout_name": "cover"
+      }
+    },
+    {
+      "op_id": "OP0002",
+      "page_id": "S001",
+      "kind": "add_shape",
+      "element_id": "bg_canvas",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_canvas",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 7.5,
+        "fill_hex": "#0F2544",
+        "line_hex": "#0F2544",
+        "role": "canvas_bg",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0003",
+      "page_id": "S001",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 0.18,
+        "h_in": 7.5,
+        "fill_hex": "#38BDF8",
+        "line_hex": "#38BDF8",
+        "role": "left_accent",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0004",
+      "page_id": "S001",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 2.92,
+        "w_in": 2.2,
+        "h_in": 0.08,
+        "fill_hex": "#38BDF8",
+        "line_hex": "#38BDF8",
+        "role": "cover_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0005",
+      "page_id": "S001",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 城区气温相对周边郊区偏高\n• 它是城区与郊区之间长期的空间差异，不是某几天的高温\n• 夜间的差异往往更明显",
+        "x_in": 0.65,
+        "y_in": 3.26,
+        "w_in": 12.03,
+        "h_in": 1.5,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 20.0,
+        "bold": false,
+        "color_hex": "#E2E8F0",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0006",
+      "page_id": "S001",
+      "kind": "add_textbox",
+      "element_id": "footer",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "footer",
+        "text": "[A002] Urban heat island (2022) DOI:10.1016/b978-0-323-85539-6.00009-3",
+        "x_in": 0.65,
+        "y_in": 4.92,
+        "w_in": 12.03,
+        "h_in": 0.46,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#94A3B8",
+        "align": "left",
+        "role": "anchored_citation"
+      }
+    },
+    {
+      "op_id": "OP0007",
+      "page_id": "S001",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "什么是城市热岛",
+        "x_in": 0.65,
+        "y_in": 1.15,
+        "w_in": 12.03,
+        "h_in": 1.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 42.0,
+        "bold": true,
+        "color_hex": "#FFFFFF",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0008",
+      "page_id": "S001",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U001",
+      "asset_id": "A001",
+      "request_id": "U001",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U001",
+        "text": "待补充：并排展示城区与郊区的地表温度分布，说明城区相对周边更热（U001）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#FDE68A",
+        "fill_hex": "#172A45",
+        "line_hex": "#F59E0B",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0009",
+      "page_id": "S001",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://doi.org/10.1016/b978-0-323-85539-6.00009-3"
+      ],
+      "params": {
+        "text": "Page S001\nSpeaker/planning summary: 用定义加城郊对比说明现象本身，并点出它与热浪的区别。\nLayout notes: planning summary (notes only): 用定义加城郊对比说明现象本身，并点出它与热浪的区别。; bullets: shrunk text box height to 1.50in (content-fitted, no empty card)\n待补充占位 U001: 待补充：并排展示城区与郊区的地表温度分布，说明城区相对周边更热（U001）\n[A002] Crossref: https://doi.org/10.1016/b978-0-323-85539-6.00009-3 (Crossref metadata (bibliographic record only))"
+      }
+    },
+    {
+      "op_id": "OP0010",
+      "page_id": "S002",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "comparison",
+        "layout_name": "comparison"
+      }
+    },
+    {
+      "op_id": "OP0011",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_col_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_col_divider",
+        "shape_type": "rectangle",
+        "x_in": 6.65,
+        "y_in": 1.94,
+        "w_in": 0.03,
+        "h_in": 1.6,
+        "fill_hex": "#CBD5E1",
+        "line_hex": "#CBD5E1",
+        "role": "col_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0012",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_col_left",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_col_left",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.72,
+        "w_in": 5.75,
+        "h_in": 0.08,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "col_accent_left",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0013",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_col_right",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_col_right",
+        "shape_type": "rectangle",
+        "x_in": 6.93,
+        "y_in": 1.72,
+        "w_in": 5.75,
+        "h_in": 0.08,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "col_accent_right",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0014",
+      "page_id": "S002",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.42,
+        "w_in": 12.03,
+        "h_in": 0.03,
+        "fill_hex": "#CBD5E1",
+        "line_hex": "#CBD5E1",
+        "role": "title_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0015",
+      "page_id": "S002",
+      "kind": "add_textbox",
+      "element_id": "col_left",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "col_left",
+        "text": "• 气象站的气温对比\n• 卫星遥感得到的地表温度",
+        "x_in": 0.65,
+        "y_in": 1.94,
+        "w_in": 5.75,
+        "h_in": 1.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0016",
+      "page_id": "S002",
+      "kind": "add_textbox",
+      "element_id": "col_right",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "col_right",
+        "text": "气温与地表温度是不同的指标",
+        "x_in": 6.93,
+        "y_in": 1.94,
+        "w_in": 5.75,
+        "h_in": 1.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0017",
+      "page_id": "S002",
+      "kind": "add_textbox",
+      "element_id": "footer",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "footer",
+        "text": "[A004] Urban Heat Island Spatial Pattern and Urban Form Features of Different (2025) DOI:10.1007/978-981-96-3541-2_2",
+        "x_in": 0.65,
+        "y_in": 3.68,
+        "w_in": 12.03,
+        "h_in": 0.46,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "anchored_citation"
+      }
+    },
+    {
+      "op_id": "OP0018",
+      "page_id": "S002",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "怎么看出热岛：度量方式",
+        "x_in": 0.65,
+        "y_in": 0.48,
+        "w_in": 12.03,
+        "h_in": 0.86,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 30.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0019",
+      "page_id": "S002",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U002",
+      "asset_id": "A003",
+      "request_id": "U002",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U002",
+        "text": "待补充：并列画出气象站测气温与卫星测地表温度两种方式及其差异（U002）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0020",
+      "page_id": "S002",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://doi.org/10.1007/978-981-96-3541-2_2"
+      ],
+      "params": {
+        "text": "Page S002\nSpeaker/planning summary: 介绍两类常见度量思路及其差异，提醒读图时要分清指标。\nLayout notes: planning summary (notes only): 介绍两类常见度量思路及其差异，提醒读图时要分清指标。; col_left: shrunk text box height to 1.60in (content-fitted, no empty card); col_right: shrunk text box height to 1.60in (content-fitted, no empty card)\n待补充占位 U002: 待补充：并列画出气象站测气温与卫星测地表温度两种方式及其差异（U002）\n[A004] Crossref: https://doi.org/10.1007/978-981-96-3541-2_2 (Crossref metadata (bibliographic record only))"
+      }
+    },
+    {
+      "op_id": "OP0021",
+      "page_id": "S003",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "timeline",
+        "layout_name": "timeline"
+      }
+    },
+    {
+      "op_id": "OP0022",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_step_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_step_1",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.86,
+        "w_in": 0.85,
+        "h_in": 0.16,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "timeline_step_marker",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0023",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_step_2",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_step_2",
+        "shape_type": "rectangle",
+        "x_in": 4.76,
+        "y_in": 1.86,
+        "w_in": 0.85,
+        "h_in": 0.16,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "timeline_step_marker",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0024",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_step_3",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_step_3",
+        "shape_type": "rectangle",
+        "x_in": 8.87,
+        "y_in": 1.86,
+        "w_in": 0.85,
+        "h_in": 0.16,
+        "fill_hex": "#0D9488",
+        "line_hex": "#0D9488",
+        "role": "timeline_step_marker",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0025",
+      "page_id": "S003",
+      "kind": "add_shape",
+      "element_id": "accent_timeline_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_timeline_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.92,
+        "w_in": 12.03,
+        "h_in": 0.05,
+        "fill_hex": "#CBD5E1",
+        "line_hex": "#CBD5E1",
+        "role": "timeline_track",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0026",
+      "page_id": "S003",
+      "kind": "add_textbox",
+      "element_id": "footer",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "footer",
+        "text": "[A006] The urban heat island effect: causes and potential solutions (2012) DOI:10.1533/9780857096463.1.79",
+        "x_in": 0.65,
+        "y_in": 5.7,
+        "w_in": 12.03,
+        "h_in": 0.46,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "anchored_citation"
+      }
+    },
+    {
+      "op_id": "OP0027",
+      "page_id": "S003",
+      "kind": "add_textbox",
+      "element_id": "step_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "step_1",
+        "text": "地表材料与植被、水体的差异",
+        "x_in": 0.65,
+        "y_in": 2.24,
+        "w_in": 3.81,
+        "h_in": 3.3,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": true,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "timeline_step"
+      }
+    },
+    {
+      "op_id": "OP0028",
+      "page_id": "S003",
+      "kind": "add_textbox",
+      "element_id": "step_2",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "step_2",
+        "text": "人为排热",
+        "x_in": 4.76,
+        "y_in": 2.24,
+        "w_in": 3.81,
+        "h_in": 3.3,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": true,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "timeline_step"
+      }
+    },
+    {
+      "op_id": "OP0029",
+      "page_id": "S003",
+      "kind": "add_textbox",
+      "element_id": "step_3",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "step_3",
+        "text": "城市形态影响通风与散热",
+        "x_in": 8.87,
+        "y_in": 2.24,
+        "w_in": 3.81,
+        "h_in": 3.3,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": true,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "timeline_step"
+      }
+    },
+    {
+      "op_id": "OP0030",
+      "page_id": "S003",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "热岛从哪里来：成因",
+        "x_in": 0.65,
+        "y_in": 0.48,
+        "w_in": 12.03,
+        "h_in": 0.86,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 30.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0031",
+      "page_id": "S003",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U003",
+      "asset_id": "A005",
+      "request_id": "U003",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U003",
+        "text": "待补充：画出地表材料、人为排热和通风三类成因如何共同抬高城区气温（U003）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0032",
+      "page_id": "S003",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://doi.org/10.1533/9780857096463.1.79"
+      ],
+      "params": {
+        "text": "Page S003\nSpeaker/planning summary: 逐个讲成因的物理或空间机制，并标出哪些点需要数据佐证。\nLayout notes: planning summary (notes only): 逐个讲成因的物理或空间机制，并标出哪些点需要数据佐证。\n待补充占位 U003: 待补充：画出地表材料、人为排热和通风三类成因如何共同抬高城区气温（U003）\n[A006] Crossref: https://doi.org/10.1533/9780857096463.1.79 (Crossref metadata (bibliographic record only))"
+      }
+    },
+    {
+      "op_id": "OP0033",
+      "page_id": "S004",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "section",
+        "layout_name": "section"
+      }
+    },
+    {
+      "op_id": "OP0034",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "bg_left_panel",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_left_panel",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 4.95,
+        "h_in": 7.5,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "section_bg_left",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0035",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "bg_right_panel",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_right_panel",
+        "shape_type": "rectangle",
+        "x_in": 4.95,
+        "y_in": 0.0,
+        "w_in": 8.383,
+        "h_in": 7.5,
+        "fill_hex": "#F8FAFC",
+        "line_hex": "#F8FAFC",
+        "role": "section_bg_right",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0036",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 4.95,
+        "y_in": 0.0,
+        "w_in": 0.08,
+        "h_in": 7.5,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "section_stripe",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0037",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 3.98,
+        "w_in": 1.2,
+        "h_in": 0.07,
+        "fill_hex": "#38BDF8",
+        "line_hex": "#38BDF8",
+        "role": "section_divider",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0038",
+      "page_id": "S004",
+      "kind": "add_shape",
+      "element_id": "accent_rail",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_rail",
+        "shape_type": "rectangle",
+        "x_in": 5.55,
+        "y_in": 1.6,
+        "w_in": 0.06,
+        "h_in": 2.0,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "accent_rail",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0039",
+      "page_id": "S004",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 夜间降温变慢，影响居住舒适度\n• 降温需求与用电负荷的关系\n• 对高温健康风险的叠加作用",
+        "x_in": 5.75,
+        "y_in": 1.6,
+        "w_in": 6.93,
+        "h_in": 2.0,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 20.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0040",
+      "page_id": "S004",
+      "kind": "add_textbox",
+      "element_id": "footer",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "footer",
+        "text": "[A008] Synergizing climate, energy, and air quality: Uncovering urban heat is (2026) DOI:10.1016/j.eiar.2025.108202",
+        "x_in": 5.55,
+        "y_in": 3.76,
+        "w_in": 7.13,
+        "h_in": 0.46,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "anchored_citation"
+      }
+    },
+    {
+      "op_id": "OP0041",
+      "page_id": "S004",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "热岛带来的影响",
+        "x_in": 0.65,
+        "y_in": 1.6,
+        "w_in": 3.75,
+        "h_in": 2.2,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 34.0,
+        "bold": true,
+        "color_hex": "#FFFFFF",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0042",
+      "page_id": "S004",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U004",
+      "asset_id": "A007",
+      "request_id": "U004",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U004",
+        "text": "待补充：画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条（U004）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0043",
+      "page_id": "S004",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://doi.org/10.1016/j.eiar.2025.108202"
+      ],
+      "params": {
+        "text": "Page S004\nSpeaker/planning summary: 把影响分成几类来讲，每类说清机制，不下过度的定量结论。\nLayout notes: planning summary (notes only): 把影响分成几类来讲，每类说清机制，不下过度的定量结论。; bullets: shrunk text box height to 2.00in (content-fitted, no empty card)\n待补充占位 U004: 待补充：画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条（U004）\n[A008] Crossref: https://doi.org/10.1016/j.eiar.2025.108202 (Crossref metadata (bibliographic record only))"
+      }
+    },
+    {
+      "op_id": "OP0044",
+      "page_id": "S005",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "big-number",
+        "layout_name": "big-number"
+      }
+    },
+    {
+      "op_id": "OP0045",
+      "page_id": "S005",
+      "kind": "add_shape",
+      "element_id": "bg_fact_panel",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_fact_panel",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.65,
+        "w_in": 5.45,
+        "h_in": 1.85,
+        "fill_hex": "#EFF6FF",
+        "line_hex": "#EFF6FF",
+        "role": "fact_highlight_bg",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0046",
+      "page_id": "S005",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 0.08,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "top_accent",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0047",
+      "page_id": "S005",
+      "kind": "add_shape",
+      "element_id": "accent_fact_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_fact_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.65,
+        "w_in": 0.12,
+        "h_in": 1.85,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "fact_accent_bar",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0048",
+      "page_id": "S005",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 城市规模与布局不同\n• 同一城市内部也有冷热分区",
+        "x_in": 6.58,
+        "y_in": 1.99,
+        "w_in": 6.1,
+        "h_in": 1.8,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 20.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0049",
+      "page_id": "S005",
+      "kind": "add_textbox",
+      "element_id": "fact_focal",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "fact_focal",
+        "text": "气候背景和地形不同",
+        "x_in": 0.99,
+        "y_in": 1.99,
+        "w_in": 4.89,
+        "h_in": 1.17,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 26.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left",
+        "role": "big_fact"
+      }
+    },
+    {
+      "op_id": "OP0050",
+      "page_id": "S005",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "不同城市的热岛差异",
+        "x_in": 0.65,
+        "y_in": 0.48,
+        "w_in": 12.03,
+        "h_in": 0.88,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 30.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0051",
+      "page_id": "S005",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U005",
+      "asset_id": "A009",
+      "request_id": "U005",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U005",
+        "text": "待补充：并列展示两三座城市的热岛分布图，用来比较差异（U005）",
+        "x_in": 0.65,
+        "y_in": 6.56,
+        "w_in": 5.905,
+        "h_in": 0.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0052",
+      "page_id": "S005",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U006",
+      "asset_id": "A010",
+      "request_id": "U006",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U006",
+        "text": "待补充：比较多个城市热岛强度的观测数据（U006）",
+        "x_in": 6.775,
+        "y_in": 6.56,
+        "w_in": 5.905,
+        "h_in": 0.6,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0053",
+      "page_id": "S005",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "text": "Page S005\nSpeaker/planning summary: 用两三个有公开资料的城市做对照，说明差异从何而来。\nLayout notes: planning summary (notes only): 用两三个有公开资料的城市做对照，说明差异从何而来。; bullets: shrunk text box height to 1.80in (content-fitted, no empty card)\n待补充占位 U005: 待补充：并列展示两三座城市的热岛分布图，用来比较差异（U005）\n待补充占位 U006: 待补充：比较多个城市热岛强度的观测数据（U006）"
+      }
+    },
+    {
+      "op_id": "OP0054",
+      "page_id": "S006",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "image-left",
+        "layout_name": "image-left"
+      }
+    },
+    {
+      "op_id": "OP0055",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "accent_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 0.06,
+        "fill_hex": "#1B365D",
+        "line_hex": "#1B365D",
+        "role": "top_accent",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0056",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 7.08,
+        "y_in": 1.84,
+        "w_in": 1.1,
+        "h_in": 0.05,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "title_underline",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0057",
+      "page_id": "S006",
+      "kind": "add_shape",
+      "element_id": "accent_rail",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_rail",
+        "shape_type": "rectangle",
+        "x_in": 7.08,
+        "y_in": 2.08,
+        "w_in": 0.06,
+        "h_in": 1.34,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "accent_rail",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0058",
+      "page_id": "S006",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 增加绿地、水体和树荫\n• 屋顶绿化等材料与结构措施\n• 改善通风与雨水利用",
+        "x_in": 7.28,
+        "y_in": 2.08,
+        "w_in": 5.4,
+        "h_in": 1.34,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 18.0,
+        "bold": false,
+        "color_hex": "#0F172A",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0059",
+      "page_id": "S006",
+      "kind": "add_textbox",
+      "element_id": "cap_1",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "cap_1",
+        "text": "Rhododendrites, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg)",
+        "x_in": 0.65,
+        "y_in": 3.205,
+        "w_in": 6.0,
+        "h_in": 0.54,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "attribution_caption"
+      }
+    },
+    {
+      "op_id": "OP0060",
+      "page_id": "S006",
+      "kind": "add_textbox",
+      "element_id": "cap_2",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "cap_2",
+        "text": "Jeb, CC BY 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Sponge_City.png)",
+        "x_in": 0.65,
+        "y_in": 6.5,
+        "w_in": 6.0,
+        "h_in": 0.54,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 9.5,
+        "bold": false,
+        "color_hex": "#64748B",
+        "align": "left",
+        "role": "attribution_caption"
+      }
+    },
+    {
+      "op_id": "OP0061",
+      "page_id": "S006",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "怎么缓解热岛",
+        "x_in": 7.08,
+        "y_in": 0.65,
+        "w_in": 5.6,
+        "h_in": 1.1,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 28.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0062",
+      "page_id": "S006",
+      "kind": "add_picture",
+      "element_id": "vis_1",
+      "asset_id": "A011",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg"
+      ],
+      "params": {
+        "shape_name": "ASSET_A011__vis_1",
+        "file_path": "assets/A011.jpg",
+        "x_in": 2.722,
+        "y_in": 0.65,
+        "w_in": 1.856,
+        "h_in": 2.495,
+        "crop_mode": "crop_fill"
+      }
+    },
+    {
+      "op_id": "OP0063",
+      "page_id": "S006",
+      "kind": "set_alt_text",
+      "element_id": "vis_1",
+      "asset_id": "A011",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg"
+      ],
+      "params": {
+        "target_element_id": "vis_1",
+        "shape_name": "ASSET_A011__vis_1",
+        "alt_text": "Asset A011: Rhododendrites, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg)"
+      }
+    },
+    {
+      "op_id": "OP0064",
+      "page_id": "S006",
+      "kind": "add_picture",
+      "element_id": "vis_2",
+      "asset_id": "A012",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Sponge_City.png"
+      ],
+      "params": {
+        "shape_name": "ASSET_A012__vis_2",
+        "file_path": "assets/A012.png",
+        "x_in": 0.65,
+        "y_in": 3.945,
+        "w_in": 6.0,
+        "h_in": 2.495,
+        "crop_mode": "crop_fill"
+      }
+    },
+    {
+      "op_id": "OP0065",
+      "page_id": "S006",
+      "kind": "set_alt_text",
+      "element_id": "vis_2",
+      "asset_id": "A012",
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Sponge_City.png"
+      ],
+      "params": {
+        "target_element_id": "vis_2",
+        "shape_name": "ASSET_A012__vis_2",
+        "alt_text": "Asset A012: Jeb, CC BY 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Sponge_City.png)"
+      }
+    },
+    {
+      "op_id": "OP0066",
+      "page_id": "S006",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [
+        "https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg",
+        "https://commons.wikimedia.org/wiki/File:Sponge_City.png"
+      ],
+      "params": {
+        "text": "Page S006\nSpeaker/planning summary: 按措施类型讲机制，并说明哪些措施效果有评估依据、哪些仍在讨论。\nLayout notes: planning summary (notes only): 按措施类型讲机制，并说明哪些措施效果有评估依据、哪些仍在讨论。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1280x1721; vis_2: uniform crop_fill slot 6.00x2.50in for 1280x832\n[A011] Rhododendrites, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg) | 许可: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0) | 来源: https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg\n[A012] Jeb, CC BY 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Sponge_City.png) | 许可: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0) | 来源: https://commons.wikimedia.org/wiki/File:Sponge_City.png"
+      }
+    },
+    {
+      "op_id": "OP0067",
+      "page_id": "S007",
+      "kind": "add_slide",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "layout": "title_only",
+        "layout_id": "quote",
+        "layout_name": "quote"
+      }
+    },
+    {
+      "op_id": "OP0068",
+      "page_id": "S007",
+      "kind": "add_shape",
+      "element_id": "bg_canvas",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bg_canvas",
+        "shape_type": "rectangle",
+        "x_in": 0.0,
+        "y_in": 0.0,
+        "w_in": 13.333,
+        "h_in": 7.5,
+        "fill_hex": "#F1F5F9",
+        "line_hex": "#F1F5F9",
+        "role": "quote_bg",
+        "z_index": 0
+      }
+    },
+    {
+      "op_id": "OP0069",
+      "page_id": "S007",
+      "kind": "add_shape",
+      "element_id": "accent_divider",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_divider",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.44,
+        "w_in": 1.4,
+        "h_in": 0.05,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "quote_rule",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0070",
+      "page_id": "S007",
+      "kind": "add_shape",
+      "element_id": "accent_quote_bar",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "accent_quote_bar",
+        "shape_type": "rectangle",
+        "x_in": 0.65,
+        "y_in": 1.95,
+        "w_in": 0.14,
+        "h_in": 2.05,
+        "fill_hex": "#0284C7",
+        "line_hex": "#0284C7",
+        "role": "quote_accent_bar",
+        "z_index": 1
+      }
+    },
+    {
+      "op_id": "OP0071",
+      "page_id": "S007",
+      "kind": "add_textbox",
+      "element_id": "bullets",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "bullets",
+        "text": "• 每座城市的情况需要具体数据来看\n• 可以关注自己所在城市的相关监测",
+        "x_in": 1.01,
+        "y_in": 4.26,
+        "w_in": 11.67,
+        "h_in": 1.073,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 19.0,
+        "bold": false,
+        "color_hex": "#334155",
+        "align": "left",
+        "role": "key_points"
+      }
+    },
+    {
+      "op_id": "OP0072",
+      "page_id": "S007",
+      "kind": "add_textbox",
+      "element_id": "quote_main",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "shape_name": "quote_main",
+        "text": "热岛是什么、怎么来、有何影响、怎么缓解",
+        "x_in": 1.01,
+        "y_in": 1.95,
+        "w_in": 11.67,
+        "h_in": 2.05,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 32.0,
+        "bold": true,
+        "color_hex": "#0F2544",
+        "align": "left",
+        "role": "hero_statement"
+      }
+    },
+    {
+      "op_id": "OP0073",
+      "page_id": "S007",
+      "kind": "set_placeholder_text",
+      "element_id": "title",
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "placeholder_type": "title",
+        "shape_name": "title",
+        "text": "小结与可以带走的问题",
+        "x_in": 0.65,
+        "y_in": 0.6,
+        "w_in": 12.03,
+        "h_in": 0.78,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 24.0,
+        "bold": true,
+        "color_hex": "#1B365D",
+        "align": "left"
+      }
+    },
+    {
+      "op_id": "OP0074",
+      "page_id": "S007",
+      "kind": "add_placeholder_box",
+      "element_id": "PLACEHOLDER_U007",
+      "asset_id": "A013",
+      "request_id": "U007",
+      "source_refs": [],
+      "params": {
+        "shape_name": "PLACEHOLDER_U007",
+        "text": "待补充：用一张主线图回顾“现象—度量—成因—影响—缓解”（U007）",
+        "x_in": 7.78,
+        "y_in": 6.56,
+        "w_in": 4.9,
+        "h_in": 0.56,
+        "font": "Microsoft YaHei",
+        "font_size_pt": 11.0,
+        "bold": false,
+        "color_hex": "#92400E",
+        "fill_hex": "#FFFBEB",
+        "line_hex": "#D97706",
+        "line_width_pt": 1.25,
+        "align": "left",
+        "dash_style": "dash"
+      }
+    },
+    {
+      "op_id": "OP0075",
+      "page_id": "S007",
+      "kind": "set_notes",
+      "element_id": null,
+      "asset_id": null,
+      "request_id": null,
+      "source_refs": [],
+      "params": {
+        "text": "Page S007\nSpeaker/planning summary: 回顾主线，抛出可继续了解的问题，不给口号式结论。\nLayout notes: planning summary (notes only): 回顾主线，抛出可继续了解的问题，不给口号式结论。; bullets: shrunk text box height to 1.07in (content-fitted, no empty card)\n待补充占位 U007: 待补充：用一张主线图回顾“现象—度量—成因—影响—缓解”（U007）"
+      }
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "requests": [
+    {
+      "request_id": "U001",
+      "kind": "diagram",
+      "asset_id": "A001",
+      "page_ids": [
+        "S001"
+      ],
+      "need": "用输入—处理—输出的简图说明人工智能做什么",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U002",
+      "kind": "diagram",
+      "asset_id": "A003",
+      "page_ids": [
+        "S002"
+      ],
+      "need": "画出数据、训练和预测三步的流程",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U003",
+      "kind": "icon",
+      "asset_id": "A004",
+      "page_ids": [
+        "S003"
+      ],
+      "need": "用图标分别表示语音识别、图像识别、推荐与自动驾驶",
+      "why": "D 未找到可标来源的现成图标；不允许凭空绘制，请用户提供开源或有授权的图标文件",
+      "format_wanted": "PNG/SVG 图标（≥256px 或矢量 SVG），注明来源与许可",
+      "acceptance": [
+        "与要表示的概念直接对应，风格统一",
+        "可合法使用：许可明确（如 CC0 或开源图标库）",
+        "小尺寸下仍清晰"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U004",
+      "kind": "diagram",
+      "asset_id": "A005",
+      "page_ids": [
+        "S004"
+      ],
+      "need": "用左右对比图展示能做到的与做不到的",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    },
+    {
+      "request_id": "U005",
+      "kind": "diagram",
+      "asset_id": "A007",
+      "page_ids": [
+        "S005"
+      ],
+      "need": "用一张极简图收束全篇并留下一个提问",
+      "why": "D 未找到可标来源的现成图；不允许凭空绘制，请用户提供结构化数据或图",
+      "format_wanted": "二选一：①结构化 JSON {nodes:[{id,label,source}],edges:[{from,to,label,source}]}；②PNG/SVG ≥1280px，注明来源与许可",
+      "acceptance": [
+        "与这一页要说明的关系直接对应，信息不多不少",
+        "须为有来源、许可明确的现成图，或由用户提供带出处的结构化数据",
+        "文字与箭头清晰可读"
+      ],
+      "blocking": true,
+      "fallback": "placeholder",
+      "status": "placeholder_rendered",
+      "provided": null
+    }
+  ],
+  "summary": "0 open (0 blocking), 5 placeholder_rendered"
+}

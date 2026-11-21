@@ -1,0 +1,149 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "status": "provisional",
+  "narrative": "篇幅有限，只抓最核心的几步：先说清人工智能是什么，再用图讲它怎样学会做事，然后看它用在哪里，最后提醒需要注意的地方；每页以图示为主，文字极简。",
+  "pages": [
+    {
+      "page_id": "S001",
+      "title": "人工智能是什么",
+      "goal": "让听众用一句话说出人工智能大致指什么",
+      "key_points": [
+        "让计算机完成通常需要人类智能的任务",
+        "不等于科幻里“有意识的机器”"
+      ],
+      "content_summary": "用一个简洁的图示说明概念，文字只保留最核心的一句。",
+      "visual_intent": "一张概念图：输入、处理、输出",
+      "asset_needs": [
+        {
+          "type": "diagram",
+          "description": "用输入—处理—输出的简图说明人工智能做什么",
+          "targets": []
+        },
+        {
+          "type": "reference",
+          "description": "为概念表述提供百科类出处",
+          "targets": [
+            {
+              "name": "人工智能",
+              "entity_type": "concept",
+              "verification": "verified",
+              "source_refs": [
+                "R001"
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "R001"
+      ],
+      "status": "provisional"
+    },
+    {
+      "page_id": "S002",
+      "title": "它是怎样学会的",
+      "goal": "让听众直观理解“从数据中学习”",
+      "key_points": [
+        "先看大量例子，再总结规律",
+        "结果好坏取决于数据与目标"
+      ],
+      "content_summary": "用一个流程图展示数据到模型再到预测的过程。",
+      "visual_intent": "一张数据—训练—预测的流程图",
+      "asset_needs": [
+        {
+          "type": "diagram",
+          "description": "画出数据、训练和预测三步的流程",
+          "targets": []
+        }
+      ],
+      "source_refs": [
+        "R010",
+        "R011"
+      ],
+      "status": "provisional"
+    },
+    {
+      "page_id": "S003",
+      "title": "它用在哪里",
+      "goal": "让听众看到人工智能已经进入哪些日常场景",
+      "key_points": [
+        "语音与图像识别",
+        "搜索与推荐",
+        "辅助科研与自动驾驶"
+      ],
+      "content_summary": "用几个图标配极短标签展示应用。",
+      "visual_intent": "图标式的场景展示",
+      "asset_needs": [
+        {
+          "type": "icon",
+          "description": "用图标分别表示语音识别、图像识别、推荐与自动驾驶",
+          "targets": []
+        }
+      ],
+      "source_refs": [
+        "R018"
+      ],
+      "status": "provisional"
+    },
+    {
+      "page_id": "S004",
+      "title": "它做不到什么",
+      "goal": "让听众知道目前的局限，不神化也不妖魔化",
+      "key_points": [
+        "依赖数据，可能出错",
+        "可能一本正经地给出错误内容",
+        "需要人来把关"
+      ],
+      "content_summary": "用对比图或例子说明局限。",
+      "visual_intent": "能力与局限的对比图",
+      "asset_needs": [
+        {
+          "type": "diagram",
+          "description": "用左右对比图展示能做到的与做不到的",
+          "targets": []
+        },
+        {
+          "type": "reference",
+          "description": "为“生成内容可能出错”提供出处",
+          "targets": [
+            {
+              "name": "Hallucination (artificial intelligence)",
+              "entity_type": "concept",
+              "verification": "verified",
+              "source_refs": [
+                "R019"
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "R019"
+      ],
+      "status": "provisional"
+    },
+    {
+      "page_id": "S005",
+      "title": "我们该怎么看待它",
+      "goal": "给听众一个简明的看法与可以继续关注的方向",
+      "key_points": [
+        "把它当作工具来用",
+        "关注数据、隐私与公平",
+        "保持学习"
+      ],
+      "content_summary": "收束全篇，留下一个可以带走的提问。",
+      "visual_intent": "一张极简的收束图",
+      "asset_needs": [
+        {
+          "type": "diagram",
+          "description": "用一张极简图收束全篇并留下一个提问",
+          "targets": []
+        }
+      ],
+      "source_refs": [],
+      "status": "provisional"
+    }
+  ],
+  "revision_log": []
+}

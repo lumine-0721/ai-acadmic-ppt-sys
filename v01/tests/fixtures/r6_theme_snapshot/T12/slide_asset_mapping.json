@@ -1,0 +1,34 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T12",
+  "mappings": [
+    {
+      "page_id": "S001",
+      "asset_id": "A001",
+      "request_id": null,
+      "usage": "置于左侧：巴黎 Café de Flore 咖啡馆街景，仅作为「咖啡馆是什么样的场景」的氛围实景，不代表目标市场或创业方案",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "no vision model configured (PPTV01_E_VISION_MODEL unset); image content not visually inspected"
+    },
+    {
+      "page_id": "S003",
+      "asset_id": "A006",
+      "request_id": null,
+      "usage": "置于右侧：手冲咖啡冲泡台的实景，说明店内产品与操作方式的一种形态（伦敦某店实拍，不代表本店方案）",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "no vision model configured (PPTV01_E_VISION_MODEL unset); image content not visually inspected"
+    },
+    {
+      "page_id": "S006",
+      "asset_id": "A011",
+      "request_id": null,
+      "usage": "在页脚/备注作为「咖啡店经营风险」页的参考文献条目引用",
+      "accepted": true,
+      "relevance": "not_assessed",
+      "relevance_note": "non-raster asset (citation/structured data/vector)"
+    }
+  ],
+  "unused_assets": []
+}
