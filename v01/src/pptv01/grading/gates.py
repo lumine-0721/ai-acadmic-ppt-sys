@@ -655,7 +655,7 @@ def _check_layout_diversity_gate(
 
 
 def _check_fill_rate_gate(design: PageDesign | None) -> GateResult:
-    """Warn-level occupancy gate detecting slides with large vertical content voids."""
+    """Hard occupancy gate detecting content slides with large vertical content voids."""
     if design is None:
         return GateResult(
             gate="fill_rate",
@@ -665,7 +665,7 @@ def _check_fill_rate_gate(design: PageDesign | None) -> GateResult:
     rep = check_deck_occupancy(design)
     return GateResult(
         gate="fill_rate",
-        status="pass" if rep.passed else "warn",
+        status="pass" if rep.passed else "fail",
         detail=rep.detail,
     )
 

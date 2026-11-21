@@ -29,15 +29,15 @@ RID = "20261121-000000-r6fill"
 
 EXPECTED_SMOKE5_FLAGS: dict[str, list[str]] = {
     "T36": ["S003", "S004"],
-    "T12": ["S004", "S005"],
-    "T02": ["S002", "S005"],
-    "T26": [],
+    "T12": ["S004", "S005", "S006"],
+    "T02": ["S002", "S004", "S005"],
+    "T26": ["S004"],
 }
 
 
 @pytest.mark.parametrize("tid", ["T36", "T12", "T02", "T26"])
 def test_r6_2_fill_rate_smoke5_exact_flags_and_exemptions(tid: str, tmp_path: Path):
-    """fill_rate flags EXACTLY T36 p3/p4, T12 p4/p5, T02 p2/p5 as warn without blocking overall pass."""
+    """fill_rate flags underfilled Smoke 5 pages (including bullet-bearing section pages) as hard fail."""
     design = load_contract(PageDesign, SMOKE5_DESIGN_DIR / f"{tid}.json")
     occ = check_deck_occupancy(design)
 
@@ -45,33 +45,23 @@ def test_r6_2_fill_rate_smoke5_exact_flags_and_exemptions(tid: str, tmp_path: Pa
     assert flagged_ids == EXPECTED_SMOKE5_FLAGS[tid], f"{tid} unexpected fill_rate flags: {occ.detail}"
 
     for r in occ.pages:
-        if r.layout_id in ("cover", "section", "quote"):
+        if r.layout_id == "cover":
             assert r.exempt is True
             assert r.exempt_reason
             assert r.passed is True
         else:
+            # Smoke 5 non-cover pages all have bullets or multiple body blocks -> role=content (never exempt)
             assert r.exempt is False
 
-    # Wire through check_gates: fill_rate emits warn (when flagged) or pass (T26), never fail
+    # Wire through check_gates: underfilled decks fail fill_rate hard gate
     write_contract(design, tmp_path / "page_design.json")
     rep = check_gates(tmp_path)
     gate = {r.gate: r for r in rep.results}["fill_rate"]
-    if EXPECTED_SMOKE5_FLAGS[tid]:
-        assert gate.status == "warn"
-        for pid in EXPECTED_SMOKE5_FLAGS[tid]:
-            assert pid in gate.detail
-        assert "bottom" in gate.detail or "middle" in gate.detail or "top" in gate.detail
-        assert "in" in gate.detail
-    else:
-        assert gate.status == "pass"
-
-    # Synthetic passing GateReport with warn must still accept overall="pass"
-    synthetic_warn = GateReport(
-        run_id=RID,
-        results=[gate],
-        overall="pass",
-    )
-    assert synthetic_warn.overall == "pass"
+    assert gate.status == "fail"
+    for pid in EXPECTED_SMOKE5_FLAGS[tid]:
+        assert pid in gate.detail
+    assert "bottom" in gate.detail or "middle" in gate.detail or "top" in gate.detail
+    assert "in" in gate.detail
 
 
 def test_r6_2_cell_void_and_sparse_cell_detection():

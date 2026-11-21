@@ -32,12 +32,42 @@ DEFAULT_CONTENT_TOP_IN = 1.20
 DEFAULT_CONTENT_BOTTOM_IN = 7.00
 _MERGE_TOL_IN = 0.015
 
-# Anchor / breathing slide types exempt from underfill flagging (exempt reason always recorded in detail).
-EXEMPT_LAYOUT_IDS: dict[str, str] = {
-    "cover": "cover anchor title slide",
-    "section": "section divider breathing slide",
-    "quote": "editorial statement breathing slide",
+# Role-based exemptions apply ONLY to true anchor/breathing pages without bullets or visual content.
+ROLE_EXEMPT_REASONS: dict[str, str] = {
+    "cover": "role=cover (anchor title slide)",
+    "section_divider": "role=section_divider (section title/subtitle only, no bullets)",
+    "quote_statement": "role=quote_statement (single conclusion/quote statement only, no bullets)",
 }
+
+
+def infer_page_role(page: PageDesignEntry) -> tuple[str, bool, str]:
+    """Infer occupancy page role from actual elements/content (never exempt bullet-bearing content by layout_id)."""
+    lid = normalize_layout_id(page.layout_id or page.layout_name or "")
+    bullet_els = [
+        el
+        for el in page.elements
+        if el.kind is ElementKind.bullet and (el.text or "").strip()
+    ]
+    body_point_lines = sum(
+        1
+        for el in page.elements
+        if el.kind in (ElementKind.bullet, ElementKind.body)
+        for ln in (el.text or "").splitlines()
+        if ln.strip()
+    )
+    has_real_visual = any(
+        el.kind in (ElementKind.image, ElementKind.chart, ElementKind.table)
+        or (el.kind is ElementKind.shape and el.role == "diagram_json")
+        for el in page.elements
+    )
+
+    if lid == "cover":
+        return "cover", True, ROLE_EXEMPT_REASONS["cover"]
+    if lid == "section" and not bullet_els and body_point_lines <= 1 and not has_real_visual:
+        return "section_divider", True, ROLE_EXEMPT_REASONS["section_divider"]
+    if lid == "quote" and not bullet_els and body_point_lines <= 1 and not has_real_visual:
+        return "quote_statement", True, ROLE_EXEMPT_REASONS["quote_statement"]
+    return "content", False, ""
 
 
 @dataclass(frozen=True)
@@ -79,6 +109,7 @@ class PageOccupancyResult:
     void_position: Literal["top", "middle", "bottom"] | None
     content_band: tuple[float, float]
     detail: str
+    page_role: str = "content"
     cell_failures: list[CellFailure] = field(default_factory=list)
     used_live_measurements: bool = False
 
@@ -86,6 +117,7 @@ class PageOccupancyResult:
         return {
             "page_id": self.page_id,
             "layout_id": self.layout_id,
+            "page_role": self.page_role,
             "passed": self.passed,
             "exempt": self.exempt,
             "exempt_reason": self.exempt_reason,
@@ -308,19 +340,20 @@ def score_occupancy(
     merged = _merge_intervals(rects, band_top, band_bottom)
     max_void_in, void_pos = _max_void(merged, band_top, band_bottom)
     cell_res = score_cell_occupancy(cell_inputs) if cell_inputs else CellOccupancyResult(filled=True, failures=[])
+    page_role, is_exempt, exempt_reason = infer_page_role(page)
 
-    if lid in EXEMPT_LAYOUT_IDS:
-        reason = EXEMPT_LAYOUT_IDS[lid]
+    if is_exempt:
         return PageOccupancyResult(
             page_id=page.page_id,
             layout_id=lid,
+            page_role=page_role,
             passed=True,
             exempt=True,
-            exempt_reason=reason,
+            exempt_reason=exempt_reason,
             max_void_in=max_void_in,
             void_position=void_pos,
             content_band=(band_top, band_bottom),
-            detail=f"{page.page_id} ({lid}): exempt ({reason}; max_void={max_void_in:.2f}in)",
+            detail=f"{page.page_id} ({lid}): exempt ({exempt_reason}; max_void={max_void_in:.2f}in)",
             cell_failures=[],
             used_live_measurements=used_live,
         )
@@ -338,6 +371,7 @@ def score_occupancy(
     return PageOccupancyResult(
         page_id=page.page_id,
         layout_id=lid or "unknown",
+        page_role=page_role,
         passed=passed,
         exempt=False,
         exempt_reason="",
