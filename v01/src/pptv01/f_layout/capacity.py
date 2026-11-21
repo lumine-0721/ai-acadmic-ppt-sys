@@ -341,6 +341,39 @@ LAYOUT_CAPACITY_SPECS: dict[str, LayoutCapacitySpec] = {
         max_visuals=0,
         fallback_layout="section",
     ),
+    "two-content": LayoutCapacitySpec(
+        layout_id="two-content",
+        family="two-column",
+        min_points=2,
+        ideal_points=4,
+        max_points=8,
+        min_visuals=0,
+        max_visuals=2,
+        supports_sparse=True,
+        fallback_layout="hero-statement",
+    ),
+    "three-card": LayoutCapacitySpec(
+        layout_id="three-card",
+        family="cards",
+        min_points=3,
+        ideal_points=3,
+        max_points=7,
+        min_visuals=0,
+        max_visuals=0,
+        supports_sparse=True,
+        fallback_layout="two-content",
+    ),
+    "hero-statement": LayoutCapacitySpec(
+        layout_id="hero-statement",
+        family="hero-text",
+        min_points=2,
+        ideal_points=3,
+        max_points=5,
+        min_visuals=0,
+        max_visuals=1,
+        supports_sparse=True,
+        fallback_layout="two-content",
+    ),
 }
 
 
@@ -350,3 +383,20 @@ def get_layout_capacity(layout_id: str) -> LayoutCapacitySpec:
     if key in LAYOUT_CAPACITY_SPECS:
         return LAYOUT_CAPACITY_SPECS[key]
     return LAYOUT_CAPACITY_SPECS["section"]
+
+
+def classify_density(
+    n_points: int,
+    spec: LayoutCapacitySpec,
+    *,
+    total_chars: int = 0,
+) -> str:
+    """Classify slide density into ``sparse``, ``normal``, or ``dense`` against its ``LayoutCapacitySpec``."""
+    if spec.supports_sparse and (
+        n_points < spec.ideal_points
+        or (n_points <= spec.ideal_points and n_points <= 3 and 0 < total_chars <= 84)
+    ):
+        return "sparse"
+    if n_points >= max(spec.ideal_points + 2, spec.max_points - 1):
+        return "dense"
+    return "normal"

@@ -586,31 +586,39 @@ def _check_layout_diversity_gate(
                 f"adjacent slides {pages[i - 1].page_id}/{pages[i].page_id} repeat layout_id {layout_ids[i]!r}"
             )
 
-    # 2. Deck with >= 4 slides must use at least min(5, n) distinct layouts,
-    #    degrading cleanly to eligible realizable families when eligible content candidates < 5.
+    # 2. Deck with >= 4 slides targets min(5, n) distinct layouts:
+    #    - len(distinct) >= min(5, n) -> pass
+    #    - 0 < max_realizable <= len(distinct) < min(5, n) -> honest warn (never pretend it passed 5/5)
+    #    - len(distinct) < max_realizable (or < base_required without eligibility cap) -> fail
     distinct = sorted(set(layout_ids))
-    degrade_note = ""
+    diversity_warning = ""
     if n >= 4:
         base_required = min(5, n)
-        min_required = base_required
+        max_realizable = base_required
+        elig_families: list[str] = []
         if sp is not None and len(sp.pages) == n:
             elig_tables = compute_deck_eligible_layouts(sp, reg, uir, mapping, run_dir)
-            max_realizable = max_realizable_distinct_layouts(elig_tables)
+            computed_realizable = max_realizable_distinct_layouts(elig_tables)
+            if computed_realizable > 0:
+                max_realizable = computed_realizable
             elig_ids = {lid for tbl in elig_tables for lid in tbl}
             elig_families = sorted(
                 {LAYOUT_CAPACITY_SPECS[lid].family for lid in elig_ids if lid in LAYOUT_CAPACITY_SPECS}
             )
-            if 0 < max_realizable < base_required:
-                min_required = max_realizable
-                degrade_note = (
-                    f" (threshold degraded from {base_required} to {min_required} "
-                    f"realizable slot(s) for {len(elig_families)} eligible families: {', '.join(elig_families)})"
+        if len(distinct) < base_required:
+            if 0 < max_realizable < base_required and len(distinct) >= max_realizable:
+                fam_txt = ", ".join(elig_families) if elig_families else "n/a"
+                diversity_warning = (
+                    f"target {base_required} distinct layouts, got {len(distinct)} "
+                    f"(realizable eligible: {max_realizable}; reason: deck only qualifies for "
+                    f"{len(elig_families)} eligible families [{fam_txt}]): {', '.join(layout_ids)}"
                 )
-        if len(distinct) < min_required:
-            failures.append(
-                f"insufficient layout diversity: {len(distinct)} distinct layout(s) across {n} slides "
-                f"(need >= {min_required}{degrade_note}; got {layout_ids})"
-            )
+            else:
+                req = min(base_required, max_realizable)
+                failures.append(
+                    f"insufficient layout diversity: {len(distinct)} distinct layout(s) across {n} slides "
+                    f"(need >= {req}, target {base_required}; got {layout_ids})"
+                )
 
     # 3. Legacy top-bar + left-bullets + right-big-box layout may appear at most once per deck
     if len(legacy_pages) > 1:
@@ -647,10 +655,16 @@ def _check_layout_diversity_gate(
             status="fail",
             detail="; ".join(failures[:6]),
         )
+    if diversity_warning:
+        return GateResult(
+            gate="layout_diversity",
+            status="warn",
+            detail=diversity_warning,
+        )
     return GateResult(
         gate="layout_diversity",
         status="pass",
-        detail=f"{len(distinct)} distinct layout(s) across {n} slide(s){degrade_note}: {', '.join(layout_ids)}",
+        detail=f"{len(distinct)} distinct layout(s) across {n} slide(s): {', '.join(layout_ids)}",
     )
 
 
