@@ -6,7 +6,7 @@
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
 > **环境已确认（用户实测，2026-11-20）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel），不是 Office 2021。策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑。**
-> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最要紧的事先做 N2：** 上一轮真实 Windows 冒烟因 B8（`GetActiveObject` 附着到用户已打开的 PowerPoint，且无超时）挂死，必须先隔离实例并加上看门狗，然后才是 N0（全量 `pytest` 在没装 Office 的机器上是红的）。python-pptx 仍在默认生成路径里（N7，须等 5B 通过）。环境是 Microsoft 365 而不是 2021（已确认，B12/N1 只剩文档与 doctor 的整改）。
+> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最新（2026-11-21）：先看第 5 节开头「第 3 轮复核」，修完那两条再跑 5B。** **最要紧的事先做 N2：** 上一轮真实 Windows 冒烟因 B8（`GetActiveObject` 附着到用户已打开的 PowerPoint，且无超时）挂死，必须先隔离实例并加上看门狗，然后才是 N0（全量 `pytest` 在没装 Office 的机器上是红的）。python-pptx 仍在默认生成路径里（N7，须等 5B 通过）。环境是 Microsoft 365 而不是 2021（已确认，B12/N1 只剩文档与 doctor 的整改）。
 
 ---
 ## 1. 项目目标与现状
@@ -235,6 +235,17 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 
 > **基线：** 继续在 `feature/v01-office-renderer`（头 `7ceb945`）上做，或从它再拉 `feature/v01-office-renderer-2`；只推你自己的分支。规则（第 2 节）全部照旧。
 > **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器。** **N2 未合入之前，不要再跑 5B 的 doctor / `windows_com` / Smoke 4**（上一轮真实 Windows 冒烟已因 B8 挂死）。N0、N1、N3、N4 大部分 Linux 就能测，可与 N2 分开提交，但 **推送顺序以 N2 为先**。
+
+### 第 3 轮复核（2026-11-21，宝特；对象 `feature/v01-office-renderer` 头 `e90b80f`）：N0–N6 已推，剩两处必须修
+
+宝特在 Linux 上清环境跑了全量 `pytest`：除下面第 1 条外全部通过（`windows_com` 用例按预期跳过）。N2 的方向正确（只用 `DispatchEx`、记录自己启动的 PID、每步和整个会话都有超时、生产代码 `rg GetActiveObject` 为 0），但还有一个会再次挂死的缺口（第 2 条）。**这两条做完、推送之后，再跑 5B。**
+
+1. **N0 未通过（B17 未关）：** `tests/test_n0_windows_com_skip.py::test_n0_windows_com_skips_when_powerpoint_unavailable` 在没装 pywin32 的机器上失败。原因：`check_windows_com_skip_reason(platform_name="win32")` 先检查 `import pythoncom`，没装时返回的是 `"pywin32 not installed (...)"`，根本走不到用例想测的 `"PowerPoint COM unavailable"` 分支。修法：该用例用 `monkeypatch.setitem(sys.modules, "pythoncom", ...)` 和 `win32com` / `win32com.client` 的假模块把 pywin32 装上，再测 preflight 抛 `RendererUnavailableError` 的分支；另外单独加一条「pywin32 缺失 → 原因含 `pywin32 not installed`」的用例。不要改 conftest 的判断顺序来迁就测试。验收：Linux 清环境 `pytest -o addopts="" -rs` 退出码 0。
+2. **N2 缺口：用户已开着 PowerPoint 时仍可能挂死。** PowerPoint 是单实例程序：用户已经开着它时，`DispatchEx("PowerPoint.Application")` 不会起新进程，而是连到用户那个实例上。此时 `_spawned_pids`（`post - pre`）为空：代码不会去关用户的 PowerPoint（这是对的），但超时后也没有「自己的进程」可以杀，于是仍会卡住，并且会在用户的实例里开文稿、弹对话框。修法（session.py）：
+   - **启动前检查：** `preflight` / 会话开始时，如果 `_list_powerpnt_pids()` 非空，**直接抛明确错误并退出**（文案示例：「检测到 PowerPoint 已在运行（PID …）。PowerPoint 只允许一个实例，请先保存并关闭所有 PowerPoint 窗口再运行。」），不要调用 `DispatchEx`。可留一个显式参数/环境变量允许高级用户跳过，默认必须拒绝。
+   - **启动后复核：** `DispatchEx` 之后如果 `_spawned_pids` 为空（说明连到了别人的实例），立即释放 COM 引用、不做任何操作、抛同样的明确错误。
+   - **测试（fake COM，Linux 可跑）：** （a）启动前已有 POWERPNT.EXE PID → 抛错，且 `DispatchEx` 没被调用；（b）`DispatchEx` 后没有新 PID → 抛错，且没有对该实例调用 `Presentations.Add` / `Quit` / `taskkill`。
+   - doctor 也要把「PowerPoint 正在运行」报成阻断项，并提示先关掉。
 
 ### 紧急：先做 N2（COM 会话必须隔离，否则冒烟会再挂死）
 
