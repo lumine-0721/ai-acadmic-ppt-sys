@@ -30,7 +30,6 @@ from pptv01.contracts import (
     DeckOps,
     ElementKind,
     PageDesign,
-    PageDesignEntry,
     SlidePlan,
     UserInputRequest,
     UserInputRequests,

@@ -10,26 +10,26 @@ before Stage D accepts a Wikimedia Commons file as a slide photograph:
      and rejects photos exceeding ``OCR_TEXT_AREA_RATIO_MAX``. Exempt for
      ``diagram``, ``chart``, ``chart_data``, and ``table`` visual types.
 
-Threshold calibration on ``v01/tests/fixtures/r6_pixel_images`` (run in repo with
-``rapidocr-onnxruntime==1.2.3`` and ``fastembed==0.9.1`` CLIP ViT-B-32):
-  * ``Sponge_City.png`` (roadside Chinese text sign):
-    ``clip_pos=0.1827``, ``max_neg=0.2979 ('a sign with text')``,
-    ``neg-pos=+0.1152``, ``ocr_ratio=0.1422`` -> REJECTED by both CLIP & OCR.
-  * ``cafe_de_flore.jpg`` (real cafe facade with storefront awning sign):
-    ``clip_pos=0.3035``, ``max_neg=0.2321``, ``neg-pos=-0.0714``,
-    ``ocr_ratio=0.0415`` -> ACCEPTED.
-  * ``coffee_pourover.jpg`` (brewing photo):
-    ``clip_pos=0.2850``, ``max_neg=0.2101``, ``neg-pos=-0.0749``,
-    ``ocr_ratio=0.0000`` -> ACCEPTED.
-  * ``parthenon.jpg`` (architecture photo):
-    ``clip_pos=0.3040``, ``max_neg=0.2356``, ``neg-pos=-0.0684``,
-    ``ocr_ratio=0.0000`` -> ACCEPTED.
+Threshold calibration on ``v01/tests/fixtures/r6_pixel_images`` (re-measured on
+Windows with ``rapidocr-onnxruntime==1.2.3`` and ``fastembed==0.9.1`` CLIP ViT-B-32):
+  * ``Sponge_City.png`` (roadside Chinese text sign; query ``"sponge city urban runoff green infrastructure"``):
+    ``clip_pos=0.2683``, ``max_neg=0.2979 ('a sign with text')``,
+    ``neg-pos=+0.0296``, ``ocr_ratio=0.1432`` (``~0.198`` observed on Linux) -> REJECTED by both CLIP & OCR.
+  * ``cafe_de_flore.jpg`` (real cafe facade with storefront awning sign; query ``"Cafe de Flore Paris street cafe"``):
+    ``clip_pos=0.3568``, ``max_neg=0.2321 ('a screenshot of text')``,
+    ``neg-pos=-0.1247``, ``ocr_ratio=0.0415`` -> ACCEPTED.
+  * ``coffee_pourover.jpg`` (brewing photo; query ``"coffee pour over brewing"``):
+    ``clip_pos=0.3369``, ``max_neg=0.2101 ('a logo')``,
+    ``neg-pos=-0.1268``, ``ocr_ratio=0.0000`` -> ACCEPTED.
+  * ``parthenon.jpg`` (architecture photo; query ``"Parthenon temple Athens Greece"``):
+    ``clip_pos=0.3061``, ``max_neg=0.2356 ('a screenshot of text')``,
+    ``neg-pos=-0.0705``, ``ocr_ratio=0.0000`` -> ACCEPTED.
 
 Setting ``OCR_TEXT_AREA_RATIO_MAX = 0.12`` catches text signs like ``Sponge_City.png``
-(``0.1422``) independently even if CLIP is unavailable, while staying nearly 3x above
-natural storefront text (``cafe_de_flore.jpg = 0.0415``). Setting
-``CLIP_NEG_REJECT_MARGIN = 0.02`` leaves a ``0.18+`` separation margin between
-signage (``+0.1152``) and photographs (``<= -0.0684``).
+(``0.1432`` on Windows, ``~0.198`` on Linux) independently even if CLIP is unavailable,
+while staying nearly 3x above natural storefront text (``cafe_de_flore.jpg = 0.0415``).
+Setting ``CLIP_NEG_REJECT_MARGIN = 0.02`` rejects signage (``+0.0296 > +0.02``) while
+keeping a ``0.09+`` separation margin above natural photographs (``<= -0.0705``).
 """
 
 from __future__ import annotations

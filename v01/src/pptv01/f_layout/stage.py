@@ -41,7 +41,7 @@ from pptv01.contracts import (
     load_contract,
     write_contract,
 )
-from pptv01.theme import ACADEMIC_DEFAULT_THEME, DEFAULT_THEME_ID, ThemeTokens, get_theme, select_theme
+from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens, get_theme, select_theme
 
 from .layouts import (
     CANONICAL_LAYOUT_IDS,

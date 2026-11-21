@@ -22,7 +22,7 @@ from typing import Any, Mapping
 import httpx
 
 from pptv01.contracts import (
-    DimScore, GradeReport, GradeSummary, GraderIdentity, RubricInfo, SlideGrade, SlidePlan, SCHEMA_VERSION,
+    DimScore, GradeReport, GradeSummary, GraderIdentity, RubricInfo, SlideGrade, SlidePlan,
 )
 from pptv01.llm import (
     AGENT_MODEL_ID, AgentClient, ChatClient, LLMConfigError, LLMRequestError, Messages, complete_json,

@@ -6,7 +6,6 @@ Never skips or fakes rendering: if ``soffice`` or ``pdftoppm`` is missing, raise
 
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 import tempfile

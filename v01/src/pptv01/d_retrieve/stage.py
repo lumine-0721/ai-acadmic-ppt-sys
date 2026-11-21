@@ -26,7 +26,7 @@ import httpx
 
 from pptv01.contracts import (
     AssetChecks, AssetRecord, AssetRegistry, AssetRequirement, AssetRequirements, AssetStatus, AssetType,
-    CandidateRecord, EntityRef, ProductionPlan, RelevanceInfo, SCHEMA_VERSION, SlidePlan, SourceCall, write_contract,
+    CandidateRecord, EntityRef, ProductionPlan, RelevanceInfo, SlidePlan, SourceCall, write_contract,
 )
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, build_user_input_requests
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
@@ -40,7 +40,7 @@ from .image_rules import (
     check_wikidata_entity_geo_conflict,
     inspect_image_with_vision,
 )
-from .license import check_license, needs_attribution, plain
+from .license import check_license, needs_attribution
 from .pixel_rules import PixelFilter, PixelVerdict
 from .sources import (
     COMMONS_API, CROSSREF_WORKS, IMAGE_MIMES, MAX_ASPECT, MIN_RASTER_WIDTH, NON_SUBJECT_CLASSES, OPENALEX_WORKS,

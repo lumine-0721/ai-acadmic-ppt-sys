@@ -37,7 +37,6 @@ from pptv01.contracts import (
 from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens
 
 from .capacity import (
-    LAYOUT_CAPACITY_SPECS,
     LayoutCapacitySpec,
     classify_density,
     estimate_slot_capacity,

@@ -17,7 +17,6 @@ import csv
 import io
 import json
 from pathlib import Path
-from typing import Any
 
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData

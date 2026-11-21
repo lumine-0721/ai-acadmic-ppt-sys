@@ -326,8 +326,10 @@ def _write_fixture_registry(run_dir: Path, img_name: str, src_path: Path, aid: s
     return load_contract(AssetRegistry, run_dir / "asset_registry.json")
 
 
+@pytest.mark.vision_model
 def test_r6_4_no_text_only_visuals_gate_distinguishes_sign_from_real_photo(tmp_path):
     """no_text_only_visuals warn gate flags Sponge_City.png via real RapidOCR and passes coffee_pourover.jpg."""
+    pytest.importorskip("rapidocr_onnxruntime", reason="rapidocr_onnxruntime ([vision] extra) not installed")
     bad_dir = tmp_path / "bad"
     good_dir = tmp_path / "good"
     _write_fixture_registry(bad_dir, "Sponge_City.png", PIX_FIXTURES / "Sponge_City.png")
@@ -343,9 +345,38 @@ def test_r6_4_no_text_only_visuals_gate_distinguishes_sign_from_real_photo(tmp_p
     assert good_gate.status == "pass"
 
 
+def test_r7_4_no_text_only_visuals_gate_mocked_ocr_and_degraded_without_rapidocr(tmp_path, monkeypatch):
+    """Offline deterministic checks: mock OCR flags sign/passes photo; missing RapidOCR warns degraded (never pass)."""
+    from pptv01.contracts import load_contract
+    from pptv01.grading import gates as gates_mod
+
+    bad_dir = tmp_path / "bad"
+    good_dir = tmp_path / "good"
+    _write_fixture_registry(bad_dir, "Sponge_City.png", PIX_FIXTURES / "Sponge_City.png")
+    _write_fixture_registry(good_dir, "coffee_pourover.jpg", PIX_FIXTURES / "coffee_pourover.jpg")
+
+    bad_reg = load_contract(AssetRegistry, bad_dir / "asset_registry.json")
+    good_reg = load_contract(AssetRegistry, good_dir / "asset_registry.json")
+    sign_gate = gates_mod._check_no_text_only_visuals_gate(bad_dir, bad_reg, None, ocr_runner=lambda _b: 0.19)
+    assert sign_gate.status == "warn" and "ocr_ratio=0.190" in sign_gate.detail
+
+    photo_gate = gates_mod._check_no_text_only_visuals_gate(good_dir, good_reg, None, ocr_runner=lambda _b: 0.01)
+    assert photo_gate.status == "pass" and "checked cleanly" in photo_gate.detail
+
+    # Simulate uninstalled rapidocr_onnxruntime: gate MUST return warn + degraded message, never pass
+    monkeypatch.setattr(gates_mod, "_get_gate_ocr_runner", lambda: None)
+    rep = check_gates(good_dir)
+    deg_gate = next(r for r in rep.results if r.gate == "no_text_only_visuals")
+    assert deg_gate.status == "warn"
+    assert "pixel_rules: degraded (rapidocr not installed" in deg_gate.detail
+    assert "1/1 image visual(s) unverified" in deg_gate.detail
+    assert "checked cleanly" not in deg_gate.detail
+
+
 @pytest.mark.vision_model
 def test_r6_4_real_clip_and_rapidocr_reject_sponge_city_and_pass_real_photos():
     """Calibrated CLIP + RapidOCR model test on committed Wikimedia fixtures (skips cleanly if uncached)."""
+    pytest.importorskip("rapidocr_onnxruntime", reason="rapidocr_onnxruntime ([vision] extra) not installed")
     if not is_clip_cached():
         pytest.skip("CLIP ViT-B-32 models are not cached in fastembed cache directory; skipping offline")
 

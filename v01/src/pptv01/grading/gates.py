@@ -732,6 +732,7 @@ def _check_no_text_only_visuals_gate(
         warnings.append("pixel_rules: degraded")
 
     checked = 0
+    unverified = 0
     runner = ocr_runner
 
     for asset in reg.assets:
@@ -769,6 +770,12 @@ def _check_no_text_only_visuals_gate(
                             )
                     except Exception as exc:
                         warnings.append(f"{asset.asset_id}: local OCR failed ({type(exc).__name__})")
+                else:
+                    unverified += 1
+            else:
+                unverified += 1
+        else:
+            unverified += 1
 
     if uir is not None:
         for req in uir.requests:
@@ -792,6 +799,16 @@ def _check_no_text_only_visuals_gate(
                         )
                 except Exception as exc:
                     warnings.append(f"{req.request_id}: local OCR failed ({type(exc).__name__})")
+            else:
+                unverified += 1
+
+    if unverified > 0:
+        degraded_msg = (
+            f"pixel_rules: degraded (rapidocr not installed or offline; "
+            f"{unverified}/{checked} image visual(s) unverified)"
+        )
+        if not any("pixel_rules: degraded" in w for w in warnings):
+            warnings.append(degraded_msg)
 
     if warnings:
         return GateResult(

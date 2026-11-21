@@ -13,7 +13,6 @@ import platform
 import re
 import secrets
 import subprocess
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Literal
@@ -29,7 +28,6 @@ from pptv01.contracts import (
     DeckOps,
     PageDesign,
     ProductionPlan,
-    QAReport,
     ResearchRecord,
     SlidePlan,
     RunOverall,

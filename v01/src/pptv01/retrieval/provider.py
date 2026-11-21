@@ -14,7 +14,6 @@ from typing import Mapping, Protocol, Sequence
 import httpx
 
 from pptv01.contracts import (
-    SCHEMA_VERSION,
     FilteredHit,
     FilterReason,
     ProductionPlan,

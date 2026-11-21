@@ -90,7 +90,7 @@ def _cmd_gates(args: argparse.Namespace) -> int:
 def _cmd_grade(args: argparse.Namespace) -> int:
     """PPTEval grade. --slides-dir DIR grades rendered slide_*.png|jpg (pptx_render); default is the plan-text proxy."""
     from pptv01.contracts import SlidePlan, write_contract
-    from pptv01.grading.ppteval import (GraderConfigError, SlideEvidence, grade_deck, grader_from_env,
+    from pptv01.grading.ppteval import (GraderConfigError, grade_deck, grader_from_env,
                                         slide_text_from_plan)
     run_dir = Path(args.run_dir)
     try:
