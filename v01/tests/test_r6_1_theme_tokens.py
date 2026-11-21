@@ -13,12 +13,14 @@ from pptv01.contracts import (
     AssetRegistry,
     PageDesign,
     ProductionPlan,
+    SCHEMA_VERSION,
     SlideAssetMapping,
     SlidePlan,
     UserInputRequests,
     load_contract,
 )
-from pptv01.f_layout import run_stage_f
+from pptv01.f_layout.stage import _build_page_items, _concise_budget, _condense_points_for_budget
+from pptv01.f_layout.layouts import build_layout_elements
 from pptv01.g_build import compile_deck_ops
 from pptv01.theme import (
     ACADEMIC_DEFAULT_THEME,
@@ -71,11 +73,43 @@ def test_r6_1_smoke5_theme_token_snapshot_identical_rendering(tid: str, tmp_path
     uir = load_contract(UserInputRequests, tmp_path / "user_input_requests.json")
     mp = load_contract(SlideAssetMapping, tmp_path / "slide_asset_mapping.json")
 
-    pd_new = run_stage_f(pp, sp, reg, uir, mp, tmp_path)
-    ops_new = compile_deck_ops(sp, pd_new, reg, uir, tmp_path)
-
     pd_expected = load_contract(PageDesign, fx_dir / "page_design.json")
     ops_expected = json.loads((fx_dir / "deck_ops.json").read_text(encoding="utf-8"))
+
+    # Replay the exact pre-R6-3 snapshot layout sequence with ThemeTokens to isolate token extraction invariance.
+    reg_by_id = {a.asset_id: a for a in reg.assets}
+    uir_by_id = {r.request_id: r for r in uir.requests}
+    concise_budget = _concise_budget(pp)
+    theme = get_theme("academic-default")
+    built_pages = []
+    for sp_page, exp_page in zip(sp.pages, pd_expected.pages):
+        rv, ph, cits = _build_page_items(sp_page, mp, reg_by_id, uir_by_id, tmp_path)
+        notes = [f"planning summary (notes only): {sp_page.content_summary.strip()}"] if sp_page.content_summary.strip() else []
+        pts = _condense_points_for_budget(sp_page.key_points, concise_budget)[0] if concise_budget is not None else list(sp_page.key_points)
+        if concise_budget is not None and _condense_points_for_budget(sp_page.key_points, concise_budget)[1]:
+            notes.append(f"condensed text to <= {concise_budget} chars per user concise-text constraint")
+        els = build_layout_elements(
+            exp_page.layout_id or exp_page.layout_name or "section",
+            sp_page,
+            pts,
+            rv,
+            ph,
+            cits,
+            notes,
+            concise=(concise_budget is not None),
+            theme=theme,
+            allow_sparse=False,
+        )
+        built_pages.append(
+            exp_page.model_copy(
+                update={
+                    "elements": els,
+                    "notes": "; ".join(notes),
+                }
+            )
+        )
+    pd_new = PageDesign(schema_version=SCHEMA_VERSION, run_id=pp.run_id, theme_id=theme.theme_id, pages=built_pages)
+    ops_new = compile_deck_ops(sp, pd_new, reg, uir, tmp_path)
 
     assert pd_new.theme_id == "academic-default"
     assert len(pd_new.pages) == len(pd_expected.pages)

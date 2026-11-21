@@ -35,12 +35,15 @@ from pptv01.contracts import (
     load_contract,
 )
 from pptv01.d_retrieve.license import needs_attribution
+from pptv01.f_layout.capacity import LAYOUT_CAPACITY_SPECS
 from pptv01.f_layout.layouts import (
     LEGACY_LAYOUT_ID,
     MAX_PLACEHOLDER_AREA_RATIO,
+    max_realizable_distinct_layouts,
     normalize_layout_id,
     slide_content_area_in2,
 )
+from pptv01.f_layout.stage import compute_deck_eligible_layouts
 from pptv01.h_qa.occupancy import check_deck_occupancy
 from pptv01.renderers.protocol import DeckDump
 
@@ -503,8 +506,16 @@ def _looks_like_legacy_header_bullets_box(page) -> bool:
     return has_left_bullets and has_right_box
 
 
-def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> GateResult:
-    """Hard gate enforcing layout diversity, legacy-layout cap, and compact non-hero placeholders."""
+def _check_layout_diversity_gate(
+    run_dir: Path,
+    design: PageDesign | None,
+    *,
+    sp: SlidePlan | None = None,
+    reg: AssetRegistry | None = None,
+    uir: UserInputRequests | None = None,
+    mapping: SlideAssetMapping | None = None,
+) -> GateResult:
+    """Hard gate enforcing layout diversity across eligible families, legacy-layout cap, and compact placeholders."""
     if design is None:
         return GateResult(
             gate="layout_diversity",
@@ -573,13 +584,30 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
                 f"adjacent slides {pages[i - 1].page_id}/{pages[i].page_id} repeat layout_id {layout_ids[i]!r}"
             )
 
-    # 2. Deck with >= 4 slides must use at least min(5, n) distinct layouts
+    # 2. Deck with >= 4 slides must use at least min(5, n) distinct layouts,
+    #    degrading cleanly to eligible realizable families when eligible content candidates < 5.
     distinct = sorted(set(layout_ids))
+    degrade_note = ""
     if n >= 4:
-        min_required = min(5, n)
+        base_required = min(5, n)
+        min_required = base_required
+        if sp is not None and len(sp.pages) == n:
+            elig_tables = compute_deck_eligible_layouts(sp, reg, uir, mapping, run_dir)
+            max_realizable = max_realizable_distinct_layouts(elig_tables)
+            elig_ids = {lid for tbl in elig_tables for lid in tbl}
+            elig_families = sorted(
+                {LAYOUT_CAPACITY_SPECS[lid].family for lid in elig_ids if lid in LAYOUT_CAPACITY_SPECS}
+            )
+            if 0 < max_realizable < base_required:
+                min_required = max_realizable
+                degrade_note = (
+                    f" (threshold degraded from {base_required} to {min_required} "
+                    f"realizable slot(s) for {len(elig_families)} eligible families: {', '.join(elig_families)})"
+                )
         if len(distinct) < min_required:
             failures.append(
-                f"insufficient layout diversity: {len(distinct)} distinct layout(s) across {n} slides (need >= {min_required}; got {layout_ids})"
+                f"insufficient layout diversity: {len(distinct)} distinct layout(s) across {n} slides "
+                f"(need >= {min_required}{degrade_note}; got {layout_ids})"
             )
 
     # 3. Legacy top-bar + left-bullets + right-big-box layout may appear at most once per deck
@@ -620,7 +648,7 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
     return GateResult(
         gate="layout_diversity",
         status="pass",
-        detail=f"{len(distinct)} distinct layout(s) across {n} slide(s): {', '.join(layout_ids)}",
+        detail=f"{len(distinct)} distinct layout(s) across {n} slide(s){degrade_note}: {', '.join(layout_ids)}",
     )
 
 
@@ -786,7 +814,16 @@ def check_gates(run_dir: Path) -> GateReport:
     uir = loaded.get("user_input_requests")
     mapping = loaded.get("slide_asset_mapping")
     design = loaded.get("page_design")
-    results.append(_check_layout_diversity_gate(run_dir, design if isinstance(design, PageDesign) else None))
+    results.append(
+        _check_layout_diversity_gate(
+            run_dir,
+            design if isinstance(design, PageDesign) else None,
+            sp=sp if isinstance(sp, SlidePlan) else None,
+            reg=reg if isinstance(reg, AssetRegistry) else None,
+            uir=uir if isinstance(uir, UserInputRequests) else None,
+            mapping=mapping if isinstance(mapping, SlideAssetMapping) else None,
+        )
+    )
     results.append(_check_fill_rate_gate(design if isinstance(design, PageDesign) else None))
     results.append(
         _check_mapped_visuals_placed_gate(

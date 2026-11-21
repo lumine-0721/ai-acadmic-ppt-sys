@@ -1,8 +1,8 @@
-"""CJK and Latin text capacity estimation and overflow fitting for Stage F.
+"""CJK and Latin text capacity estimation, per-layout capacity contracts, and overflow fitting (Stage F).
 
-Glyph-advance binary-search capacity estimation adapted from:
-  hugohe3/ppt-master (scripts/svg_quality/slot_capacity.py, MIT License)
-  Copyright (c) 2025-2026 Hugo He
+Adapted from:
+  - hugohe3/ppt-master (scripts/svg_quality/slot_capacity.py, MIT License, Copyright (c) 2025-2026 Hugo He)
+  - SlideSpeak/slide-design-skill (docs/specs/2026-06-04-layout-fit-model.md, MIT License, Copyright (c) 2026 SlideSpeak)
 """
 
 from __future__ import annotations
@@ -213,3 +213,140 @@ def fit_text_to_box(
         still_overflows=still_overflows,
         note="; ".join(notes),
     )
+
+
+# ------------------------------------------------------------------ Layout Capacity Contracts
+@dataclass(frozen=True)
+class LayoutCapacitySpec:
+    """Declarative slot capacity, layout family, eligibility constraints, and fallback policy."""
+
+    layout_id: str
+    family: str
+    min_points: int
+    ideal_points: int
+    max_points: int
+    min_visuals: int = 0
+    max_visuals: int = 4
+    requires_sourced_number: bool = False
+    requires_two_sided_points: int = 0
+    requires_ordered_steps: int = 0
+    supports_sparse: bool = False
+    fallback_layout: str = "quote"
+
+
+LAYOUT_CAPACITY_SPECS: dict[str, LayoutCapacitySpec] = {
+    "cover": LayoutCapacitySpec(
+        layout_id="cover",
+        family="anchor",
+        min_points=1,
+        ideal_points=2,
+        max_points=4,
+        min_visuals=0,
+        max_visuals=2,
+        fallback_layout="section",
+    ),
+    "section": LayoutCapacitySpec(
+        layout_id="section",
+        family="breathing",
+        min_points=1,
+        ideal_points=3,
+        max_points=6,
+        min_visuals=0,
+        max_visuals=2,
+        fallback_layout="quote",
+    ),
+    "quote": LayoutCapacitySpec(
+        layout_id="quote",
+        family="statement",
+        min_points=1,
+        ideal_points=3,
+        max_points=5,
+        min_visuals=0,
+        max_visuals=1,
+        fallback_layout="section",
+    ),
+    "comparison": LayoutCapacitySpec(
+        layout_id="comparison",
+        family="comparison",
+        min_points=4,
+        ideal_points=4,
+        max_points=8,
+        min_visuals=0,
+        max_visuals=4,
+        requires_two_sided_points=2,
+        supports_sparse=True,
+        fallback_layout="quote",
+    ),
+    "big-number": LayoutCapacitySpec(
+        layout_id="big-number",
+        family="data",
+        min_points=2,
+        ideal_points=3,
+        max_points=5,
+        min_visuals=0,
+        max_visuals=1,
+        requires_sourced_number=True,
+        supports_sparse=True,
+        fallback_layout="quote",
+    ),
+    "timeline": LayoutCapacitySpec(
+        layout_id="timeline",
+        family="sequence",
+        min_points=3,
+        ideal_points=4,
+        max_points=6,
+        min_visuals=0,
+        max_visuals=2,
+        requires_ordered_steps=3,
+        supports_sparse=True,
+        fallback_layout="section",
+    ),
+    "image-left": LayoutCapacitySpec(
+        layout_id="image-left",
+        family="visual-split",
+        min_points=1,
+        ideal_points=3,
+        max_points=6,
+        min_visuals=1,
+        max_visuals=4,
+        fallback_layout="section",
+    ),
+    "image-right": LayoutCapacitySpec(
+        layout_id="image-right",
+        family="visual-split",
+        min_points=1,
+        ideal_points=3,
+        max_points=6,
+        min_visuals=1,
+        max_visuals=4,
+        fallback_layout="section",
+    ),
+    "full-bleed": LayoutCapacitySpec(
+        layout_id="full-bleed",
+        family="visual-hero",
+        min_points=1,
+        ideal_points=3,
+        max_points=4,
+        min_visuals=1,
+        max_visuals=1,
+        fallback_layout="image-right",
+    ),
+    "needs-input-list": LayoutCapacitySpec(
+        layout_id="needs-input-list",
+        family="appendix",
+        min_points=1,
+        ideal_points=3,
+        max_points=6,
+        min_visuals=0,
+        max_visuals=0,
+        fallback_layout="section",
+    ),
+}
+
+
+def get_layout_capacity(layout_id: str) -> LayoutCapacitySpec:
+    """Return the declared slot capacity spec for a canonical layout ID."""
+    key = (layout_id or "").strip().lower()
+    if key in LAYOUT_CAPACITY_SPECS:
+        return LAYOUT_CAPACITY_SPECS[key]
+    return LAYOUT_CAPACITY_SPECS["section"]

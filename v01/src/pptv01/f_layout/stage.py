@@ -28,6 +28,7 @@ from pptv01.contracts import (
     PageDesign,
     PageDesignEntry,
     ProductionPlan,
+    ResearchRecord,
     SCHEMA_VERSION,
     SlideAssetMapping,
     SlidePage,
@@ -37,6 +38,7 @@ from pptv01.contracts import (
     UserRequestFallback,
     UserRequestKind,
     UserRequestStatus,
+    load_contract,
     write_contract,
 )
 from pptv01.theme import ACADEMIC_DEFAULT_THEME, DEFAULT_THEME_ID, ThemeTokens, get_theme
@@ -52,6 +54,7 @@ from .layouts import (
     SPLIT_VIS_W,
     SlotItem,
     build_layout_elements,
+    eligible_layouts_for_page,
     select_deck_layouts,
 )
 from .preview import render_schematic_preview
@@ -300,6 +303,50 @@ def _design_single_page(
     return entry
 
 
+def _load_research_claims(run_dir: Path) -> list:
+    rb_path = run_dir / "research_brief.json"
+    if not rb_path.is_file():
+        return []
+    try:
+        return list(load_contract(ResearchRecord, rb_path).claims)
+    except Exception:
+        return []
+
+
+def compute_deck_eligible_layouts(
+    slide_plan: SlidePlan,
+    reg: AssetRegistry | None,
+    uir: UserInputRequests | None,
+    mapping: SlideAssetMapping | None,
+    run_dir: Path,
+    *,
+    concise: bool = False,
+) -> list[dict[str, float]]:
+    """Compute per-slide eligible layouts using the exact Stage F inputs."""
+    reg_by_id = {a.asset_id: a for a in reg.assets} if reg else {}
+    uir_by_id = {r.request_id: r for r in uir.requests} if uir else {}
+    empty_map = SlideAssetMapping(run_id=slide_plan.run_id, mappings=[], unused_assets=[])
+    eff_map = mapping or empty_map
+    claims = _load_research_claims(run_dir)
+    n = len(slide_plan.pages)
+    out: list[dict[str, float]] = []
+    for idx, p in enumerate(slide_plan.pages):
+        rv, ph, cits = _build_page_items(p, eff_map, reg_by_id, uir_by_id, run_dir)
+        out.append(
+            eligible_layouts_for_page(
+                p,
+                idx,
+                n,
+                rv,
+                ph,
+                concise=concise,
+                citations=cits,
+                research_claims=claims,
+            )
+        )
+    return out
+
+
 def run_stage_f(
     production: ProductionPlan,
     slide_plan: SlidePlan,
@@ -315,6 +362,7 @@ def run_stage_f(
     reg_by_id = {a.asset_id: a for a in reg.assets}
     uir_by_id = {r.request_id: r for r in uir.requests} if uir else {}
     concise_budget = _concise_budget(production)
+    claims = _load_research_claims(run_dir)
 
     per_page_items = [
         _build_page_items(p, mapping, reg_by_id, uir_by_id, run_dir) for p in slide_plan.pages
@@ -329,6 +377,8 @@ def run_stage_f(
         placeholders_all,
         production,
         concise=(concise_budget is not None),
+        page_citations=citations_all,
+        research_claims=claims,
     )
 
     pages = [

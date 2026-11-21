@@ -36,7 +36,15 @@ from pptv01.contracts import (
 )
 from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens
 
-from .capacity import estimate_slot_capacity, estimate_text_height_in, fit_text_to_box, wrap_mixed_text
+from .capacity import (
+    LAYOUT_CAPACITY_SPECS,
+    LayoutCapacitySpec,
+    estimate_slot_capacity,
+    estimate_text_height_in,
+    fit_text_to_box,
+    get_layout_capacity,
+    wrap_mixed_text,
+)
 from .validate import MIN_FONT_PT
 
 # ------------------------------------------------------------------ Canonical layout catalog
@@ -150,17 +158,27 @@ class SlotItem:
         return None
 
 
-# ------------------------------------------------------------------ Semantic layout selector
+# ------------------------------------------------------------------ Semantic layout selector & eligibility
+# Ported/adapted from Presenton generate_presentation_structure.py (Apache-2.0),
+# SlideSpeak layout-fit-model.md (MIT), and PPTAgent v0.2.0 layout_selector.yaml (MIT).
 _TIMELINE_RE = re.compile(
-    r"流程|步骤|阶段|怎么|怎样|如何|运营|演变|历史|发展|路径|过程|周期|推进|学会|训练|workflow|process|timeline|phase|stage|step|history|how\b",
+    r"流程|步骤|阶段|演变|历史|发展历程|时间线|演进|过程|周期|推进|训练|"
+    r"workflow|process|timeline|phase|stage|step|history",
     re.I,
 )
+_STEP_MARKER_RE = re.compile(
+    r"^(?:\d+[.)、]|第[一二三四五六七八九十\d]+[步阶条项]|步骤|阶段|首先|其次|最后|step\s*\d+)",
+    re.I,
+)
+_YEAR_TOKEN_RE = re.compile(r"\b(?:1[5-9]\d{2}|20\d{2})\b")
+_NUMBER_FACT_RE = re.compile(r"(?:^|[^\w])(\d+(?:\.\d+)?)\s*(?:[%％℃°]|倍|万|亿|百万|千|元|年|个月|天|小时|m²|km²|px|ms|gb|tb|kg|mw|gw|kw)?", re.I)
+_SOURCE_REF_INLINE_RE = re.compile(r"\[[RA]\d{3}\]|DOI:\S+", re.I)
 _COMPARISON_RE = re.compile(
     r"对比|比较|差异|优劣|局限|做不到|定位|竞品|两类|两种|挑战|风险|vs\.?|versus|compare|contrast|limit|challenge|pros|cons|trade.?off",
     re.I,
 )
 _FACT_RE = re.compile(
-    r"\d+\s*[%％℃°]|数据|统计|成本|收入|收益|规模|比例|指标|核心|事实|趋势|应用|场景|用在哪里|market|data|stat|metric|cost|revenue|fact|number|trend|use case",
+    r"\d+\s*[%％℃°]|数据|统计|成本|收入|收益|规模|比例|指标|核心|事实|趋势|market|data|stat|metric|cost|revenue|fact|number|trend",
     re.I,
 )
 _QUOTE_RE = re.compile(
@@ -174,6 +192,70 @@ _SECTION_RE = re.compile(
 _NEEDS_INPUT_RE = re.compile(r"待补充|待确认|补充清单|附录|appendix|needs.?input|missing.?data", re.I)
 
 
+def has_sourced_numeric_fact(
+    page: SlidePage,
+    citations: Sequence[str] = (),
+    real_visuals: Sequence[SlotItem] = (),
+    research_claims: Sequence[Any] = (),
+) -> bool:
+    """Return True only when the slide has a chart/table OR a numeric fact backed by source_refs/citations."""
+    if any(v.slot_type in ("chart", "table") for v in real_visuals):
+        return True
+
+    pts = _format_points_lines(page.key_points)
+    numeric_pts: list[str] = []
+    for p in pts:
+        # Ignore bare leading item numbering like "1. " when checking for numeric data
+        body = re.sub(r"^\d+[.)、]\s*", "", p).strip()
+        if re.search(r"\d", body):
+            numeric_pts.append(body)
+    if not numeric_pts:
+        return False
+
+    # Backed by acquired reference citation on this page or explicit inline [R###]/[A###]/DOI marker
+    if citations or any(_SOURCE_REF_INLINE_RE.search(p) for p in numeric_pts):
+        return True
+
+    # Or backed by a ResearchBrief claim that carries verified source_refs and shares numbers/terms
+    for claim in research_claims:
+        refs = getattr(claim, "source_refs", None) if not isinstance(claim, dict) else claim.get("source_refs")
+        if not refs:
+            continue
+        ctext = (getattr(claim, "claim", None) if not isinstance(claim, dict) else claim.get("claim")) or ""
+        claim_nums = set(re.findall(r"\d+(?:\.\d+)?", ctext))
+        for np_txt in numeric_pts:
+            pt_nums = set(re.findall(r"\d+(?:\.\d+)?", np_txt))
+            if claim_nums and (claim_nums & pt_nums):
+                return True
+    return False
+
+
+def is_comparison_eligible(page: SlidePage, real_visuals: Sequence[SlotItem] = ()) -> bool:
+    """Comparison requires >= 2 real visuals OR 2 sides with >= 2 points per side (>= 4 points)."""
+    if len(real_visuals) >= 2:
+        return True
+    pts = _format_points_lines(page.key_points)
+    return len(pts) >= 4
+
+
+def is_timeline_eligible(page: SlidePage, real_visuals: Sequence[SlotItem] = ()) -> bool:
+    """Timeline requires a bound diagram OR >= 3 points showing explicit ordered steps or years."""
+    if any(v.slot_type == "diagram_json" for v in real_visuals):
+        return True
+    pts = _format_points_lines(page.key_points)
+    if len(pts) < 3:
+        return False
+    pts_text = " ".join(pts)
+    year_hits = len(_YEAR_TOKEN_RE.findall(f"{page.title} {pts_text}"))
+    if year_hits >= 2:
+        return True
+    step_markers = sum(1 for p in pts if _STEP_MARKER_RE.search(p))
+    if step_markers >= 2:
+        return True
+    content_head = f"{page.title} {page.goal} {pts_text}"
+    return bool(_TIMELINE_RE.search(content_head))
+
+
 def _score_layouts_for_page(
     page: SlidePage,
     idx: int,
@@ -181,22 +263,26 @@ def _score_layouts_for_page(
     real_visuals: Sequence[SlotItem],
     placeholders: Sequence[SlotItem],
     *,
-    concise: bool,
+    concise: bool = False,
+    citations: Sequence[str] = (),
+    research_claims: Sequence[Any] = (),
 ) -> dict[str, float]:
-    """Score every eligible canonical layout for a single page based on general content & asset signals."""
+    """Score every CONTENT-ELIGIBLE canonical layout for a single page (never forces mismatched layouts)."""
     text_blob = f"{page.title} {page.goal} {' '.join(page.key_points)} {page.visual_intent}"
     n_vis = len(real_visuals)
     has_img = any(v.slot_type == "image" for v in real_visuals)
-    has_chart_or_tbl = any(v.slot_type in ("chart", "table") for v in real_visuals)
-    has_diag = any(v.slot_type == "diagram_json" for v in real_visuals)
     first_img = next((v for v in real_visuals if v.slot_type == "image"), None)
     img_ar = first_img.aspect_ratio if first_img else None
     wide_landscape_img = bool(first_img and (img_ar is None or img_ar >= 1.45))
     portrait_img = bool(first_img and img_ar is not None and img_ar < 0.85)
 
+    allow_comparison = is_comparison_eligible(page, real_visuals)
+    allow_big_number = has_sourced_numeric_fact(page, citations, real_visuals, research_claims)
+    allow_timeline = is_timeline_eligible(page, real_visuals)
+
     scores: dict[str, float] = {}
 
-    # 1. Cover: best for Slide 1 of multi-page decks (>= 3 pages)
+    # 1. Cover: best for Slide 1 of multi-page decks (>= 3 pages) or clean 2-slide non-visual opener
     if idx == 0 and n_pages >= 3:
         scores["cover"] = 10.0 + (1.0 if wide_landscape_img else 0.0)
     elif idx == 0 and n_pages <= 2 and n_vis == 0:
@@ -205,18 +291,17 @@ def _score_layouts_for_page(
     # 2. Image-driven layouts (only eligible when page actually has real visuals!)
     if n_vis >= 1:
         if n_vis == 1:
-            # Prefer alternating image-right / image-left; preserve uniform split for 2-page visual decks
             scores["image-right"] = 7.5 + (0.6 if idx % 2 == 0 else 0.0)
             scores["image-left"] = 7.5 + (0.6 if idx % 2 == 1 else 0.0)
             if wide_landscape_img and n_pages >= 3:
                 scores["full-bleed"] = 8.4 if idx > 0 else 6.8
-            if has_chart_or_tbl:
+            if allow_big_number:
                 scores["big-number"] = 8.2
-            if has_diag:
+            if allow_timeline:
                 scores["timeline"] = 7.8
         else:
-            # 2+ real visuals fit naturally into comparison (side-by-side) or image-left/right
-            scores["comparison"] = 8.8
+            if allow_comparison:
+                scores["comparison"] = 8.8
             scores["image-right"] = 7.0
             scores["image-left"] = 7.0
 
@@ -224,12 +309,15 @@ def _score_layouts_for_page(
     if _NEEDS_INPUT_RE.search(page.title) and n_vis == 0 and placeholders:
         scores["needs-input-list"] = 11.0
 
-    # 4. Content-driven editorial layouts (work cleanly with 0 or 1 real visuals!)
+    # 4. Content-driven editorial layouts gated strictly by content-shape eligibility
     if n_vis <= 1 and not has_img:
         scores.setdefault("section", 5.2 + (2.4 if _SECTION_RE.search(text_blob) else 0.0) + (0.8 if idx == 1 else 0.0))
-        scores.setdefault("timeline", 5.0 + (3.2 if _TIMELINE_RE.search(text_blob) else 0.0) + (0.6 if 2 <= len(page.key_points) <= 4 else 0.0))
-        scores.setdefault("comparison", 5.0 + (3.2 if _COMPARISON_RE.search(text_blob) else 0.0) + (0.6 if len(page.key_points) >= 2 else 0.0))
-        scores.setdefault("big-number", 5.0 + (3.0 if _FACT_RE.search(text_blob) else 0.0))
+        if allow_timeline:
+            scores.setdefault("timeline", 6.2 + (2.2 if _TIMELINE_RE.search(text_blob) else 0.0))
+        if allow_comparison:
+            scores.setdefault("comparison", 6.2 + (2.2 if _COMPARISON_RE.search(text_blob) else 0.0))
+        if allow_big_number:
+            scores.setdefault("big-number", 6.4 + (2.2 if _FACT_RE.search(text_blob) else 0.0))
         scores.setdefault(
             "quote",
             5.0
@@ -238,20 +326,65 @@ def _score_layouts_for_page(
             + (1.0 if concise else 0.0),
         )
     elif n_vis == 1 and has_img and not portrait_img:
-        # Slides with 1 non-portrait photo can still use section/comparison/big-number/quote when diversity needs them
         scores.setdefault("section", 4.5 + (1.5 if _SECTION_RE.search(text_blob) else 0.0))
-        scores.setdefault("big-number", 4.2 + (1.5 if _FACT_RE.search(text_blob) else 0.0))
-        scores.setdefault("comparison", 4.0 + (1.5 if _COMPARISON_RE.search(text_blob) else 0.0))
+        if allow_big_number:
+            scores.setdefault("big-number", 4.6 + (1.5 if _FACT_RE.search(text_blob) else 0.0))
+        if allow_comparison:
+            scores.setdefault("comparison", 4.4 + (1.5 if _COMPARISON_RE.search(text_blob) else 0.0))
         scores.setdefault("quote", 3.5 + (1.5 if _QUOTE_RE.search(text_blob) else 0.0))
     elif n_vis == 1 and portrait_img:
-        # Portrait photos need tall vertical slots (image-left/image-right/quote/comparison/cover) — never short horizontal bands
-        scores.setdefault("comparison", 4.4 + (1.2 if _COMPARISON_RE.search(text_blob) else 0.0))
+        if allow_comparison:
+            scores.setdefault("comparison", 4.4 + (1.2 if _COMPARISON_RE.search(text_blob) else 0.0))
         scores.setdefault("quote", 4.0 + (1.2 if _QUOTE_RE.search(text_blob) else 0.0))
 
-    # Guarantee at least 2 fallback candidates even in edge cases
+    # Minimal universal safe fallback: only breathing/statement layouts (never force comparison/big-number/timeline)
     if not scores:
-        scores = {"section": 5.0, "quote": 4.8, "comparison": 4.5, "big-number": 4.2, "timeline": 4.0}
+        scores = {"section": 5.0, "quote": 4.8}
     return scores
+
+
+def eligible_layouts_for_page(
+    page: SlidePage,
+    idx: int,
+    n_pages: int,
+    real_visuals: Sequence[SlotItem],
+    placeholders: Sequence[SlotItem],
+    *,
+    concise: bool = False,
+    citations: Sequence[str] = (),
+    research_claims: Sequence[Any] = (),
+) -> dict[str, float]:
+    """Public wrapper returning all eligible canonical layouts and their affinity scores for a page."""
+    return _score_layouts_for_page(
+        page,
+        idx,
+        n_pages,
+        real_visuals,
+        placeholders,
+        concise=concise,
+        citations=citations,
+        research_claims=research_claims,
+    )
+
+
+def max_realizable_distinct_layouts(score_tables: Sequence[Mapping[str, float]]) -> int:
+    """Compute the exact maximum number of distinct eligible layouts simultaneously assignable across slides."""
+    # Maximum bipartite matching (slides -> unique layout_ids)
+    match_to_slide: dict[str, int] = {}
+
+    def _dfs(slide_idx: int, seen_lids: set[str]) -> bool:
+        for lid in score_tables[slide_idx]:
+            if lid in seen_lids:
+                continue
+            seen_lids.add(lid)
+            if lid not in match_to_slide or _dfs(match_to_slide[lid], seen_lids):
+                match_to_slide[lid] = slide_idx
+                return True
+        return False
+
+    for i in range(len(score_tables)):
+        _dfs(i, set())
+    return len(match_to_slide)
 
 
 def select_deck_layouts(
@@ -261,12 +394,15 @@ def select_deck_layouts(
     production: ProductionPlan,
     *,
     concise: bool = False,
+    page_citations: Sequence[Sequence[str]] | None = None,
+    research_claims: Sequence[Any] = (),
 ) -> list[str]:
     """Deterministically assign canonical `layout_id`s across all slides in a deck.
 
     Enforces:
-      - No adjacent duplicate `layout_id`.
-      - When `len(pages) >= 4`, at least `min(5, len(pages))` distinct `layout_id`s.
+      - Only content-eligible layouts are considered in Pass 1, Pass 2, and Pass 3.
+      - No adjacent duplicate `layout_id` whenever >= 2 eligible layouts exist on a slide.
+      - Maximize distinct layout families up to ``min(5, len(pages), realizable_eligible)``.
       - Never selects the legacy `header-bullets-box` layout.
       - Image-requiring layouts (`image-left`, `image-right`, `full-bleed`) are only
         assigned to slides that have at least 1 real visual.
@@ -277,12 +413,19 @@ def select_deck_layouts(
 
     score_tables = [
         _score_layouts_for_page(
-            pages[i], i, n, page_real_visuals[i], page_placeholders[i], concise=concise
+            pages[i],
+            i,
+            n,
+            page_real_visuals[i],
+            page_placeholders[i],
+            concise=concise,
+            citations=page_citations[i] if page_citations is not None and i < len(page_citations) else (),
+            research_claims=research_claims,
         )
         for i in range(n)
     ]
 
-    # Pass 1: greedy selection with no-adjacent-repeat and diversity bonus for unused layouts
+    # Pass 1: greedy selection with no-adjacent-repeat and diversity bonus for unused eligible layouts
     chosen: list[str] = []
     used_counts: dict[str, int] = {}
     for i in range(n):
@@ -292,7 +435,6 @@ def select_deck_layouts(
         for lid, base_score in sorted(score_tables[i].items()):
             if lid == prev:
                 continue
-            # Strongly reward picking an unused layout until we hit >= min(5, n) distinct layouts
             unused_bonus = 2.6 if used_counts.get(lid, 0) == 0 else -1.5 * used_counts[lid]
             val = base_score + unused_bonus
             if val > best_val:
@@ -303,13 +445,12 @@ def select_deck_layouts(
         chosen.append(best_lid)
         used_counts[best_lid] = used_counts.get(best_lid, 0) + 1
 
-    # Pass 2: if n >= 4 and distinct count < min(5, n), upgrade duplicate slides to unused eligible layouts
-    target_distinct = min(5, n) if n >= 4 else min(2, n)
+    # Pass 2: upgrade duplicated slides using ONLY unused ELIGIBLE layouts (no forced fallback!)
+    target_distinct = min(5 if n >= 4 else min(2, n), max_realizable_distinct_layouts(score_tables))
     guard = 0
     while len(set(chosen)) < target_distinct and guard < 20:
         guard += 1
         improved = False
-        # Find best (slide_idx, new_lid) swap where chosen[slide_idx] occurs >= 2 times and new_lid is unused
         best_swap: tuple[float, int, str] | None = None
         for i in range(n):
             if chosen.count(chosen[i]) <= 1:
@@ -326,26 +467,9 @@ def select_deck_layouts(
             chosen[idx_swap] = new_lid
             improved = True
         if not improved:
-            # Fallback: allow any non-image-requiring unused layout that can hold all visuals on a duplicated slide
-            for i in range(n):
-                if chosen.count(chosen[i]) <= 1:
-                    continue
-                prev = chosen[i - 1] if i > 0 else None
-                nxt = chosen[i + 1] if i + 1 < n else None
-                for lid in TEXT_CAPABLE_LAYOUTS:
-                    if lid == "needs-input-list":
-                        continue
-                    if lid in chosen or lid == prev or lid == nxt:
-                        continue
-                    chosen[i] = lid
-                    improved = True
-                    break
-                if improved:
-                    break
-        if not improved:
             break
 
-    # Pass 3: final safety check guaranteeing no adjacent duplicates and no multi-visual full-bleed
+    # Pass 3: remove adjacent duplicates using ONLY eligible layouts in score_tables[i]
     for i in range(1, n):
         if chosen[i] == chosen[i - 1]:
             nxt = chosen[i + 1] if i + 1 < n else None
@@ -868,6 +992,7 @@ def build_layout_elements(
     *,
     concise: bool = False,
     theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
+    allow_sparse: bool = True,
 ) -> list[DesignElement]:
     """Build all DesignElements for the requested canonical `layout_id`."""
     lid = normalize_layout_id(layout_id) or "section"
@@ -1587,6 +1712,28 @@ def build_layout_elements(
         focal_fit = fit_text_to_box(focal_text, focal_w, max(1.4, min(panel_h, 3.60) - 0.68), 26.0, min_font_pt=16.0)
         focal_h_est = estimate_text_height_in(focal_fit.lines, focal_fit.font_size_pt)
         fact_box_h = round(min(panel_h, max(1.85, focal_h_est + 0.80)), 3)
+        bullet_min_h = 1.80
+
+        if allow_sparse and not real_visuals:
+            band_top = 1.36
+            eff_bottom = tray_y if has_ph else 7.00
+            avail_h = round(eff_bottom - band_top, 3)
+            cite_reserve = 0.62 if citations else 0.0
+            other_est_h = (
+                estimate_text_height_in(wrap_mixed_text("\n".join(f"• {p}" for p in other_pts), right_w, 20.0), 20.0) + 0.34
+                if other_pts
+                else 0.0
+            )
+            natural_h = round(max(fact_box_h, other_est_h + cite_reserve, fact_box_h + (cite_reserve if not other_pts else 0.0)), 3)
+            if avail_h - natural_h > 2.75:
+                cluster_h = round(max(natural_h, avail_h - 2.75), 3)
+                offset = round((avail_h - cluster_h) * 0.45, 3)
+                panel_y = round(band_top + max(0.28, offset), 3)
+                fact_box_h = round(min(content_bottom - panel_y - cite_reserve, max(fact_box_h, cluster_h - cite_reserve)), 3)
+                bullet_min_h = round(max(1.80, fact_box_h - 0.34), 3)
+                panel_h = round(content_bottom - panel_y - (0.50 if citations and not other_pts else 0.0), 3)
+                notes.append("big-number: sparse centered-cluster variant")
+
         elements.append(
             DesignElement(
                 element_id="bg_fact_panel",
@@ -1661,7 +1808,7 @@ def build_layout_elements(
                     20.0,
                     notes,
                     with_accent_rail=False,
-                    min_box_h=1.80,
+                    min_box_h=bullet_min_h,
                     theme=theme,
                 )
                 if citations:
@@ -1736,6 +1883,32 @@ def build_layout_elements(
         col_top = 1.94
         col_bottom = round(content_bottom - (0.50 if citations else 0.0), 3)
         col_h = round(col_bottom - col_top, 3)
+        col_min_h = 1.60
+
+        if allow_sparse and not real_visuals:
+            mid = max(1, math.ceil(len(pts) / 2))
+            left_pts_est = pts[:mid]
+            right_pts_est = pts[mid:] if len(pts) > 1 else []
+            col_pt_est = 20.0 if concise else 19.0
+            l_est = estimate_text_height_in(wrap_mixed_text("\n".join(f"• {p}" for p in left_pts_est), col_w, col_pt_est), col_pt_est) + 0.24
+            r_est = (
+                estimate_text_height_in(wrap_mixed_text("\n".join(f"• {p}" for p in right_pts_est), col_w, col_pt_est), col_pt_est) + 0.24
+                if right_pts_est
+                else 0.0
+            )
+            cite_res = 0.60 if citations else 0.0
+            natural_col_h = round(max(l_est, r_est, 1.60), 3)
+            band_top = 1.34
+            eff_bottom = tray_y if has_ph else 7.00
+            avail_h = round(eff_bottom - band_top, 3)
+            if avail_h - (natural_col_h + cite_res) > 2.75:
+                cluster_total = round(avail_h - 2.70, 3)
+                offset = min(1.18, round((avail_h - cluster_total) * 0.44, 3))
+                col_top = round(band_top + max(0.38, offset), 3)
+                top_bar_y = round(col_top - 0.22, 3)
+                col_h = round(col_bottom - col_top, 3)
+                col_min_h = round(min(col_h, max(1.60, cluster_total - cite_res)), 3)
+                notes.append("comparison: sparse centered-cluster variant")
 
         # Contrasting top accent bars + slim center vertical divider
         elements.append(
@@ -1813,7 +1986,7 @@ def build_layout_elements(
                 notes,
                 element_id="col_left",
                 with_accent_rail=False,
-                min_box_h=1.60,
+                min_box_h=col_min_h,
                 theme=theme,
             )
             bh_r = 0.0
@@ -1830,7 +2003,7 @@ def build_layout_elements(
                     notes,
                     element_id="col_right",
                     with_accent_rail=False,
-                    min_box_h=1.60,
+                    min_box_h=col_min_h,
                     theme=theme,
                 )
             last_y = round(col_top + max(bh_l, bh_r), 3)
@@ -1888,6 +2061,37 @@ def build_layout_elements(
             grouped[min(i, n_steps - 1)].append(p)
 
         track_y = 1.92
+        step_gap = 0.30
+        step_w = round((GRID_USABLE_W - step_gap * (n_steps - 1)) / n_steps, 3)
+        step_colors = [theme.graph_0, theme.graph_1, theme.graph_2, theme.graph_3]
+        step_top = 2.24
+        if real_visuals:
+            step_h = 1.55
+            vis_y = round(step_top + step_h + 0.20, 3)
+            vis_h = round(max(1.80, content_bottom - vis_y - (0.45 if citations else 0.0)), 3)
+        else:
+            step_pt = 19.0 if n_steps <= 3 else 17.0
+            step_h = round(min(3.30, content_bottom - step_top - (0.50 if citations else 0.0)), 3)
+            if allow_sparse and len(pts) <= 3:
+                est_heights = [
+                    estimate_text_height_in(wrap_mixed_text("\n".join(f"• {p}" for p in b) if len(b) > 1 else b[0], step_w, step_pt), step_pt) + 0.35
+                    for b in grouped
+                ]
+                nat_h = round(max(est_heights, default=1.40), 3)
+                band_top = 1.34
+                eff_bottom = tray_y if has_ph else 7.00
+                avail_h = round(eff_bottom - band_top, 3)
+                cite_res = 0.66 if citations else 0.0
+                if avail_h - (nat_h + cite_res) > 2.75:
+                    cluster_total = round(avail_h - 2.70, 3)
+                    offset = min(1.18, round((avail_h - cluster_total) * 0.44, 3))
+                    step_top = round(band_top + max(0.56, offset), 3)
+                    track_y = round(step_top - 0.32, 3)
+                    step_h = round(min(3.30, content_bottom - step_top - cite_res, max(nat_h, cluster_total - cite_res)), 3)
+                    notes.append("timeline: sparse centered-cluster variant")
+            vis_y = 0.0
+            vis_h = 0.0
+
         elements.append(
             DesignElement(
                 element_id="accent_timeline_bar",
@@ -1902,19 +2106,6 @@ def build_layout_elements(
                 role="timeline_track",
             )
         )
-
-        step_gap = 0.30
-        step_w = round((GRID_USABLE_W - step_gap * (n_steps - 1)) / n_steps, 3)
-        step_colors = [theme.graph_0, theme.graph_1, theme.graph_2, theme.graph_3]
-        step_top = 2.24
-        if real_visuals:
-            step_h = 1.55
-            vis_y = round(step_top + step_h + 0.20, 3)
-            vis_h = round(max(1.80, content_bottom - vis_y - (0.45 if citations else 0.0)), 3)
-        else:
-            step_h = round(min(3.30, content_bottom - step_top - (0.50 if citations else 0.0)), 3)
-            vis_y = 0.0
-            vis_h = 0.0
 
         for idx_s, bucket in enumerate(grouped):
             sx = round(GRID_MARGIN_X + idx_s * (step_w + step_gap), 3)
@@ -2043,5 +2234,5 @@ def build_layout_elements(
 
     # ================================================================ Fallback: route to section
     return build_layout_elements(
-        "section", page, bullet_points, real_visuals, placeholders, citations, notes, concise=concise, theme=theme
+        "section", page, bullet_points, real_visuals, placeholders, citations, notes, concise=concise, theme=theme, allow_sparse=allow_sparse
     )

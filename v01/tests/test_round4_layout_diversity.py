@@ -243,7 +243,9 @@ def test_round4_5_page_concise_deck_diverse_layouts_and_compact_placeholders(tmp
     lids = [p.layout_id for p in design.pages]
     assert all(lid in CANONICAL_LAYOUT_IDS for lid in lids), lids
     assert all(lids[i] != lids[i - 1] for i in range(1, len(lids))), f"adjacent repeat: {lids}"
-    assert len(set(lids)) >= min(5, len(lids)), f"insufficient diversity: {lids}"
+    # R6-3: S003 lacks sourced numeric facts and S004 has <4 pts, so big-number/comparison are NOT forced.
+    assert set(lids) == {"cover", "timeline", "section", "quote"}, f"unexpected eligible layouts: {lids}"
+    assert "big-number" not in lids and "comparison" not in lids
     assert LEGACY_LAYOUT_ID not in lids
 
     # Compiled DeckOps must preserve layout_id on every add_slide op

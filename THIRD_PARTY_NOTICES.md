@@ -11,6 +11,7 @@ This repository reuses, adapts, or depends on the following open-source software
 - **Upstream files referenced/ported**:
   - `servers/fastapi/models/theme_data.py` (`PresentationThemeColors`, `graph_0..graph_9` palette model structure)
   - `servers/fastapi/templates/v2/theme.py` (`contrast_ratio()`, `_relative_luminance()`, `_repair_text_color()`, `_complete_graph_colors()`, `_surface_variant()`, plus hex/RGB/HLS helpers)
+  - `servers/fastapi/utils/llm_calls/generate_presentation_structure.py` (content-driven layout eligibility criteria: never select image/table/chart/data layouts when ingredients are missing; allow layout repetition when appropriate)
   - `layouts.json` (previously noted named layout registry and structured slot separation)
 - **Local files**:
   - `v01/src/pptv01/theme/tokens.py`
@@ -30,9 +31,12 @@ This repository reuses, adapts, or depends on the following open-source software
 - **License**: MIT License
 - **Upstream files referenced/ported**:
   - `engine/occupancy.ts` (`scoreOccupancy`, `scoreCellOccupancy`, `VOID_MAX_PX`, `CELL_VOID_MAX_PX`, `CELL_VOID_MAX_FRACTION`, `CELL_VOID_MIN_HEIGHT`, `SPARSE_CELL_MIN_AREA`, `SPARSE_TEXT_COVERAGE`)
+  - `docs/specs/2026-06-04-layout-fit-model.md` (declarative `{min, ideal, max}` layout capacity contracts, family/fallback rules, and optical upper-middle centered-cluster sparse placement without shrinking font size or stretching edge-to-edge)
 - **Local files**:
   - `v01/src/pptv01/h_qa/occupancy.py`
-  - `v01/src/pptv01/grading/gates.py` (`fill_rate`)
+  - `v01/src/pptv01/f_layout/capacity.py`
+  - `v01/src/pptv01/f_layout/layouts.py`
+  - `v01/src/pptv01/grading/gates.py` (`fill_rate`, degraded `layout_diversity`)
 - **Changes made**:
   - Translated TypeScript occupancy scorers to pure Python operating on Stage F `PageDesignEntry` coordinates (inches on `13.333 x 7.5 in` canvas, scaling `230 px / 1080 px -> 1.60 in` and `180 px / 1080 px -> 1.25 in`) with optional Windows COM `TextMeasurement.bound_h_pt` cross-check and explicit `cover`/`section`/`quote` exemption reasons.
 - **MIT License (verbatim)**:
@@ -63,9 +67,22 @@ SOFTWARE.
 
 ---
 
-## 3. Earlier V0.1 Notices (carried from `v01/NOTICE.md`)
+## 3. icip-cas/PPTAgent
 
-- **icip-cas/PPTAgent** (`v1.1.38`, MIT License, Copyright (c) 2025 ICIP-CAS, <https://github.com/icip-cas/PPTAgent>): PPTEval prompts vendored in `v01/src/pptv01/grading/ppteval_prompts/`.
+- **Repository**: <https://github.com/icip-cas/PPTAgent>
+- **License**: MIT License
+- **Upstream files referenced**:
+  - `v0.2.0` `pptagent/roles/layout_selector.yaml` (deterministic layout-selection eligibility criteria: element count, point/step count ranges, visual relevance vs text-only selection)
+  - `v1.1.38` `pptagent/prompts/ppteval/` (PPTEval rubric prompts vendored verbatim in `v01/src/pptv01/grading/ppteval_prompts/`, `LICENSE-PPTAgent.txt` beside prompts)
+- **Local files**:
+  - `v01/src/pptv01/f_layout/layouts.py`
+  - `v01/src/pptv01/grading/ppteval_prompts/`
+- **MIT License**: Copyright (c) 2025 ICIP-CAS (full text in `v01/src/pptv01/grading/ppteval_prompts/LICENSE-PPTAgent.txt`).
+
+---
+
+## 4. Earlier V0.1 Notices (carried from `v01/NOTICE.md`)
+
 - **hugohe3/ppt-master** (MIT License, Copyright (c) 2025-2026 Hugo He, <https://github.com/hugohe3/ppt-master>): `slot_capacity.py` CJK/Latin glyph-advance estimation adapted in `v01/src/pptv01/f_layout/capacity.py`.
 - **slidevjs/slidev** (MIT License, Copyright (c) 2021-present Anthony Fu & Slidev contributors, <https://github.com/slidevjs/slidev>): canonical layout taxonomy adapted in `v01/src/pptv01/f_layout/layouts.py`.
 - **gitbrent/PptxGenJS** (MIT License, Copyright (c) 2015-present Brent Ely, <https://github.com/gitbrent/PptxGenJS>): structural layout hierarchy patterns referenced in `v01/src/pptv01/f_layout/layouts.py`.
