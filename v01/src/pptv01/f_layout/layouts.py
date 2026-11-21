@@ -1049,6 +1049,31 @@ def _format_points_lines(points: Sequence[str]) -> list[str]:
 
 
 # ------------------------------------------------------------------ Per-layout builders
+def _apply_theme_surface(elements: list[DesignElement], theme: ThemeTokens) -> list[DesignElement]:
+    """Apply `theme.title_font` on titles and prepend tinted `bg_canvas` for non-white themes."""
+    out = [
+        el.model_copy(update={"font": theme.title_font})
+        if (el.kind is ElementKind.title and el.font != theme.title_font)
+        else el
+        for el in elements
+    ]
+    if theme.has_tinted_canvas and not any(el.element_id == "bg_canvas" for el in out):
+        bg = DesignElement(
+            element_id="bg_canvas",
+            kind=ElementKind.shape,
+            x_in=0.0,
+            y_in=0.0,
+            w_in=CANVAS_W_IN,
+            h_in=CANVAS_H_IN,
+            z_index=0,
+            fill_hex=theme.background,
+            line_hex=theme.background,
+            role="canvas_bg",
+        )
+        out = [bg, *out]
+    return out
+
+
 def build_layout_elements(
     layout_id: str,
     page: SlidePage,
@@ -1063,6 +1088,35 @@ def build_layout_elements(
     allow_sparse: bool = True,
 ) -> list[DesignElement]:
     """Build all DesignElements for the requested canonical `layout_id`."""
+    elements = _build_layout_elements_core(
+        layout_id,
+        page,
+        bullet_points,
+        real_visuals,
+        placeholders,
+        citations,
+        notes,
+        concise=concise,
+        theme=theme,
+        allow_sparse=allow_sparse,
+    )
+    return _apply_theme_surface(elements, theme)
+
+
+def _build_layout_elements_core(
+    layout_id: str,
+    page: SlidePage,
+    bullet_points: Sequence[str],
+    real_visuals: Sequence[SlotItem],
+    placeholders: Sequence[SlotItem],
+    citations: Sequence[str],
+    notes: list[str],
+    *,
+    concise: bool = False,
+    theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
+    allow_sparse: bool = True,
+) -> list[DesignElement]:
+    """Build raw per-layout DesignElements before theme canvas/title-font surface pass."""
     lid = normalize_layout_id(layout_id) or "section"
     pts = _format_points_lines(bullet_points)
     if not pts:
@@ -3300,7 +3354,7 @@ def build_layout_elements(
 
     # ================================================================ Fallback: never send multi-bullet pages into divider `section`
     fallback_lid = "image-right" if real_visuals else ("two-content" if len(pts) >= 2 else "section")
-    return build_layout_elements(
+    return _build_layout_elements_core(
         fallback_lid,
         page,
         bullet_points,

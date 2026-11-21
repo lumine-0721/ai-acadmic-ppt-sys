@@ -303,6 +303,46 @@ def _probe_cjk_fonts() -> DoctorCheck:
     )
 
 
+def _probe_theme_fonts(installed_fonts: set[str] | None = None) -> DoctorCheck:
+    """Verify fonts referenced by the 8-theme library exist locally, reporting explicit fallbacks when missing."""
+    from pptv01.renderers.powerpoint_com.renderer import _probe_installed_windows_fonts
+    from pptv01.theme import THEMES
+
+    fonts = installed_fonts if installed_fonts is not None else _probe_installed_windows_fonts()
+    fonts_cf = {f.casefold() for f in fonts}
+    fallback_candidates = ("Microsoft YaHei", "DengXian", "SimHei", "SimSun", "Noto Sans CJK SC")
+    fallback_font = next((f for f in fallback_candidates if f.casefold() in fonts_cf), "Microsoft YaHei")
+
+    referenced: set[str] = set()
+    missing_by_theme: list[str] = []
+    for tid in sorted(THEMES):
+        tok = THEMES[tid]
+        for role_font in (tok.title_font, tok.font_family):
+            referenced.add(role_font)
+            if role_font.casefold() not in fonts_cf:
+                missing_by_theme.append(f"{tid}:{role_font}")
+
+    if not missing_by_theme:
+        return DoctorCheck(
+            "theme_fonts",
+            required=False,
+            ok=True,
+            detail=f"all {len(THEMES)} theme fonts installed ({', '.join(sorted(referenced))})",
+            metadata={"referenced": sorted(referenced), "missing": [], "fallback": fallback_font},
+        )
+    return DoctorCheck(
+        "theme_fonts",
+        required=False,
+        ok=False,
+        detail=(
+            f"missing theme font(s): {', '.join(missing_by_theme)}; "
+            f"fallback recommendation: {fallback_font}"
+        ),
+        fix_hint=f"Install missing Windows CJK/Serif font(s) or rely on fallback font `{fallback_font}`.",
+        metadata={"referenced": sorted(referenced), "missing": missing_by_theme, "fallback": fallback_font},
+    )
+
+
 def _probe_python_pptx() -> DoctorCheck:
     try:
         import pptx  # noqa: F401
@@ -410,6 +450,7 @@ def run_doctor(
         _probe_powerpoint,
         _probe_excel,
         _probe_cjk_fonts,
+        _probe_theme_fonts,
         _probe_python_pptx,
         _probe_proxy_env,
         lambda: _probe_optional_binary("soffice", ("soffice", "libreoffice"), "--version", "--cross-render"),

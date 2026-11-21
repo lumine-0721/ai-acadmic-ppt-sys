@@ -41,7 +41,7 @@ from pptv01.contracts import (
     load_contract,
     write_contract,
 )
-from pptv01.theme import ACADEMIC_DEFAULT_THEME, DEFAULT_THEME_ID, ThemeTokens, get_theme
+from pptv01.theme import ACADEMIC_DEFAULT_THEME, DEFAULT_THEME_ID, ThemeTokens, get_theme, select_theme
 
 from .layouts import (
     CANONICAL_LAYOUT_IDS,
@@ -358,7 +358,13 @@ def run_stage_f(
     theme_id: str | None = None,
 ) -> PageDesign:
     run_dir = Path(run_dir)
-    theme = get_theme(theme_id or DEFAULT_THEME_ID)
+    if theme_id and theme_id.strip():
+        theme = get_theme(theme_id)
+        theme_rationale = f"显式指定主题 `{theme.theme_id}`。"
+    else:
+        selection = select_theme(production, slide_plan)
+        theme = get_theme(selection.theme_id)
+        theme_rationale = selection.rationale
     reg_by_id = {a.asset_id: a for a in reg.assets}
     uir_by_id = {r.request_id: r for r in uir.requests} if uir else {}
     concise_budget = _concise_budget(production)
@@ -399,6 +405,7 @@ def run_stage_f(
         schema_version=SCHEMA_VERSION,
         run_id=production.run_id,
         theme_id=theme.theme_id,
+        theme_rationale=theme_rationale,
         pages=pages,
     )
     problems = validate_page_design(design, slide_plan, production, mapping, reg, uir, run_dir)

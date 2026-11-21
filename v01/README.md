@@ -127,7 +127,7 @@ docs/        technical plan, benchmark spec
 
 ## Rules enforced in code
 
-- Stage F resolves `ThemeTokens` (`src/pptv01/theme/tokens.py`, default `academic-default`) and records `PageDesign.theme_id`; Stage G (`compile_deck_ops`) reads `design.theme_id` to resolve fallback colors, fonts, and diagram tokens uniformly without hardcoded palette literals.
+- Stage F selects a theme from the 8-theme library (`src/pptv01/theme/library/*.json` + `selection-index.json`) via `select_theme()` (`src/pptv01/theme/select.py`, using topic/style/purpose/audience cues with domain & style matching) and records `PageDesign.theme_id` and `PageDesign.theme_rationale` in `page_design.json`; Stage G (`compile_deck_ops`) reads `design.theme_id` to resolve fallback colors, fonts, and diagram tokens uniformly without hardcoded palette literals.
 - Stage A: no page count/duration/page order unless the user said it (regex post-validation; one repair retry); `defaults_applied` must match plan values and can never default page count/duration; no conclusion-style claims or statistics.
 - Stage B: IDs (`S001…`) and `status=provisional` are assigned by code, never by the model; no unsourced numbers/claims; user-stated page limits are enforced.
 - Contracts: `schema_version="0.1"`, `run_id`, `S###`/`A###` IDs, relative paths only, missing assets can't carry files, fixes must be re-checked, etc.

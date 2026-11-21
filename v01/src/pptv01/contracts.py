@@ -681,6 +681,7 @@ class PageDesignEntry(_Contract):
 
 class PageDesign(_RunFile):
     theme_id: NonEmptyStr = "academic-default"
+    theme_rationale: str = ""
     pages: list[PageDesignEntry] = Field(min_length=1)
 
     @model_validator(mode="after")

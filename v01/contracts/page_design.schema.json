@@ -285,6 +285,11 @@
       "minLength": 1,
       "title": "Theme Id",
       "type": "string"
+    },
+    "theme_rationale": {
+      "default": "",
+      "title": "Theme Rationale",
+      "type": "string"
     }
   },
   "required": [

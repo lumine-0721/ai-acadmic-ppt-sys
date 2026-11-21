@@ -475,8 +475,8 @@ def compile_deck_ops(
         page_sources: list[str] = []
         page_texts = "\n".join(el.text or "" for el in page.elements)
 
-        # Deterministic z-order, tie-broken by element_id
-        for el in sorted(page.elements, key=lambda e: (e.z_index, e.element_id)):
+        # Deterministic z-order, ensuring full-canvas bg_canvas draws before any other z_index=0 card/panel
+        for el in sorted(page.elements, key=lambda e: (e.z_index, 0 if e.element_id == "bg_canvas" else 1, e.element_id)):
             if el.kind is ElementKind.title:
                 ops.append(
                     DeckOp(

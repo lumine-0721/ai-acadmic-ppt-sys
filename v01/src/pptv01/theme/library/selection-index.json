@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "attribution": "Schema adapted from zarazhangrui/frontend-slides (MIT) bold-template-pack/selection-index.json; visual style inspirations from hugohe3/ppt-master (MIT).",
+  "presets": {
+    "academic-default": {
+      "mood": ["academic", "scholarly", "authoritative"],
+      "tone": "structured",
+      "formality": "formal",
+      "density": "medium",
+      "scheme": "light-navy",
+      "best_for": ["general research seminar", "academic report", "university lecture"],
+      "avoid_for": ["retail coffee startup", "museum architecture tour", "eco field brief"],
+      "keywords": ["学术", "研究", "报告", "论文", "综述", "course", "lecture", "research"]
+    },
+    "tech-indigo": {
+      "mood": ["technical", "modern", "analytical"],
+      "tone": "crisp",
+      "formality": "moderate",
+      "density": "medium",
+      "scheme": "tinted-indigo",
+      "best_for": ["artificial intelligence", "machine learning", "software engineering", "algorithms"],
+      "avoid_for": ["hospitality", "heritage monuments", "forestry ecology"],
+      "keywords": ["ai", "llm", "ml", "人工智能", "机器学习", "深度学习", "神经网络", "算法", "大模型", "软件", "架构", "系统", "算力", "模型", "编程", "通俗", "中学生", "科技"]
+    },
+    "warm-espresso": {
+      "mood": ["warm", "artisanal", "approachable"],
+      "tone": "conversational",
+      "formality": "low-moderate",
+      "density": "medium",
+      "scheme": "cream-espresso",
+      "best_for": ["specialty coffee", "cafe business plan", "hospitality pitch", "consumer retail", "entrepreneurship"],
+      "avoid_for": ["clinical trials", "abstract mathematics", "urban microclimate"],
+      "keywords": ["咖啡", "咖啡店", "精品咖啡", "创业", "商业计划", "门店", "客流", "选址", "营收", "品牌", "餐饮", "烘焙", "投资人", "路演", "cafe", "coffee", "business", "pitch"]
+    },
+    "architectural-stone": {
+      "mood": ["refined", "monumental", "museum"],
+      "tone": "reflective",
+      "formality": "formal",
+      "density": "medium",
+      "scheme": "limestone-terracotta",
+      "best_for": ["world architecture", "monuments", "urban heritage", "art history", "design history"],
+      "avoid_for": ["clinical medicine", "quarterly finance", "cafe operations"],
+      "keywords": ["建筑", "名建筑", "古迹", "遗产", "博物馆", "帕特农", "哥特", "现代主义", "结构美学", "雕塑", "艺术", "美学", "选修", "architecture", "building", "monument", "heritage"]
+    },
+    "eco-canopy": {
+      "mood": ["organic", "empirical", "grounded"],
+      "tone": "scientific",
+      "formality": "formal",
+      "density": "medium",
+      "scheme": "botanical-forest",
+      "best_for": ["urban heat island", "green infrastructure", "ecology", "climate adaptation", "sponge city"],
+      "avoid_for": ["cafe retail pitch", "semiconductors", "art museum tour"],
+      "keywords": ["热岛", "城市热岛", "绿地", "植被", "绿化", "生态", "气候", "碳", "环保", "可持续发展", "海绵城市", "降温", "微气候", "环境", "heat island", "uhi", "green", "climate", "ecology"]
+    },
+    "swiss-minimal": {
+      "mood": ["clean", "modular", "geometric"],
+      "tone": "concise",
+      "formality": "moderate",
+      "density": "low-medium",
+      "scheme": "monochrome-red",
+      "best_for": ["design critique", "product roadmap", "swiss typography", "concise executive summary"],
+      "avoid_for": ["botanical fieldwork", "heritage craftsmanship"],
+      "keywords": ["极简", "瑞士", "排版", "产品", "设计规范", "路线图", "minimal", "swiss", "roadmap"]
+    },
+    "data-journalism": {
+      "mood": ["editorial", "investigative", "factual"],
+      "tone": "analytical",
+      "formality": "formal",
+      "density": "high",
+      "scheme": "ivory-slate-orange",
+      "best_for": ["economic policy", "empirical survey", "quantitative benchmark", "policy briefing"],
+      "avoid_for": ["casual student talk", "hospitality cafe pitch"],
+      "keywords": ["经济", "统计", "民调", "问卷", "财政", "政策", "财报", "经济学", "journalism", "policy", "survey"]
+    },
+    "medical-clinical": {
+      "mood": ["clinical", "precise", "calm"],
+      "tone": "objective",
+      "formality": "formal",
+      "density": "medium-high",
+      "scheme": "clinical-teal",
+      "best_for": ["medicine", "clinical research", "public health", "biomedical engineering"],
+      "avoid_for": ["hospitality branding", "architecture heritage"],
+      "keywords": ["医学", "临床", "公共卫生", "生物", "基因", "药物", "病理", "医院", "medical", "clinical", "biomedical", "health"]
+    }
+  }
+}

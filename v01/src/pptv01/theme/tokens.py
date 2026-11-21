@@ -9,8 +9,10 @@ graph_0..graph_9 color series and pure color/contrast utilities.
 from __future__ import annotations
 
 import colorsys
+import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Sequence
 
 
@@ -197,6 +199,12 @@ class ThemeTokens:
     graph_7: str
     graph_8: str
     graph_9: str
+    title_font: str = "Microsoft YaHei"
+
+    @property
+    def has_tinted_canvas(self) -> bool:
+        """True when slides require an explicit non-white canvas fill shape (leaves academic-default unchanged)."""
+        return (_normalize_hex(self.background) or "#FFFFFF") != "#FFFFFF"
 
     @property
     def graph_colors(self) -> tuple[str, ...]:
@@ -264,11 +272,103 @@ ACADEMIC_DEFAULT_THEME = ThemeTokens(
     graph_7=_DEFAULT_GRAPH_SERIES[7],
     graph_8=_DEFAULT_GRAPH_SERIES[8],
     graph_9=_DEFAULT_GRAPH_SERIES[9],
+    title_font="Microsoft YaHei",
 )
 
-THEMES: dict[str, ThemeTokens] = {
-    DEFAULT_THEME_ID: ACADEMIC_DEFAULT_THEME,
-}
+LIBRARY_DIR = Path(__file__).resolve().parent / "library"
+
+
+def _theme_from_dict(data: dict[str, Any]) -> ThemeTokens:
+    """Construct a ThemeTokens instance from a theme library JSON mapping."""
+    seeds = data.get("graph_seeds") or [
+        data["primary"],
+        data["accent"],
+        data["teal"],
+        data["accent_light"],
+    ]
+    series = _complete_graph_colors(
+        tuple(str(c) for c in seeds),
+        str(data.get("background", "#FFFFFF")),
+        count=10,
+    )
+    return ThemeTokens(
+        theme_id=str(data["theme_id"]),
+        primary_deep=str(data["primary_deep"]),
+        primary=str(data["primary"]),
+        accent=str(data["accent"]),
+        accent_light=str(data["accent_light"]),
+        teal=str(data["teal"]),
+        background=str(data["background"]),
+        surface_light=str(data["surface_light"]),
+        surface_warm=str(data["surface_warm"]),
+        surface_fact=str(data["surface_fact"]),
+        stroke=str(data["stroke"]),
+        background_text=str(data["background_text"]),
+        text_secondary=str(data["text_secondary"]),
+        text_muted=str(data["text_muted"]),
+        primary_text=str(data["primary_text"]),
+        text_on_dark_soft=str(data["text_on_dark_soft"]),
+        caption_on_light=str(data["caption_on_light"]),
+        caption_on_dark=str(data["caption_on_dark"]),
+        citation_on_light=str(data["citation_on_light"]),
+        citation_on_dark=str(data["citation_on_dark"]),
+        placeholder_fill=str(data["placeholder_fill"]),
+        placeholder_line=str(data["placeholder_line"]),
+        placeholder_text=str(data["placeholder_text"]),
+        dark_placeholder_fill=str(data["dark_placeholder_fill"]),
+        dark_placeholder_line=str(data["dark_placeholder_line"]),
+        dark_placeholder_text=str(data["dark_placeholder_text"]),
+        diagram_fill=str(data["diagram_fill"]),
+        diagram_line=str(data["diagram_line"]),
+        title_fallback=str(data["title_fallback"]),
+        body_fallback=str(data["body_fallback"]),
+        font_family=str(data["font_family"]),
+        title_font=str(data.get("title_font") or data["font_family"]),
+        graph_0=str(data.get("graph_0") or series[0]),
+        graph_1=str(data.get("graph_1") or series[1]),
+        graph_2=str(data.get("graph_2") or series[2]),
+        graph_3=str(data.get("graph_3") or series[3]),
+        graph_4=str(data.get("graph_4") or series[4]),
+        graph_5=str(data.get("graph_5") or series[5]),
+        graph_6=str(data.get("graph_6") or series[6]),
+        graph_7=str(data.get("graph_7") or series[7]),
+        graph_8=str(data.get("graph_8") or series[8]),
+        graph_9=str(data.get("graph_9") or series[9]),
+    )
+
+
+def load_theme_library(library_dir: Path | None = None) -> dict[str, ThemeTokens]:
+    """Load all theme token bundles from `theme/library/*.json`, anchored by `academic-default`."""
+    themes: dict[str, ThemeTokens] = {DEFAULT_THEME_ID: ACADEMIC_DEFAULT_THEME}
+    root = library_dir or LIBRARY_DIR
+    if root.is_dir():
+        for path in sorted(root.glob("*.json")):
+            if path.name == "selection-index.json":
+                continue
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            tokens = _theme_from_dict(payload)
+            if tokens.theme_id == DEFAULT_THEME_ID:
+                # Preserve bit-for-bit invariant constant for academic-default
+                continue
+            themes[tokens.theme_id] = tokens
+    return themes
+
+
+def load_selection_index(library_dir: Path | None = None) -> dict[str, Any]:
+    """Load theme selection metadata (`mood/tone/formality/density/scheme/best_for/avoid_for`, adapted from frontend-slides)."""
+    root = library_dir or LIBRARY_DIR
+    idx_path = root / "selection-index.json"
+    if not idx_path.is_file():
+        return {"version": 1, "presets": {}}
+    return json.loads(idx_path.read_text(encoding="utf-8"))
+
+
+THEMES: dict[str, ThemeTokens] = load_theme_library()
+
+
+def list_themes() -> list[str]:
+    """Return sorted registered theme IDs."""
+    return sorted(THEMES)
 
 
 def get_theme(theme_id: str | None = None) -> ThemeTokens:

@@ -131,9 +131,9 @@ def test_r5_stage_f_removes_empty_cards_shrinks_text_and_unifies_image_slots(tmp
     for page in design.pages:
         # Zero old-style card_* empty cards
         assert not any(e.element_id.startswith("card_") for e in page.elements)
-        # Uses Windows native CJK font
+        # Uses Windows native CJK font from active theme
         title_el = next(e for e in page.elements if e.element_id == "title")
-        assert title_el.font == "Microsoft YaHei"
+        assert title_el.font in {"Microsoft YaHei", "DengXian", "SimHei", "SimSun"}
         # Bullets shrunk tightly to content height (well below full 5.62in content height)
         bul_el = next(e for e in page.elements if e.element_id == "bullets")
         assert bul_el.h_in < 3.6
