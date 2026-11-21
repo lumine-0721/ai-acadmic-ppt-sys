@@ -1,0 +1,45 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.01s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) done elapsed=2.83s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.02s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 1.18s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 0.30s
+[stage-D] 1/7 start A001 (diagram) remaining_budget=180.0s
+[stage-D] 1/7 done A001 provider=none result=missing elapsed=0.00s
+[stage-D] 2/7 start A002 (reference) remaining_budget=180.0s
+[stage-D] 2/7 done A002 provider=openalex result=acquired elapsed=3.62s
+[stage-D] 3/7 start A003 (diagram) remaining_budget=176.4s
+[stage-D] 3/7 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/7 start A004 (icon) remaining_budget=176.4s
+[stage-D] 4/7 done A004 provider=none result=missing elapsed=0.00s
+[stage-D] 5/7 start A005 (diagram) remaining_budget=176.4s
+[stage-D] 5/7 done A005 provider=none result=missing elapsed=0.00s
+[stage-D] 6/7 start A006 (reference) remaining_budget=176.4s
+[stage-D] 6/7 done A006 provider=openalex result=acquired elapsed=1.28s
+[stage-D] 7/7 start A007 (diagram) remaining_budget=175.1s
+[stage-D] 7/7 done A007 provider=none result=missing elapsed=0.00s
+[pptv01] stage D (asset_retrieval) done elapsed=8.60s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.00s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.10s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=42.74s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=42.03s
+run_dir: runs\smoke7\T36
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: 702dc3c41bf6250c01b9b06ccfebe9581f6a57cc
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 5 placeholders

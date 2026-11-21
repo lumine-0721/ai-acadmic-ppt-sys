@@ -1,0 +1,61 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.01s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) done elapsed=2.69s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.04s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 1.10s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 0.26s
+[stage-D] 1/13 start A001 (image) remaining_budget=180.0s
+[stage-D] pixel_rules rejected File:Global Urban Heat Island (UHI) Data Set, 2013 Summer Daytime Urban-Rural Temperature Difference (30563445286).jpg: OCR rejected: text area ratio 0.209 > 0.12 [clip_pos=0.270, neg='a screenshot of text':0.215, ocr_ratio=0.209]
+[stage-D] pixel_rules rejected File:Global Urban Heat Island (UHI) Data Set, 2013 Summer Nighttime Urban-Rural Temperature Difference (30563444636).jpg: OCR rejected: text area ratio 0.211 > 0.12 [clip_pos=0.261, neg='a screenshot of text':0.221, ocr_ratio=0.211]
+[stage-D] pixel_rules rejected File:Global Urban Heat Island (UHI) Data Set, 2013 Average Summer Daytime Maximum Surface Temperature (30563444826).jpg: OCR rejected: text area ratio 0.205 > 0.12 [clip_pos=0.268, neg='a screenshot of text':0.213, ocr_ratio=0.205]
+[stage-D] 1/13 done A001 provider=commons result=acquired elapsed=25.05s
+[stage-D] 2/13 start A002 (reference) remaining_budget=154.9s
+[stage-D] 2/13 done A002 provider=openalex result=acquired elapsed=2.71s
+[stage-D] 3/13 start A003 (diagram) remaining_budget=152.2s
+[stage-D] 3/13 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/13 start A004 (reference) remaining_budget=152.2s
+[stage-D] 4/13 done A004 provider=openalex result=acquired elapsed=1.40s
+[stage-D] 5/13 start A005 (diagram) remaining_budget=150.8s
+[stage-D] 5/13 done A005 provider=none result=missing elapsed=0.00s
+[stage-D] 6/13 start A006 (reference) remaining_budget=150.8s
+[stage-D] 6/13 done A006 provider=openalex result=acquired elapsed=1.10s
+[stage-D] 7/13 start A007 (diagram) remaining_budget=149.7s
+[stage-D] 7/13 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] 8/13 start A008 (reference) remaining_budget=149.7s
+[stage-D] 8/13 done A008 provider=openalex result=acquired elapsed=1.78s
+[stage-D] 9/13 start A009 (image) remaining_budget=148.0s
+[stage-D] 9/13 done A009 provider=wikidata,commons result=missing elapsed=5.91s
+[stage-D] 10/13 start A010 (chart_data) remaining_budget=142.1s
+[stage-D] 10/13 done A010 provider=none result=missing elapsed=0.00s
+[stage-D] 11/13 start A011 (image) remaining_budget=142.1s
+[stage-D] 11/13 done A011 provider=wikidata,commons result=acquired elapsed=9.16s
+[stage-D] 12/13 start A012 (image) remaining_budget=132.9s
+[stage-D] pixel_rules rejected File:Sponge City.png: OCR rejected: text area ratio 0.143 > 0.12 [clip_pos=0.374, neg='a sign with text':0.298, ocr_ratio=0.143]
+[stage-D] 12/13 done A012 provider=wikidata,commons result=acquired elapsed=6.31s
+[stage-D] 13/13 start A013 (diagram) remaining_budget=126.6s
+[stage-D] 13/13 done A013 provider=none result=missing elapsed=0.00s
+[pptv01] stage D (asset_retrieval) done elapsed=56.94s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.01s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.61s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=46.39s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=43.48s
+run_dir: runs\smoke7\T02
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: 702dc3c41bf6250c01b9b06ccfebe9581f6a57cc
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 6 placeholders

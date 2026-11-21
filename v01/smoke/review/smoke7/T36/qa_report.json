@@ -1,0 +1,362 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "renderer": "powerpoint-com",
+  "render_provenance": "powerpoint-com 16.0 (build 20625)",
+  "rendered_pages": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005"
+  ],
+  "issues": [],
+  "missing_fonts": [],
+  "capacity_vs_measured": [
+    {
+      "page_id": "S001",
+      "element_id": "bullets",
+      "font_size_pt": 20.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 4,
+      "allocated_h_pt": 108.0,
+      "bound_h_pt": 48.0,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "footer",
+      "font_size_pt": 10.5,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 33.12,
+      "bound_h_pt": 12.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "title",
+      "font_size_pt": 42.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 115.2,
+      "bound_h_pt": 45.36,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "PLACEHOLDER_U001",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "hero_main",
+      "font_size_pt": 28.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 66.24,
+      "bound_h_pt": 33.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "support_0",
+      "font_size_pt": 23.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 63.36,
+      "bound_h_pt": 27.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "title",
+      "font_size_pt": 28.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 67.68,
+      "bound_h_pt": 30.24,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "PLACEHOLDER_U002",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "card_text_0",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 83.52,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "card_text_1",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 83.52,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "card_text_2",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 83.52,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "title",
+      "font_size_pt": 29.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 64.8,
+      "bound_h_pt": 31.32,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "PLACEHOLDER_U003",
+      "font_size_pt": 11.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 26.4,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "bullets_left",
+      "font_size_pt": 22.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 95.98,
+      "bound_h_pt": 52.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "bullets_right",
+      "font_size_pt": 22.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 75.6,
+      "bound_h_pt": 26.4,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "footer",
+      "font_size_pt": 10.5,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 33.12,
+      "bound_h_pt": 12.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "title",
+      "font_size_pt": 29.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 67.68,
+      "bound_h_pt": 31.32,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "PLACEHOLDER_U004",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "card_text_0",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 83.52,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "card_text_1",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 83.52,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "card_text_2",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 83.52,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "title",
+      "font_size_pt": 29.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 64.8,
+      "bound_h_pt": 31.32,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "PLACEHOLDER_U005",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "DengXian"
+    }
+  ],
+  "occupancy": [
+    {
+      "page_id": "S001",
+      "layout_id": "cover",
+      "page_role": "cover",
+      "passed": true,
+      "exempt": true,
+      "exempt_reason": "role=cover (anchor title slide)",
+      "max_void_in": 1.32,
+      "void_position": "middle",
+      "content_band": [
+        1.2,
+        6.56
+      ],
+      "detail": "S001 (cover): exempt (role=cover (anchor title slide); max_void=1.32in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S002",
+      "layout_id": "hero-statement",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 1.361,
+      "void_position": "bottom",
+      "content_band": [
+        1.42,
+        6.56
+      ],
+      "detail": "S002 (hero-statement): ok (max_void=1.36in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S003",
+      "layout_id": "three-card",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 0.983,
+      "void_position": "bottom",
+      "content_band": [
+        1.38,
+        6.56
+      ],
+      "detail": "S003 (three-card): ok (max_void=0.98in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S004",
+      "layout_id": "two-content",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 1.109,
+      "void_position": "middle",
+      "content_band": [
+        1.42,
+        6.56
+      ],
+      "detail": "S004 (two-content): ok (max_void=1.11in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S005",
+      "layout_id": "three-card",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 0.983,
+      "void_position": "bottom",
+      "content_band": [
+        1.38,
+        6.56
+      ],
+      "detail": "S005 (three-card): ok (max_void=0.98in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    }
+  ],
+  "diagnostics": [
+    "fill_rate: all 4 non-exempt slide(s) pass fill_rate (max_void=1.36in < 1.60in) | exempt: S001 (role=cover (anchor title slide))"
+  ],
+  "cross_render_notes": [],
+  "summary": "0 issue(s) recorded (0 fixed & passed recheck, 0 unresolved blocker/major)"
+}
