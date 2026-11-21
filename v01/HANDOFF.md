@@ -234,11 +234,11 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 ## 5. 任务清单（第 3 轮已通过；5B 进行中，尚未验收；先看第 4 轮）
 
 > **基线：** 继续在 `feature/v01-office-renderer`（头 `51703f4`，第 3 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
-> **先决：** 5B 尚未验收（缺 zip 与目视），**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮先修下面这一条测试隔离问题。
+> **先决：** 5B 尚未验收，**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮现在有两件：① 先修 N2 全量 pytest 误杀；② 重做 F 的版式多样性（见下，这是用户对真机效果的首要不满）。T02/T26 的 `E_response_2.json` 已放进 `v01/smoke/agent-answers/`，由用户在本机续跑。
 
-### 第 4 轮（2026-11-21 美东，宝特）：5B 尚未通过；先修全量 pytest 里露出的 N2 误杀
+### 第 4 轮（2026-11-21 美东，宝特）：5B 尚未通过；先修 N2 误杀，并重做版式多样性
 
-**5B 目前只是部分结果，不能算通过。** 用户在 `51703f4` 上跑了真机 Smoke 4。机器已更正为 **Office 2021 Home & Student Retail**，PowerPoint / Excel **16.0.20625.20108**（零售版 Click-to-Run 的 Build 可以到 20xxx，不能只凭 Build 号写成 Microsoft 365）。`pptv01 doctor` 为 READY。T12、T36：`RUN_EXIT=0`、`GATES_EXIT=0`。T02、T26：`RUN_EXIT=3`（D 取到的素材与预写 E 答案对不上，agent 后端在等新的 `E_response_*.json`）。zip 和目视检查还没交回，**5B 仍算未完成**。
+**5B 目前只是部分结果，不能算通过。** 用户在 `51703f4` 上跑了真机 Smoke 4。机器已更正为 **Office 2021 Home & Student Retail**，PowerPoint / Excel **16.0.20625.20108**（零售版 Click-to-Run 的 Build 可以到 20xxx，不能只凭 Build 号写成 Microsoft 365）。`pptv01 doctor` 为 READY。T12、T36：`RUN_EXIT=0`、`GATES_EXIT=0`，用户已用桌面 PowerPoint 打开并截图（见 `v01/smoke/review/T12_review.jpg`、`T36_review.jpg`）。结论：能渲染、缺的地方没有胡编（占位框诚实），**但质量一般，每页版式几乎一样，这是最难接受的一点。** T02、T26：`RUN_EXIT=3`（旧 `E_response_1` 映射了 D 没取到的素材）；补答 `E_response_2.json` 已写入仓库，待用户续跑。完整 zip 仍请回传。**5B 仍算未完成。**
 
 用户本机全量 pytest（清环境）：**1 failed，520 passed，1 skipped**。单独跑 `-m windows_com` 与 `-m "not windows_com"` 都是退出码 0。失败用例：`tests/test_n2_com_session_safety.py:222` `test_n2_watchdog_timeout_never_kills_preexisting_user_powerpoint`（`assert [{41916}] == []`，该用例单独跑是绿的）。
 
@@ -255,7 +255,43 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 2. 生产路径不要把「tasklist 失败 / 空基线」当成「机器上没有 Excel」；列举失败应报错或重试，不得据此 `taskkill`。只终止在 `DispatchEx` 之后明确记入 `_spawned_*` 的 PID。
 3. 验收：Windows 上清环境先跑全量 `pytest`（不要拆成两个 `-m`），退出码必须为 0；再确认该用例单独跑、以及「先跑 `-m windows_com` 再在同一会话跑该用例」也绿。把三个退出码写进汇报。
 
-5B 其余事项（T02/T26 补答、打包 zip、目视勾选）仍按第 5B 节执行，通过之前不要做 N7。
+T02/T26 的补答已就绪；用户续跑并交回 zip 之前不要做 N7。
+
+#### 真机观感（T12 / T36 截图，2026-11-21 美东）与版式多样性（本轮必须做）
+
+截图：`v01/smoke/review/T12_review.jpg`（咖啡店 7 页）、`v01/smoke/review/T36_review.jpg`（人工智能，要求少字，5 页）。用户原话大意：做是做出来了，缺的地方不胡来是好的，但每页风格基本一样很难接受。截图里能直接看到的问题，全部写成验收标准：
+
+1. **同一套模版打到底。** 每页都是：浅蓝色顶栏标题 + 左上角一小块项目符号 + 右下（或整块）一个巨大的黄色虚线占位框或图片框。T36 的 1–3 页缩略图几乎可以叠在一起；T12 有图的页也是「左图右大黄框」。
+2. **占位框占了英雄位。** T36 要求尽量少用文字，但 5 页里至少 3 页的视觉中心是写着「待补充：…（U00x）」的大黄框。占位必须改成**小而紧凑**（窄条、角标、或汇总到文末「待补充清单 / 附录」页），**不得作为页面主视觉**。
+3. **字很小、空很大，没有大数字/大引语版式。** 正文只有角落里 2–3 条小字项目符号，其余大片空白。没有 big-number、没有大引用、没有满铺图。
+4. **2010 公文风：顶栏 + 细线 + 项目符号，没有层级和色彩变化。** 标题带、细分隔线、同一套蓝底，翻页没有节奏。
+5. **出处脚注又小又漂。** 如图片署名/DOI 挤在底部很小一行，和内容区脱节（见 T12 第一页 Café de Flore 图注、T36 第一页 [A002] DOI）。
+
+**任务（F 阶段，copy reuse first；先搜后写）：** 不要从零发明一套版式语言。先融合下面这些**已核存在 GitHub、许可证可用**的方案（看布局类型与选页规则，按需复制/改写并登记 `NOTICE.md`；不要整仓搬进来）：
+
+| 仓库 | 许可（已核对） | 可融合的部分（已核到路径/文件） |
+| --- | --- | --- |
+| [slidevjs/slidev](https://github.com/slidevjs/slidev) | MIT | `packages/client/layouts/`：`cover`、`section`、`fact`、`quote`、`statement`、`image-left`、`image-right`、`image`、`two-cols`、`two-cols-header`、`intro`、`full`、`center`、`end` |
+| [presenton/presenton](https://github.com/presenton/presenton) | Apache-2.0 | 根目录 `layouts.json`：具名版式（封面满铺图、目录、关于我们、目标网格、左右分栏、数据页等） |
+| [icip-cas/PPTAgent](https://github.com/icip-cas/PPTAgent) | MIT | 代理式生成与「按内容套版」的思路（本项目 stage E 调研已提过）；只借规则与结构，不要把运行时整锅端过来 |
+| [gitbrent/PptxGenJS](https://github.com/gitbrent/PptxGenJS) | MIT | 幻灯片母版/版式 API 与示例，作「一页一种结构」的对照 |
+| [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master) | MIT | 已在 `NOTICE.md` 借用 `slot_capacity`；再看 `skills/` 里的页面类型划分 |
+
+`pipipi-pikachu/PPTist` 是 **AGPL-3.0**，只许看版式名称，**不许复制代码**。
+
+F 为每一页按内容类型选出一个 `layout_id`（至少覆盖：封面 cover、章节节标题 section、对照 comparison/two-cols、大数字或数据 big-number/fact、时间线 timeline、图左/图右 image-left/image-right、大引语 quote、满铺图 full-bleed、以及「待补充清单」needs-input-list）。写进 `page_design.json`。编译层必须尊重该字段，不能再统一套「顶栏 + 左列表 + 右大框」。
+
+**硬性验收（测试 + 门槛，对照上面的截图）：**
+
+- 相邻两页的 `layout_id` 不得相同。
+- 页数 ≥ 4 时，全稿至少使用 `min(5, 页数)` 种不同版式（T36 五页至少 4 种；T12 七页至少 5 种）。
+- 新增硬门槛（如 `layout_diversity`）：统计 `page_design` / 编译结果的 `layout_id`，违反上两条则 fail；并把「顶栏+左列表+右大框」登记为一种 layout，同一稿里最多出现 1 页。
+- 占位框面积不得超过该页内容区的约 15%，且不得占据页面最大的内容槽；缺图缺表时改用紧凑标记或最后一页「待补充」清单。T36 这类少字稿尤其禁止让「待补充」成为主视觉（用截图 T36 第 1–3 页做反例测试）。
+- 有真实图时，图应进入主槽；脚注/署名固定在槽下或备注，不得漂在空白里当装饰。
+- 增加版式夹具测试：构造 5 页和 7 页的 `page_design`，断言相邻不重复、种类数达标、占位过大被 QA/门槛抓出。Linux 可测编译与门槛；真机效果仍要看图。
+
+调研一页写到 `v01/docs/stage-f-layout-diversity.md`（候选、许可证、取舍、融合了什么），先于或随实现提交。
+
 
 ### 第 3 轮已通过（2026-11-20 美东，宝特；对象 `feature/v01-office-renderer` 头 `51703f4`）
 

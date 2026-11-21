@@ -1,0 +1,54 @@
+{
+  "mappings": [
+    {
+      "page_id": "S001",
+      "asset_id": "A001",
+      "request_id": null,
+      "usage": "置于页面右侧：帕特农神庙正面外观，仅作为开篇「后面要看的建筑之一」的例子；这是单座建筑照片，不是多座建筑的拼图总览",
+      "accepted": true
+    },
+    {
+      "page_id": "S002",
+      "asset_id": "A002",
+      "request_id": null,
+      "usage": "置于页面左侧：从南侧拍摄的帕特农神庙外观，展示古希腊纪念性建筑的石材砌筑与比例；不是柱式分解示意图",
+      "accepted": true
+    },
+    {
+      "page_id": "S003",
+      "asset_id": "A004",
+      "request_id": null,
+      "usage": "置于页面左侧：沙特尔主教座堂西立面，展示哥特式宗教建筑的双塔与立面构图；本图是外观，不是室内光线对比",
+      "accepted": true
+    },
+    {
+      "page_id": "S003",
+      "asset_id": "A005",
+      "request_id": null,
+      "usage": "在页脚/备注作为宗教建筑页的参考文献条目引用（DOI 10.70121/001c.143045；仅为书目元数据）",
+      "accepted": true
+    },
+    {
+      "page_id": "S005",
+      "asset_id": "A008",
+      "request_id": null,
+      "usage": "置于页面左侧：埃菲尔铁塔全景，展示工业时代钢铁结构在高度与跨度上的突破",
+      "accepted": true
+    },
+    {
+      "page_id": "S006",
+      "asset_id": "A011",
+      "request_id": null,
+      "usage": "置于页面左侧：克莱斯勒大厦外观，作为现代标志性高层设计的一个实例；不是概念草图对照",
+      "accepted": true
+    },
+    {
+      "page_id": "S007",
+      "asset_id": "A012",
+      "request_id": null,
+      "usage": "置于页面左侧：上海中心大厦外观，作为当代超高层建筑的一个实例；不代表能耗或数字设计的技术细节图",
+      "accepted": true
+    }
+  ],
+  "unused_assets": []
+}
