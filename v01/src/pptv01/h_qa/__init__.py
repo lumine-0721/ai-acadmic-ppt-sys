@@ -1,4 +1,15 @@
 from .inspect import inspect_deck
+from .occupancy import (
+    CELL_VOID_MAX_FRACTION,
+    CELL_VOID_MAX_IN,
+    EXEMPT_LAYOUT_IDS,
+    SPARSE_TEXT_COVERAGE,
+    VOID_MAX_IN,
+    CellInput,
+    check_deck_occupancy,
+    score_cell_occupancy,
+    score_occupancy,
+)
 from .render import (
     RenderExecutionError,
     RendererUnavailableError,
@@ -11,14 +22,23 @@ from .stage import ARTIFACT, MAX_REPAIR_ROUNDS, RENDER_DIR, run_stage_h
 
 __all__ = [
     "ARTIFACT",
+    "CELL_VOID_MAX_FRACTION",
+    "CELL_VOID_MAX_IN",
+    "CellInput",
+    "EXEMPT_LAYOUT_IDS",
     "MAX_REPAIR_ROUNDS",
     "RENDER_DIR",
     "RenderExecutionError",
     "RendererUnavailableError",
+    "SPARSE_TEXT_COVERAGE",
+    "VOID_MAX_IN",
     "apply_repairs",
+    "check_deck_occupancy",
     "find_render_tools",
     "has_render_tools",
     "inspect_deck",
     "render_pptx_to_pngs",
     "run_stage_h",
+    "score_cell_occupancy",
+    "score_occupancy",
 ]

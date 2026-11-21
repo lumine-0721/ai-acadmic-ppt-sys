@@ -17,6 +17,7 @@
           "enum": [
             "pass",
             "fail",
+            "warn",
             "not_run"
           ],
           "title": "Status",

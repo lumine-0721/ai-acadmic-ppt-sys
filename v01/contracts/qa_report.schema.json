@@ -104,6 +104,13 @@
       "title": "Cross Render Notes",
       "type": "array"
     },
+    "diagnostics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Diagnostics",
+      "type": "array"
+    },
     "issues": {
       "items": {
         "$ref": "#/$defs/QAIssue"
@@ -116,6 +123,14 @@
         "type": "string"
       },
       "title": "Missing Fonts",
+      "type": "array"
+    },
+    "occupancy": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Occupancy",
       "type": "array"
     },
     "render_provenance": {

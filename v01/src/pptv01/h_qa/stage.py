@@ -32,6 +32,7 @@ from pptv01.renderers.protocol import (
 )
 
 from .inspect import inspect_deck
+from .occupancy import check_deck_occupancy
 from .render import RendererUnavailableError, render_pptx_to_pngs
 from .repair import apply_repairs, repair_page_design
 
@@ -234,6 +235,13 @@ def run_stage_h(
     if render_err is not None:
         summary_parts.append(f"RENDER FAILED: {render_err}")
 
+    occupancy_rows: list[dict[str, Any]] = []
+    diagnostics: list[str] = []
+    if current_design is not None:
+        occ_report = check_deck_occupancy(current_design, measure_result=measure_res)
+        occupancy_rows = [r.to_dict() for r in occ_report.pages]
+        diagnostics.append(f"fill_rate: {occ_report.detail}")
+
     report = QAReport(
         schema_version=SCHEMA_VERSION,
         run_id=slide_plan.run_id,
@@ -243,6 +251,8 @@ def run_stage_h(
         issues=final_issues,
         missing_fonts=missing_fonts,
         capacity_vs_measured=capacity_log,
+        occupancy=occupancy_rows,
+        diagnostics=diagnostics,
         cross_render_notes=cross_notes,
         summary="; ".join(summary_parts),
     )

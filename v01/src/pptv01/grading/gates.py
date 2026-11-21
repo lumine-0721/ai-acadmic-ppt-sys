@@ -41,6 +41,7 @@ from pptv01.f_layout.layouts import (
     normalize_layout_id,
     slide_content_area_in2,
 )
+from pptv01.h_qa.occupancy import check_deck_occupancy
 from pptv01.renderers.protocol import DeckDump
 
 STAGE_FILES = [
@@ -623,6 +624,22 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
     )
 
 
+def _check_fill_rate_gate(design: PageDesign | None) -> GateResult:
+    """Warn-level occupancy gate detecting slides with large vertical content voids."""
+    if design is None:
+        return GateResult(
+            gate="fill_rate",
+            status="not_run",
+            detail="page_design.json absent (stage F not run)",
+        )
+    rep = check_deck_occupancy(design)
+    return GateResult(
+        gate="fill_rate",
+        status="pass" if rep.passed else "warn",
+        detail=rep.detail,
+    )
+
+
 def _check_mapped_visuals_placed_gate(
     mapping: SlideAssetMapping | None,
     design: PageDesign | None,
@@ -770,6 +787,7 @@ def check_gates(run_dir: Path) -> GateReport:
     mapping = loaded.get("slide_asset_mapping")
     design = loaded.get("page_design")
     results.append(_check_layout_diversity_gate(run_dir, design if isinstance(design, PageDesign) else None))
+    results.append(_check_fill_rate_gate(design if isinstance(design, PageDesign) else None))
     results.append(
         _check_mapped_visuals_placed_gate(
             mapping if isinstance(mapping, SlideAssetMapping) else None,

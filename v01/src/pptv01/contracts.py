@@ -861,6 +861,8 @@ class QAReport(_RunFile):
     issues: list[QAIssue] = Field(default_factory=list)
     missing_fonts: list[str] = Field(default_factory=list)
     capacity_vs_measured: list[dict[str, Any]] = Field(default_factory=list)
+    occupancy: list[dict[str, Any]] = Field(default_factory=list)
+    diagnostics: list[str] = Field(default_factory=list)
     cross_render_notes: list[str] = Field(default_factory=list)
     summary: str = ""
 
@@ -1118,7 +1120,7 @@ class GradeReport(_RunFile):
 
 class GateResult(_Contract):
     gate: NonEmptyStr
-    status: Literal["pass", "fail", "not_run"]
+    status: Literal["pass", "fail", "warn", "not_run"]
     detail: str = ""
 
 
