@@ -184,7 +184,18 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     return 0 if rep.ok else 1
 
 
+def _enable_realtime_stdio() -> None:
+    """Ensure stdout/stderr flush line-by-line even when redirected (`> file 2>&1`)."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(line_buffering=True)
+            except Exception:
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _enable_realtime_stdio()
     ap = argparse.ArgumentParser(prog="pptv01", description="AI PPT Sys V0.1")
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="run the chain for one utterance")

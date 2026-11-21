@@ -443,6 +443,9 @@ class SourceCall(_Contract):
     status: Literal["ok", "no_results", "error", "disabled"]
     hits: int = Field(default=0, ge=0)
     error: str | None = None
+    url: str | None = None
+    elapsed_s: float | None = Field(default=None, ge=0)
+    attempts: int | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def _err(self) -> "SourceCall":

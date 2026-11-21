@@ -16,9 +16,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Mapping
+from typing import Callable, Literal, Mapping
 
 import httpx
 
@@ -28,7 +30,7 @@ from pptv01.contracts import (
 )
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, build_user_input_requests
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
-from pptv01.retrieval.backends import BackendError, CrossrefBackend, make_http
+from pptv01.retrieval.backends import BackendError, CrossrefBackend, make_http, sanitize_url
 from pptv01.retrieval.relevance import RULES_VERSION, Candidate, RelevanceFilter, filter_from_env
 
 from .image_rules import (
@@ -40,7 +42,8 @@ from .image_rules import (
 )
 from .license import check_license, needs_attribution, plain
 from .sources import (
-    IMAGE_MIMES, MAX_ASPECT, MIN_RASTER_WIDTH, NON_SUBJECT_CLASSES, CommonsClient, CommonsFile, CrossrefVerifier, OpenAlexClient, WdEntity,
+    COMMONS_API, CROSSREF_WORKS, IMAGE_MIMES, MAX_ASPECT, MIN_RASTER_WIDTH, NON_SUBJECT_CLASSES, OPENALEX_WORKS,
+    WIKIDATA_API, CommonsClient, CommonsFile, CrossrefVerifier, OpenAlexClient, WdEntity,
     WikidataClient, Work, bare_doi, download_image, now, similar, verify_image,
 )
 
@@ -50,6 +53,9 @@ ENV_OA_KEY = "PPTV01_OPENALEX_API_KEY"
 ENV_OA_EMAIL = "PPTV01_OPENALEX_EMAIL"
 ENV_THUMB = "PPTV01_COMMONS_THUMB_WIDTH"
 ENV_TIMEOUT = "PPTV01_ASSETS_TIMEOUT_S"
+ENV_CONNECT_TIMEOUT = "PPTV01_ASSETS_CONNECT_TIMEOUT_S"
+ENV_READ_TIMEOUT = "PPTV01_ASSETS_READ_TIMEOUT_S"
+ENV_BUDGET = "PPTV01_ASSETS_BUDGET_S"
 NO_TARGET_ENTITY_TYPES = {"dataset", "publication"}
 MAX_DOWNLOAD_TRIES = 3
 _CJK = re.compile(r"[\u3400-\u9fff]")
@@ -66,6 +72,10 @@ class DServices:
     contact: str = ""
     disabled_reason: str = ""
     vision_client: ChatClient | None = None
+    budget_s: float = 180.0
+    connect_timeout_s: float = 10.0
+    read_timeout_s: float = 20.0
+    progress_fn: Callable[[str], None] | None = None
 
     @property
     def enabled(self) -> bool:
@@ -76,29 +86,89 @@ class DServices:
             self.http.close()
 
 
+def _parse_pos_float(env: Mapping[str, str], key: str, default: float) -> float:
+    raw = env.get(key, "").strip()
+    if not raw:
+        return default
+    val = float(raw)
+    if val <= 0:
+        raise ValueError(f"{key} must be > 0, got {val}")
+    return val
+
+
 def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.BaseTransport | None = None,
-                      openalex_fetch=None, *, vision_client: ChatClient | None = None) -> DServices:
+                      openalex_fetch=None, *, vision_client: ChatClient | None = None,
+                      progress_fn: Callable[[str], None] | None = None) -> DServices:
     env = os.environ if env is None else env
     rel = filter_from_env(env)
     if (env.get(ENV_ASSETS, "auto").strip().lower() or "auto") == "none":
-        return DServices(None, None, None, None, None, rel, disabled_reason=f"{ENV_ASSETS}=none")
+        return DServices(None, None, None, None, None, rel, disabled_reason=f"{ENV_ASSETS}=none", progress_fn=progress_fn)
     if (env.get(ENV_ASSETS, "auto").strip().lower() or "auto") != "auto":
         raise LLMConfigError(f"{ENV_ASSETS} must be auto or none")
     try:
-        timeout = float(env.get(ENV_TIMEOUT, "30"))
+        timeout = _parse_pos_float(env, ENV_TIMEOUT, 30.0)
+        connect_to = _parse_pos_float(env, ENV_CONNECT_TIMEOUT, min(10.0, timeout))
+        read_to = _parse_pos_float(env, ENV_READ_TIMEOUT, min(20.0, timeout))
+        budget_s = _parse_pos_float(env, ENV_BUDGET, 180.0)
         thumb = int(env.get(ENV_THUMB, "1280"))
     except ValueError as e:
         raise LLMConfigError(f"invalid numeric asset setting: {e}") from None
     contact = env.get("PPTV01_RESEARCH_CONTACT", "").strip() or "https://github.com/lumine-0721/ai-acadmic-ppt-sys"
-    http = make_http(timeout, contact, transport)
+    http = make_http(timeout, contact, transport, connect_timeout_s=connect_to, read_timeout_s=read_to)
     oa_email = env.get(ENV_OA_EMAIL, "").strip() or (contact if "@" in contact else "")
     v_client = vision_client
     if v_client is None and env.get("PPTV01_E_VISION_MODEL", "").strip():
         from pptv01.e_mapping.stage import vision_client_from_env
         v_client = vision_client_from_env(env)
-    return DServices(http, WikidataClient(http), CommonsClient(http, thumb),
-                     OpenAlexClient(openalex_fetch, api_key=env.get(ENV_OA_KEY, "").strip(), email=oa_email),
-                     CrossrefVerifier(http, contact), rel, contact, vision_client=v_client)
+    return DServices(
+        http,
+        WikidataClient(http),
+        CommonsClient(http, thumb),
+        OpenAlexClient(openalex_fetch, api_key=env.get(ENV_OA_KEY, "").strip(), email=oa_email, http=http),
+        CrossrefVerifier(http, contact),
+        rel,
+        contact,
+        vision_client=v_client,
+        budget_s=budget_s,
+        connect_timeout_s=connect_to,
+        read_timeout_s=read_to,
+        progress_fn=progress_fn,
+    )
+
+
+def _run_with_timeout(fn: Callable[[], object], timeout_s: float, *, provider: str, url: str) -> object:
+    """Run ``fn()`` in a daemon thread with a hard wall-clock bound so blocking I/O cannot hang Stage D."""
+    limit = max(0.05, float(timeout_s))
+    holder: dict[str, object] = {}
+    done = threading.Event()
+    t0 = time.monotonic()
+
+    def _target() -> None:
+        try:
+            holder["result"] = fn()
+        except BaseException as exc:  # noqa: BLE001
+            holder["error"] = exc
+        finally:
+            done.set()
+
+    th = threading.Thread(target=_target, name=f"pptv01-d-{provider}", daemon=True)
+    th.start()
+    if not done.wait(timeout=limit):
+        elapsed = round(time.monotonic() - t0, 3)
+        clean = sanitize_url(url)
+        raise BackendError(
+            f"request timed out after {elapsed:.2f}s (limit={limit:.2f}s, provider={provider}, url={clean}, attempts=1)",
+            provider=provider,
+            url=clean,
+            elapsed_s=elapsed,
+            attempts=1,
+            timed_out=True,
+        )
+    if "error" in holder:
+        err = holder["error"]
+        if isinstance(err, BaseException):
+            raise err
+    return holder.get("result")
 
 
 # ------------------------------------------------------------------------------------------ helpers
@@ -120,17 +190,110 @@ class _Ctx:
         self.wd_rejected: dict[str, list[str]] = {}      # target name -> Wikidata candidates dropped by class (P31)
         self.used_by_id: dict[str, AssetRecord] = {}     # Commons title -> first AssetRecord that acquired it
         self.used_by_sha: dict[str, AssetRecord] = {}    # sha256 -> first AssetRecord that acquired it
+        self.started_monotonic = time.monotonic()
+        self.deadline = self.started_monotonic + max(0.05, float(sv.budget_s))
+        self.had_timeout = False
+        self.budget_exhausted_triggered = False
+        self.cur_req_providers: list[str] = []
+        self.cur_req_timeouts: list[str] = []
 
-    def call(self, backend: str, purpose: str, query: str, fn, *, count=len):
-        """Run one API call, log it (ok / no_results / error). Returns result or None on error."""
-        try:
-            res = fn()
-        except BackendError as e:
-            self.calls.append(SourceCall(backend=backend, purpose=purpose, query=query[:200], status="error", error=str(e)[:240]))
+    def remaining_s(self) -> float:
+        return max(0.0, self.deadline - time.monotonic())
+
+    def budget_exhausted(self) -> bool:
+        return time.monotonic() >= self.deadline
+
+    def log(self, msg: str) -> None:
+        line = f"[stage-D] {msg}"
+        if self.sv.progress_fn is not None:
+            self.sv.progress_fn(line)
+        else:
+            print(line, flush=True)
+
+    def start_requirement(self, idx: int, total: int, rq: AssetRequirement) -> None:
+        self.cur_req_providers = []
+        self.cur_req_timeouts = []
+        self.log(f"{idx}/{total} start {rq.asset_id} ({rq.type.value}) remaining_budget={self.remaining_s():.1f}s")
+
+    def finish_requirement(self, idx: int, total: int, rec: AssetRecord, started: float) -> None:
+        dt = time.monotonic() - started
+        provs = ",".join(dict.fromkeys(self.cur_req_providers)) or "none"
+        self.log(f"{idx}/{total} done {rec.asset_id} provider={provs} result={rec.status.value} elapsed={dt:.2f}s")
+
+    def call_limit_s(self) -> float:
+        per_call_cap = max(
+            0.1,
+            self.sv.connect_timeout_s + self.sv.read_timeout_s + min(12.0, max(0.2, self.sv.read_timeout_s)),
+        )
+        return min(per_call_cap, max(0.05, self.remaining_s()))
+
+    def call(self, backend: str, purpose: str, query: str, fn, *, count=len, url: str = ""):
+        """Run one API call with timeout & budget enforcement, logging (ok / no_results / error)."""
+        clean_url = sanitize_url(url) if url else ""
+        if backend not in self.cur_req_providers:
+            self.cur_req_providers.append(backend)
+        if self.budget_exhausted():
+            self.budget_exhausted_triggered = True
+            msg = f"not acquired: D budget exhausted ({self.sv.budget_s:g}s) | provider={backend}"
+            if clean_url:
+                msg += f" | url={clean_url}"
+            self.cur_req_timeouts.append(msg)
+            self.calls.append(
+                SourceCall(
+                    backend=backend,
+                    purpose=purpose,
+                    query=query[:200],
+                    status="error",
+                    error=msg[:280],
+                    url=clean_url or None,
+                    elapsed_s=0.0,
+                    attempts=0,
+                )
+            )
+            self.log(f"skip {backend} ({purpose}): budget exhausted ({self.sv.budget_s:g}s)")
             return None
+
+        t0 = time.monotonic()
+        try:
+            res = _run_with_timeout(fn, self.call_limit_s(), provider=backend, url=clean_url or query)
+        except BackendError as e:
+            elapsed = e.elapsed_s if e.elapsed_s is not None else round(time.monotonic() - t0, 3)
+            attempts = e.attempts if e.attempts is not None else 1
+            err_url = sanitize_url(e.url or clean_url) or None
+            if e.timed_out:
+                self.had_timeout = True
+                self.cur_req_timeouts.append(f"{backend}: {str(e)[:140]}")
+            self.calls.append(
+                SourceCall(
+                    backend=backend,
+                    purpose=purpose,
+                    query=query[:200],
+                    status="error",
+                    error=str(e)[:280],
+                    url=err_url,
+                    elapsed_s=elapsed,
+                    attempts=attempts,
+                )
+            )
+            self.log(
+                f"error provider={backend} purpose={purpose!r} url={err_url or query[:80]} "
+                f"elapsed={elapsed:.2f}s attempts={attempts} detail={str(e)[:120]}"
+            )
+            return None
+        elapsed = round(time.monotonic() - t0, 3)
         n = count(res)
-        self.calls.append(SourceCall(backend=backend, purpose=purpose, query=query[:200],
-                                     status="ok" if n else "no_results", hits=n))
+        self.calls.append(
+            SourceCall(
+                backend=backend,
+                purpose=purpose,
+                query=query[:200],
+                status="ok" if n else "no_results",
+                hits=n,
+                url=clean_url or None,
+                elapsed_s=elapsed,
+                attempts=1,
+            )
+        )
         return res
 
 
@@ -180,16 +343,19 @@ def _resolve_entity(ctx: _Ctx, rq: AssetRequirement, name: str, etype: str) -> t
     langs = ["zh", "en"] if _is_cjk(name) else ["en", "zh"]
     found: list[WdEntity] = []
     for lang in langs:
-        res = ctx.call("wikidata", "disambiguate target", f"{name} [{lang}]", lambda lang=lang: wd.search(name, lang, 5))
+        if ctx.budget_exhausted():
+            ctx.budget_exhausted_triggered = True
+            return None
+        res = ctx.call("wikidata", "disambiguate target", f"{name} [{lang}]", lambda lang=lang: wd.search(name, lang, 5), url=WIKIDATA_API)
         if res:
             found = res
             break
-    if not found:
+    if not found or ctx.budget_exhausted():
         return None
     # drop items that are papers/lists/disambiguation pages (P31): a scholarly article *about* a temple is not the temple
     rejected: list[str] = []
     types = ctx.call("wikidata", "entity classes (P31)", ",".join(e.qid for e in found),
-                     lambda: wd.instance_of([e.qid for e in found]), count=len) or {}
+                     lambda: wd.instance_of([e.qid for e in found]), count=len, url=WIKIDATA_API) or {}
     kept: list[WdEntity] = []
     for e in found:
         bad = sorted(NON_SUBJECT_CLASSES[t] for t in types.get(e.qid, set()) if t in NON_SUBJECT_CLASSES)
@@ -219,7 +385,7 @@ def _resolve_entity(ctx: _Ctx, rq: AssetRequirement, name: str, etype: str) -> t
             pick, how = ranked[0].payload, "relevance_score"
         else:
             pick, how = found[0], "search_rank"
-    ent = ctx.call("wikidata", "entity details (labels, P18)", pick.qid, lambda: wd.entity(pick.qid), count=lambda e: 1)
+    ent = ctx.call("wikidata", "entity details (labels, P18)", pick.qid, lambda: wd.entity(pick.qid), count=lambda e: 1, url=WIKIDATA_API)
     if ent is None:
         return None
     ref = EntityRef(name=name, qid=pick.qid, label=ent.label, description=ent.description or pick.description,
@@ -245,22 +411,34 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             if f.title not in seen:
                 seen.add(f.title)
                 pool.append(f)
-    if entity and entity[1].p18:
+    if entity and entity[1].p18 and not ctx.budget_exhausted():
         add(ctx.call("commons", "Wikidata P18 file info", ",".join(entity[1].p18[:3]),
-                     lambda: sv.commons.files(entity[1].p18[:3])))
+                     lambda: sv.commons.files(entity[1].p18[:3]), url=COMMONS_API))
     queries: list[str] = []
     if entity and entity[1].label_en:
         queries.append(entity[1].label_en)
     queries += [h for h in sorted(rq.query_hints, key=lambda h: -_ascii_ratio(h))]
     n_search = 0
     for q in queries:
+        if ctx.budget_exhausted():
+            ctx.budget_exhausted_triggered = True
+            break
         if n_search >= 3 or len([f for f in pool if f.origin == "commons_search"]) >= 12:
             break
         n_search += 1
-        add(ctx.call("commons", "search images", q, lambda q=q: sv.commons.search(q, 8)))
+        add(ctx.call("commons", "search images", q, lambda q=q: sv.commons.search(q, 8), url=COMMONS_API))
     if not pool:
-        return _missing(rq, f"no Commons file found for target {primary.name!r} (queries: {queries[:3]})",
-                        entity=entity[0] if entity else None, uncovered_targets=uncovered)
+        if ctx.budget_exhausted() or ctx.budget_exhausted_triggered:
+            return _missing(
+                rq,
+                f"not acquired: D budget exhausted ({sv.budget_s:g}s) for target {primary.name!r}",
+                entity=entity[0] if entity else None,
+                uncovered_targets=uncovered,
+            )
+        reason = f"no Commons file found for target {primary.name!r} (queries: {queries[:3]})"
+        if ctx.cur_req_timeouts:
+            reason += f"; timeout(s): {'; '.join(ctx.cur_req_timeouts[:2])}"
+        return _missing(rq, reason, entity=entity[0] if entity else None, uncovered_targets=uncovered)
     # 1) licence + format gates
     ok: list[CommonsFile] = []
     for f in pool:
@@ -350,8 +528,11 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     chosen = None
     sha_fallback = None
     for f, score, how in fresh[:MAX_DOWNLOAD_TRIES]:
+        if ctx.budget_exhausted():
+            ctx.budget_exhausted_triggered = True
+            break
         got = ctx.call("commons", "download image", f.file_url, lambda f=f: download_image(sv.http, f.file_url),
-                       count=lambda r: 1)
+                       count=lambda r: 1, url=f.file_url)
         if got is None:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason="download failed", score=score))
@@ -397,6 +578,10 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         miss_notes = [
             f"candidates found for {primary.name!r} but none passed licence/format/relevance/download (see candidates)"
         ]
+        if ctx.budget_exhausted() or ctx.budget_exhausted_triggered:
+            miss_notes.insert(0, f"not acquired: D budget exhausted ({sv.budget_s:g}s)")
+        elif ctx.cur_req_timeouts:
+            miss_notes.append(f"timeout(s): {'; '.join(ctx.cur_req_timeouts[:2])}")
         miss_notes += [f"Wikidata candidate {r}" for r in ctx.wd_rejected.get(primary.name, [])[:3]]
         return _missing(rq, "; ".join(miss_notes), entity=entity[0] if entity else None, candidates=cand_log,
                         uncovered_targets=uncovered)
@@ -472,7 +657,11 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     oa_failed: list[str] = []
     works: list[Work] = []
     for q in queries:
-        res = ctx.call("openalex", "search works", q, lambda q=q: sv.openalex.search(q, 6))
+        if ctx.budget_exhausted():
+            ctx.budget_exhausted_triggered = True
+            oa_failed.append(q)
+            break
+        res = ctx.call("openalex", "search works", q, lambda q=q: sv.openalex.search(q, 6), url=OPENALEX_WORKS)
         if res is None:
             oa_failed.append(q)
             break                                  # quota / outage: do not hammer; fall back below
@@ -485,7 +674,10 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     if oa_failed and not works:
         cr = CrossrefBackend(sv.http, sv.contact)
         for q in queries[:2]:
-            hits = ctx.call("crossref", "fallback search (OpenAlex failed)", q, lambda q=q: cr.search(q, "en", 6))
+            if ctx.budget_exhausted():
+                ctx.budget_exhausted_triggered = True
+                break
+            hits = ctx.call("crossref", "fallback search (OpenAlex failed)", q, lambda q=q: cr.search(q, "en", 6), url=CROSSREF_WORKS)
             for h in hits or []:
                 m = re.search(r"DOI (\S+)$", h.text)
                 year = re.search(r"\((\d{4})\)", h.text)
@@ -496,7 +688,12 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
                 break
         origin_note = "OpenAlex unavailable (see sources); fell back to Crossref search. "
     if not works:
-        return _missing(rq, origin_note + f"no work with a DOI found for queries {queries}", candidates=cand_log)
+        if ctx.budget_exhausted() or ctx.budget_exhausted_triggered:
+            return _missing(rq, f"not acquired: D budget exhausted ({sv.budget_s:g}s)", candidates=cand_log)
+        msg = origin_note + f"no work with a DOI found for queries {queries}"
+        if ctx.cur_req_timeouts:
+            msg += f"; timeout(s): {'; '.join(ctx.cur_req_timeouts[:2])}"
+        return _missing(rq, msg, candidates=cand_log)
     ctop = primary.name if primary else rq.purpose
     cands = [Candidate(w.title, f"{w.title} — {w.venue} ({w.year})" if w.venue else w.title, "reference", w.origin,
                        f"{ctop} {rq.purpose}", w.title, doc_type=w.type, payload=w) for w in works]
@@ -519,17 +716,78 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     ranked.sort(key=lambda t: -(t[1] if t[1] is not None else -1))
     chosen = None
     for w, score in ranked:
+        verify_url = f"{CROSSREF_WORKS}/{w.doi}"
+        if ctx.budget_exhausted():
+            ctx.budget_exhausted_triggered = True
+            ctx.had_timeout = True
+            ctx.calls.append(
+                SourceCall(
+                    backend="crossref",
+                    purpose="verify DOI",
+                    query=w.doi,
+                    status="error",
+                    error=f"not verified: D budget exhausted ({sv.budget_s:g}s)",
+                    url=verify_url,
+                    elapsed_s=0.0,
+                    attempts=0,
+                )
+            )
+            ok, detail = True, "DOI NOT verified: D budget exhausted"
+            chosen = (w, score, detail)
+            break
+        t_v = time.monotonic()
         try:
-            ok, detail = sv.crossref.verify(w.doi, w.title)
-            ctx.calls.append(SourceCall(backend="crossref", purpose="verify DOI", query=w.doi, status="ok", hits=1))
+            ok, detail = _run_with_timeout(
+                lambda w=w: sv.crossref.verify(w.doi, w.title),
+                ctx.call_limit_s(),
+                provider="crossref",
+                url=verify_url,
+            )
+            ctx.calls.append(
+                SourceCall(
+                    backend="crossref",
+                    purpose="verify DOI",
+                    query=w.doi,
+                    status="ok",
+                    hits=1,
+                    url=verify_url,
+                    elapsed_s=round(time.monotonic() - t_v, 3),
+                    attempts=1,
+                )
+            )
         except BackendError as e:
             msg = str(e)
+            elapsed_v = e.elapsed_s if e.elapsed_s is not None else round(time.monotonic() - t_v, 3)
+            attempts_v = e.attempts if e.attempts is not None else 1
             if "HTTP 404" in msg:
-                ctx.calls.append(SourceCall(backend="crossref", purpose="verify DOI", query=w.doi, status="no_results"))
+                ctx.calls.append(
+                    SourceCall(
+                        backend="crossref",
+                        purpose="verify DOI",
+                        query=w.doi,
+                        status="no_results",
+                        url=verify_url,
+                        elapsed_s=elapsed_v,
+                        attempts=attempts_v,
+                    )
+                )
                 cand_log.append(CandidateRecord(title=w.title, url=f"https://doi.org/{w.doi}", origin=w.origin,
                                                 decision="rejected", reason="DOI not found in Crossref", score=score))
                 continue
-            ctx.calls.append(SourceCall(backend="crossref", purpose="verify DOI", query=w.doi, status="error", error=msg[:240]))
+            if e.timed_out:
+                ctx.had_timeout = True
+            ctx.calls.append(
+                SourceCall(
+                    backend="crossref",
+                    purpose="verify DOI",
+                    query=w.doi,
+                    status="error",
+                    error=msg[:280],
+                    url=sanitize_url(e.url or verify_url),
+                    elapsed_s=elapsed_v,
+                    attempts=attempts_v,
+                )
+            )
             ok, detail = True, f"DOI NOT verified: Crossref unreachable ({msg[:80]})"
         if not ok:
             cand_log.append(CandidateRecord(title=w.title, url=f"https://doi.org/{w.doi}", origin=w.origin,
@@ -582,16 +840,30 @@ def run_stage_d(plan: ProductionPlan, slide_plan: SlidePlan, reqs: AssetRequirem
     run_dir = Path(run_dir)
     ctx = _Ctx(plan, services, run_dir)
     records: list[AssetRecord] = []
-    for rq in reqs.requirements:
-        if not services.enabled:
-            records.append(_missing(rq, f"asset retrieval disabled ({services.disabled_reason}); nothing was retrieved"))
-            continue
-        if rq.type is AssetType.image:
-            records.append(_acquire_image(ctx, rq))
-        elif rq.type is AssetType.reference:
-            records.append(_acquire_reference(ctx, rq))
-        else:
-            records.append(_missing(rq, _MISSING_WHY[rq.type]))
+    total = len(reqs.requirements)
+    if services.http is not None:
+        services.http._pptv01_deadline = ctx.deadline  # type: ignore[attr-defined]
+    try:
+        for idx, rq in enumerate(reqs.requirements, 1):
+            t_req = time.monotonic()
+            ctx.start_requirement(idx, total, rq)
+            if not services.enabled:
+                rec = _missing(rq, f"asset retrieval disabled ({services.disabled_reason}); nothing was retrieved")
+            elif rq.type in (AssetType.image, AssetType.reference) and ctx.budget_exhausted():
+                ctx.budget_exhausted_triggered = True
+                rec = _missing(rq, f"not acquired: D budget exhausted ({services.budget_s:g}s)")
+            elif rq.type is AssetType.image:
+                rec = _acquire_image(ctx, rq)
+            elif rq.type is AssetType.reference:
+                rec = _acquire_reference(ctx, rq)
+            else:
+                rec = _missing(rq, _MISSING_WHY[rq.type])
+            records.append(rec)
+            ctx.finish_requirement(idx, total, rec, t_req)
+    finally:
+        if services.http is not None and hasattr(services.http, "_pptv01_deadline"):
+            delattr(services.http, "_pptv01_deadline")
+
     sc, model, thr = ctx.scorer_info
     info = RelevanceInfo(mode=services.relevance.mode, rules_version=RULES_VERSION, scorer=sc, model=model, threshold=thr,
                          n_candidates=ctx.n_cand, n_kept=ctx.n_kept, n_filtered=ctx.n_filtered,
@@ -608,7 +880,7 @@ def run_stage_d(plan: ProductionPlan, slide_plan: SlidePlan, reqs: AssetRequirem
     uir = build_user_input_requests(reqs, reg, on_missing=on_missing)
     write_contract(uir, run_dir / USER_INPUT_REQUESTS_FILE)
     real = [c for c in ctx.calls if c.status != "disabled"]
-    if services.enabled and real and all(c.status == "error" for c in real):
+    if services.enabled and real and all(c.status == "error" for c in real) and not ctx.had_timeout and not ctx.budget_exhausted_triggered:
         raise AssetRetrievalFailed(f"all {len(real)} asset source calls failed (network/quota); nothing retrieved: "
                                    f"{real[0].error}", reg)
     return reg

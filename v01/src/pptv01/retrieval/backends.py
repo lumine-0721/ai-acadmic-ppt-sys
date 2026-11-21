@@ -16,14 +16,72 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Protocol
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
 
 DEFAULT_CONTACT = "https://github.com/lumine-0721/ai-acadmic-ppt-sys"
+_SECRET_QUERY_KEYS = frozenset(
+    {
+        "api_key",
+        "apikey",
+        "key",
+        "token",
+        "access_token",
+        "secret",
+        "auth",
+        "password",
+        "passwd",
+        "sig",
+        "signature",
+    }
+)
+
+
+def sanitize_url(url: str) -> str:
+    """Return ``url`` stripped of userinfo credentials and secret query parameters."""
+    raw = (url or "").strip()
+    if not raw:
+        return ""
+    try:
+        sp = urlsplit(raw)
+        netloc = sp.hostname or ""
+        if sp.port is not None:
+            netloc = f"{netloc}:{sp.port}"
+        if not netloc and sp.netloc:
+            # Strip any user:pass@ prefix if hostname parsing fell back
+            netloc = sp.netloc.rsplit("@", 1)[-1]
+        if sp.query:
+            kept = [
+                (k, v)
+                for k, v in parse_qsl(sp.query, keep_blank_values=True)
+                if k.lower() not in _SECRET_QUERY_KEYS
+            ]
+            query = urlencode(kept, doseq=True)
+        else:
+            query = ""
+        return urlunsplit((sp.scheme, netloc, sp.path, query, sp.fragment))
+    except Exception:
+        return raw.split("?", 1)[0]
 
 
 class BackendError(RuntimeError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        provider: str = "",
+        url: str = "",
+        elapsed_s: float | None = None,
+        attempts: int | None = None,
+        timed_out: bool = False,
+    ) -> None:
+        super().__init__(message)
+        self.provider = provider
+        self.url = sanitize_url(url) if url else ""
+        self.elapsed_s = elapsed_s
+        self.attempts = attempts
+        self.timed_out = timed_out
 
 
 @dataclass
@@ -50,22 +108,90 @@ def _now() -> datetime:
     return datetime.now(timezone.utc).astimezone()
 
 
-def make_http(timeout_s: float, contact: str, transport: httpx.BaseTransport | None = None) -> httpx.Client:
+def make_http(
+    timeout_s: float,
+    contact: str,
+    transport: httpx.BaseTransport | None = None,
+    *,
+    connect_timeout_s: float | None = None,
+    read_timeout_s: float | None = None,
+) -> httpx.Client:
+    """Create an httpx client with explicit connect/read/write/pool timeouts and env proxy support."""
     ua = f"pptv01/0.1 (research; contact: {contact}) httpx"
-    return httpx.Client(timeout=timeout_s, transport=transport, headers={"User-Agent": ua}, follow_redirects=True)
+    total = max(0.05, float(timeout_s))
+    c_to = max(0.05, float(connect_timeout_s)) if connect_timeout_s is not None else min(10.0, total)
+    r_to = max(0.05, float(read_timeout_s)) if read_timeout_s is not None else min(20.0, total)
+    timeout = httpx.Timeout(connect=c_to, read=r_to, write=min(r_to, 15.0), pool=min(c_to, 10.0))
+    return httpx.Client(
+        timeout=timeout,
+        transport=transport,
+        headers={"User-Agent": ua},
+        follow_redirects=True,
+        trust_env=True,
+    )
 
 
 _sleep = time.sleep          # indirection so unit tests can skip the waits
 RETRIES = 2                  # extra attempts after the first (429 / 5xx / timeouts are transient)
 
 
-def _get_json(http: httpx.Client, url: str, params: dict) -> dict:
+def _clamp_timeout(http: httpx.Client, deadline: float | None) -> httpx.Timeout | None:
+    if deadline is None:
+        return None
+    rem = max(0.05, deadline - time.monotonic())
+    base = http.timeout
+    c = base.connect if base.connect is not None else 10.0
+    r = base.read if base.read is not None else 20.0
+    w = base.write if base.write is not None else 15.0
+    p = base.pool if base.pool is not None else 10.0
+    return httpx.Timeout(connect=min(c, rem), read=min(r, rem), write=min(w, rem), pool=min(p, rem))
+
+
+def _get_json(
+    http: httpx.Client,
+    url: str,
+    params: dict,
+    *,
+    provider: str = "",
+    deadline: float | None = None,
+    max_backoff_total_s: float = 12.0,
+) -> dict:
+    eff_deadline = deadline if deadline is not None else getattr(http, "_pptv01_deadline", None)
     host = httpx.URL(url).host
+    prov = provider or host or "http"
+    try:
+        clean_url = sanitize_url(str(httpx.URL(url, params=params)))
+    except Exception:
+        clean_url = sanitize_url(url)
+
+    t0 = time.monotonic()
     last = "unknown error"
+    attempts = 0
+    backoff_used = 0.0
+    timed_out = False
+
     for attempt in range(RETRIES + 1):
+        if eff_deadline is not None and time.monotonic() >= eff_deadline:
+            elapsed = round(time.monotonic() - t0, 3)
+            raise BackendError(
+                f"budget exhausted before request (provider={prov}, url={clean_url})",
+                provider=prov,
+                url=clean_url,
+                elapsed_s=elapsed,
+                attempts=attempts,
+                timed_out=True,
+            )
+        attempts += 1
         wait = 1.0 * (2 ** attempt)
+        call_timeout = _clamp_timeout(http, eff_deadline)
         try:
-            r = http.get(url, params=params)
+            if call_timeout is not None:
+                r = http.get(url, params=params, timeout=call_timeout)
+            else:
+                r = http.get(url, params=params)
+        except httpx.TimeoutException as e:
+            timed_out = True
+            last = f"{type(e).__name__}: {str(e)[:120]}"
         except httpx.HTTPError as e:
             last = f"{type(e).__name__}: {str(e)[:120]}"
         else:
@@ -73,7 +199,14 @@ def _get_json(http: httpx.Client, url: str, params: dict) -> dict:
                 try:
                     return r.json()
                 except ValueError:
-                    raise BackendError(f"non-JSON response from {host}") from None
+                    elapsed = round(time.monotonic() - t0, 3)
+                    raise BackendError(
+                        f"non-JSON response from {host} (provider={prov}, url={clean_url})",
+                        provider=prov,
+                        url=clean_url,
+                        elapsed_s=elapsed,
+                        attempts=attempts,
+                    ) from None
             last = f"HTTP {r.status_code} from {host}"
             if r.status_code == 429 or r.status_code >= 500:
                 try:
@@ -81,10 +214,37 @@ def _get_json(http: httpx.Client, url: str, params: dict) -> dict:
                 except ValueError:
                     pass
             else:
-                raise BackendError(last)          # 4xx other than 429: retrying will not help
+                elapsed = round(time.monotonic() - t0, 3)
+                raise BackendError(
+                    f"{last} (provider={prov}, url={clean_url}, elapsed={elapsed:.2f}s, attempts={attempts})",
+                    provider=prov,
+                    url=clean_url,
+                    elapsed_s=elapsed,
+                    attempts=attempts,
+                )  # 4xx other than 429: retrying will not help
+
         if attempt < RETRIES:
+            rem_backoff = max_backoff_total_s - backoff_used
+            if rem_backoff <= 0:
+                break
+            wait = min(wait, rem_backoff)
+            if eff_deadline is not None:
+                rem_budget = eff_deadline - time.monotonic()
+                if rem_budget <= wait + 0.05:
+                    timed_out = True
+                    break
+            backoff_used += wait
             _sleep(wait)
-    raise BackendError(f"{last} (after {RETRIES + 1} attempts)")
+
+    elapsed = round(time.monotonic() - t0, 3)
+    raise BackendError(
+        f"{last} (after {attempts} attempts, provider={prov}, url={clean_url}, elapsed={elapsed:.2f}s)",
+        provider=prov,
+        url=clean_url,
+        elapsed_s=elapsed,
+        attempts=attempts,
+        timed_out=timed_out,
+    )
 
 
 class WikipediaBackend:
@@ -104,7 +264,7 @@ class WikipediaBackend:
             "prop": "extracts|info", "exintro": 1, "explaintext": 1, "exchars": self.extract_chars,
             "inprop": "url", "redirects": 1,
             **({"variant": "zh-cn"} if lang == "zh" else {}),
-        })
+        }, provider="wikipedia")
         if "error" in data:
             raise BackendError(f"wikipedia API error: {str(data['error'])[:120]}")
         pages = data.get("query", {}).get("pages", [])
@@ -139,7 +299,7 @@ class CrossrefBackend:
                   "select": "DOI,title,container-title,issued,URL,type"}
         if "@" in self.contact:
             params["mailto"] = self.contact
-        data = _get_json(self.http, "https://api.crossref.org/works", params)
+        data = _get_json(self.http, "https://api.crossref.org/works", params, provider="crossref")
         items = data.get("message", {}).get("items", [])
         out = []
         for it in items:
@@ -173,7 +333,7 @@ class SearxngBackend:
         return True
 
     def search(self, query: str, lang: str, limit: int) -> list[SearchHit]:
-        data = _get_json(self.http, f"{self.base}/search", {"q": query, "format": "json", "language": lang})
+        data = _get_json(self.http, f"{self.base}/search", {"q": query, "format": "json", "language": lang}, provider="searxng")
         out = []
         for it in (data.get("results") or [])[:limit]:
             url, title = it.get("url"), it.get("title")

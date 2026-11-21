@@ -15,8 +15,11 @@ from __future__ import annotations
 
 import os
 import re
+import threading
 from dataclasses import dataclass, field
 from typing import Mapping, Protocol, Sequence
+
+from pptv01.retrieval.backends import sanitize_url
 
 RULES_VERSION = "1"
 
@@ -25,6 +28,9 @@ ENV_SCORER = "PPTV01_RELEVANCE_SCORER"        # fastembed (default) | bge-rerank
 ENV_THRESHOLD = "PPTV01_RELEVANCE_THRESHOLD"  # float override for the chosen scorer
 ENV_EMBED_MODEL = "PPTV01_RELEVANCE_EMBED_MODEL"
 ENV_RERANK_MODEL = "PPTV01_RELEVANCE_RERANK_MODEL"
+ENV_LOAD_TIMEOUT = "PPTV01_RELEVANCE_LOAD_TIMEOUT_S"
+ENV_FASTEMBED_CACHE = "FASTEMBED_CACHE_PATH"
+ENV_FASTEMBED_CACHE_ALT = "PPTV01_FASTEMBED_CACHE_DIR"
 
 DEFAULT_EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 DEFAULT_RERANK_MODEL = "BAAI/bge-reranker-v2-m3"
@@ -111,16 +117,54 @@ def doc_text(c: Candidate) -> str:
 class FastembedScorer:
     name = "fastembed"
 
-    def __init__(self, model: str = DEFAULT_EMBED_MODEL):
+    def __init__(
+        self,
+        model: str = DEFAULT_EMBED_MODEL,
+        *,
+        load_timeout_s: float = 20.0,
+        cache_dir: str | None = None,
+    ):
         try:
             from fastembed import TextEmbedding
         except ImportError as e:
             raise ScorerUnavailable("fastembed is not installed (pip install 'pptv01[rank]')") from e
         self.model = model
-        try:
-            self._m = TextEmbedding(model)
-        except Exception as e:  # download / onnx problems
-            raise ScorerUnavailable(f"cannot load embedding model {model}: {type(e).__name__}: {str(e)[:120]}") from e
+        resolved_cache = (
+            (cache_dir or "").strip()
+            or os.environ.get(ENV_FASTEMBED_CACHE_ALT, "").strip()
+            or os.environ.get(ENV_FASTEMBED_CACHE, "").strip()
+            or None
+        )
+        hf_endpoint = os.environ.get("HF_ENDPOINT", "").strip() or "https://huggingface.co"
+        timeout = max(0.05, float(load_timeout_s))
+
+        holder: dict[str, object] = {}
+        done = threading.Event()
+
+        def _load() -> None:
+            try:
+                kwargs = {"cache_dir": resolved_cache} if resolved_cache else {}
+                holder["model"] = TextEmbedding(model, **kwargs)
+            except Exception as exc:  # download / onnx problems
+                holder["error"] = exc
+            finally:
+                done.set()
+
+        t = threading.Thread(target=_load, name="pptv01-fastembed-load", daemon=True)
+        t.start()
+        if not done.wait(timeout=timeout):
+            raise ScorerUnavailable(
+                f"fastembed model load timed out after {timeout:g}s "
+                f"(provider=fastembed, url={sanitize_url(hf_endpoint)}, model={model}); "
+                "degraded to structural-only"
+            )
+        if "error" in holder:
+            e = holder["error"]
+            raise ScorerUnavailable(
+                f"cannot load embedding model {model} (provider=fastembed): "
+                f"{type(e).__name__}: {str(e)[:120]}"
+            ) from (e if isinstance(e, Exception) else None)
+        self._m = holder["model"]
 
     def score(self, query: str, docs: Sequence[str]) -> list[float]:
         import numpy as np
@@ -218,8 +262,19 @@ def filter_from_env(env: Mapping[str, str] | None = None) -> RelevanceFilter:
     except ValueError:
         raise LLMConfigError(f"{ENV_THRESHOLD} must be a number") from None
     try:
+        load_to = float(env.get(ENV_LOAD_TIMEOUT, "20") or "20")
+        if load_to <= 0:
+            raise ValueError("must be > 0")
+    except ValueError:
+        raise LLMConfigError(f"{ENV_LOAD_TIMEOUT} must be a positive number") from None
+    cache_dir = (env.get(ENV_FASTEMBED_CACHE_ALT) or env.get(ENV_FASTEMBED_CACHE) or "").strip() or None
+    try:
         if which == "fastembed":
-            sc: Scorer = FastembedScorer(env.get(ENV_EMBED_MODEL) or DEFAULT_EMBED_MODEL)
+            sc: Scorer = FastembedScorer(
+                env.get(ENV_EMBED_MODEL) or DEFAULT_EMBED_MODEL,
+                load_timeout_s=load_to,
+                cache_dir=cache_dir,
+            )
         elif which in ("bge-reranker", "reranker"):
             sc = CrossEncoderScorer(env.get(ENV_RERANK_MODEL) or DEFAULT_RERANK_MODEL)
         else:

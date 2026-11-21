@@ -16,12 +16,14 @@ from __future__ import annotations
 
 import importlib.metadata
 import json
+import os
 import platform
 import shutil
 import subprocess
 import sys
 from dataclasses import asdict, dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
+from urllib.parse import urlsplit
 
 _CLICK_TO_RUN_KEY = r"SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
 
@@ -316,6 +318,59 @@ def _probe_python_pptx() -> DoctorCheck:
         )
 
 
+def sanitize_proxy_url(raw: str) -> str:
+    """Return proxy endpoint (scheme://host:port) stripped of any username/password credentials."""
+    val = (raw or "").strip()
+    if not val:
+        return ""
+    candidate = val if "://" in val else f"http://{val}"
+    try:
+        sp = urlsplit(candidate)
+        host = sp.hostname or ""
+        if not host:
+            cleaned = val.rsplit("@", 1)[-1]
+            return cleaned
+        host_fmt = f"[{host}]" if ":" in host else host
+        port_part = f":{sp.port}" if sp.port is not None else ""
+        if "://" in val:
+            return f"{sp.scheme}://{host_fmt}{port_part}"
+        return f"{host_fmt}{port_part}"
+    except Exception:
+        return val.rsplit("@", 1)[-1]
+
+
+def _probe_proxy_env(env: Mapping[str, str] | None = None) -> DoctorCheck:
+    """Non-blocking diagnostic check displaying proxy/HF mirror host:port without credentials."""
+    src_env = os.environ if env is None else env
+    keys = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "HF_ENDPOINT")
+    found: dict[str, str] = {}
+    for k in keys:
+        val = src_env.get(k) or src_env.get(k.lower()) or ""
+        val = val.strip()
+        if not val:
+            continue
+        if k == "NO_PROXY":
+            found[k] = val
+        else:
+            found[k] = sanitize_proxy_url(val)
+    if not found:
+        return DoctorCheck(
+            "proxy_env",
+            required=False,
+            ok=True,
+            detail="no HTTP_PROXY / HTTPS_PROXY / ALL_PROXY / HF_ENDPOINT detected (direct connection)",
+            metadata={"proxies": {}},
+        )
+    summary = ", ".join(f"{k}={v}" for k, v in found.items())
+    return DoctorCheck(
+        "proxy_env",
+        required=False,
+        ok=True,
+        detail=f"detected proxy/endpoint env (credentials stripped): {summary}",
+        metadata={"proxies": found},
+    )
+
+
 def _probe_optional_binary(name: str, bin_names: tuple[str, ...], version_arg: str, purpose: str) -> DoctorCheck:
     found_path = None
     for bn in bin_names:
@@ -356,6 +411,7 @@ def run_doctor(
         _probe_excel,
         _probe_cjk_fonts,
         _probe_python_pptx,
+        _probe_proxy_env,
         lambda: _probe_optional_binary("soffice", ("soffice", "libreoffice"), "--version", "--cross-render"),
         lambda: _probe_optional_binary("pdftoppm", ("pdftoppm",), "-v", "--cross-render"),
     ]

@@ -222,6 +222,9 @@ def run_pipeline(
                 return False
         return True
 
+    def _log_stage(msg: str) -> None:
+        print(f"[pptv01] {msg}", flush=True)
+
     def record(
         stage: str,
         status: StageStatus,
@@ -232,14 +235,18 @@ def run_pipeline(
         input_hashes: dict[str, str] | None = None,
         substeps: dict[str, str] | None = None,
     ) -> None:
+        finished = clock() if t0 else None
         records[stage] = StageRecord(
             stage=stage, name=STAGE_NAMES[stage], status=status,
-            started_at=t0, finished_at=clock() if t0 else None, output_files=files,
+            started_at=t0, finished_at=finished, output_files=files,
             substeps=dict(substeps or {}),
             input_hashes=dict(input_hashes or {}), stale=False, stale_reason=None, error=error,
         )
+        elapsed_s = (finished - t0).total_seconds() if (t0 and finished) else 0.0
+        _log_stage(f"stage {stage} ({STAGE_NAMES[stage]}) {status.value} elapsed={elapsed_s:.2f}s")
 
     # ---- Stage A
+    _log_stage("stage A (production_plan) start")
     t0 = clock()
     a_inputs = {"utterance_sha256": hashlib.sha256(utterance.encode("utf-8")).hexdigest()}
     if _can_reuse("A", [A_FILE], a_inputs):
@@ -264,6 +271,7 @@ def run_pipeline(
     # ---- Stage B (research per A's retrieval_brief, then provisional slide plan)
     research_summary: dict[str, Any] = {}
     if plan is not None:
+        _log_stage("stage B (provisional_slide_plan) start")
         t0 = clock()
         b_inputs = _input_hashes(run_dir, [A_FILE])
         if _can_reuse("B", [B_FILE, RESEARCH_ARTIFACT], b_inputs):
@@ -303,6 +311,7 @@ def run_pipeline(
 
     # ---- Stage C (asset requirements from the provisional slide plan)
     if slide_plan is not None:
+        _log_stage("stage C (asset_requirements) start")
         t0 = clock()
         c_inputs = _input_hashes(run_dir, [A_FILE, RESEARCH_ARTIFACT, B_FILE])
         if _can_reuse("C", [C_FILE], c_inputs):
@@ -331,6 +340,7 @@ def run_pipeline(
     reg: AssetRegistry | None = None
     uir: UserInputRequests | None = None
     if reqs is not None:
+        _log_stage("stage D (asset_retrieval) start")
         t0 = clock()
         d_inputs = _input_hashes(run_dir, [A_FILE, B_FILE, C_FILE])
         if _can_reuse("D", [REGISTRY_FILE, USER_INPUT_REQUESTS_FILE], d_inputs):
@@ -388,6 +398,7 @@ def run_pipeline(
             error="skipped: waiting for user input (see user_input_requests.json)",
         )
     elif reg is not None and slide_plan is not None and plan is not None and not failure:
+        _log_stage("stage E (slide_asset_mapping) start")
         t0 = clock()
         e_inputs = _input_hashes(
             run_dir, [A_FILE, B_FILE, C_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, *_provided_input_files(uir)]
@@ -424,6 +435,7 @@ def run_pipeline(
             error="skipped: waiting for user input (see user_input_requests.json)",
         )
     elif mapping is not None and reg is not None and slide_plan is not None and plan is not None and not failure:
+        _log_stage("stage F (page_layout_design) start")
         t0 = clock()
         f_inputs = _input_hashes(
             run_dir, [A_FILE, B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, E_FILE, *_provided_input_files(uir)]
@@ -462,6 +474,7 @@ def run_pipeline(
             error="skipped: waiting for user input (see user_input_requests.json)",
         )
     elif design is not None and reg is not None and slide_plan is not None and not failure:
+        _log_stage("stage G (pptx_generation) start")
         t0 = clock()
         g_inputs = _input_hashes(
             run_dir, [B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, F_FILE, *_provided_input_files(uir)]
@@ -566,6 +579,7 @@ def run_pipeline(
             error="skipped: waiting for user input (see user_input_requests.json)",
         )
     elif deck_path is not None and slide_plan is not None and not failure:
+        _log_stage("stage H (render_qa_repair) start")
         t0 = clock()
         h_inputs = _input_hashes(
             run_dir, [B_FILE, REGISTRY_FILE, USER_INPUT_REQUESTS_FILE, F_FILE, G_FILE, *_provided_input_files(uir)]

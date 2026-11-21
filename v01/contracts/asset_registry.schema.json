@@ -521,10 +521,36 @@
     "SourceCall": {
       "additionalProperties": false,
       "properties": {
+        "attempts": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempts"
+        },
         "backend": {
           "minLength": 1,
           "title": "Backend",
           "type": "string"
+        },
+        "elapsed_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Elapsed S"
         },
         "error": {
           "anyOf": [
@@ -563,6 +589,18 @@
           ],
           "title": "Status",
           "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
         }
       },
       "required": [

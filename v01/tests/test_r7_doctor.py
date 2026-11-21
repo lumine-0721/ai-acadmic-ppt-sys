@@ -109,6 +109,32 @@ def test_n2_doctor_blocks_when_powerpoint_already_running():
     assert clean.required is True and clean.ok is True
 
 
+def test_r5_1_doctor_proxy_probe_strips_credentials_and_is_non_blocking():
+    """R5-1 #6: doctor proxy_env is optional/non-blocking and prints only host:port (never credentials)."""
+    from pptv01.doctor import _probe_proxy_env
+
+    chk = _probe_proxy_env(
+        {
+            "HTTP_PROXY": "http://secret_user:secret_pass@proxy.corp.local:7890",
+            "HTTPS_PROXY": "https://tok123:pw456@127.0.0.1:7897",
+            "NO_PROXY": "localhost,127.0.0.1",
+            "HF_ENDPOINT": "https://user:pass@hf-mirror.com",
+        }
+    )
+    assert chk.name == "proxy_env"
+    assert chk.required is False
+    assert chk.ok is True
+    assert "proxy.corp.local:7890" in chk.detail
+    assert "127.0.0.1:7897" in chk.detail
+    assert "hf-mirror.com" in chk.detail
+    assert "secret_user" not in chk.detail and "secret_pass" not in chk.detail
+    assert "tok123" not in chk.detail and "pw456" not in chk.detail
+    assert "user" not in chk.detail and "pass" not in chk.detail
+
+    empty_chk = _probe_proxy_env({})
+    assert empty_chk.required is False and empty_chk.ok is True and "direct connection" in empty_chk.detail
+
+
 @pytest.mark.windows_com
 def test_r7_windows_real_doctor_all_required_green(capsys):
     """Run real `pptv01 doctor` on this Windows desktop machine and verify edition metadata + required checks pass."""

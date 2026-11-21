@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import io
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
@@ -21,12 +22,13 @@ from typing import Callable
 
 import httpx
 
-from pptv01.retrieval.backends import BackendError, _get_json
+from pptv01.retrieval.backends import BackendError, _clamp_timeout, _get_json, make_http, sanitize_url
 
 from .license import plain
 
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+OPENALEX_WORKS = "https://api.openalex.org/works"
 CROSSREF_WORKS = "https://api.crossref.org/works"
 MAX_DOWNLOAD_BYTES = 12 * 1024 * 1024
 IMAGE_MIMES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}   # raster only in V0.1 (Pillow-verifiable)
@@ -62,9 +64,10 @@ class WikidataClient:
 
     def search(self, name: str, lang: str, limit: int = 5) -> list[WdEntity]:
         d = _get_json(self.http, WIKIDATA_API, {"action": "wbsearchentities", "search": name, "language": lang,
-                                                "uselang": lang, "type": "item", "limit": limit, "format": "json"})
+                                                "uselang": lang, "type": "item", "limit": limit, "format": "json"},
+                      provider="wikidata")
         if "error" in d:
-            raise BackendError(f"wikidata error: {str(d['error'])[:120]}")
+            raise BackendError(f"wikidata error: {str(d['error'])[:120]}", provider="wikidata", url=WIKIDATA_API)
         return [WdEntity(x["id"], x.get("label") or x["id"], x.get("description") or "",
                          match_text=(x.get("match") or {}).get("text", ""))
                 for x in d.get("search", []) if x.get("id")]
@@ -72,7 +75,7 @@ class WikidataClient:
     def instance_of(self, qids: list[str]) -> dict[str, set[str]]:
         """P31 (instance of) per entity, one batched call. Entities missing from the answer are simply absent."""
         d = _get_json(self.http, WIKIDATA_API, {"action": "wbgetentities", "ids": "|".join(qids), "props": "claims",
-                                                "format": "json"})
+                                                "format": "json"}, provider="wikidata")
         out: dict[str, set[str]] = {}
         for qid, e in (d.get("entities") or {}).items():
             if not isinstance(e, dict) or "missing" in e:
@@ -84,10 +87,10 @@ class WikidataClient:
 
     def entity(self, qid: str) -> WdEntity:
         d = _get_json(self.http, WIKIDATA_API, {"action": "wbgetentities", "ids": qid, "props": "claims|labels|descriptions|aliases",
-                                                "languages": "zh|en", "format": "json"})
+                                                "languages": "zh|en", "format": "json"}, provider="wikidata")
         e = (d.get("entities") or {}).get(qid)
         if not e or "missing" in e:
-            raise BackendError(f"wikidata entity {qid} not found")
+            raise BackendError(f"wikidata entity {qid} not found", provider="wikidata", url=WIKIDATA_API)
         labels, desc = e.get("labels", {}), e.get("descriptions", {})
         en, zh = labels.get("en", {}).get("value", ""), labels.get("zh", {}).get("value", "")
         aliases: list[str] = []
@@ -178,40 +181,94 @@ class CommonsClient:
     def search(self, query: str, limit: int = 8) -> list[CommonsFile]:
         d = _get_json(self.http, COMMONS_API, {**self._INFO, "action": "query", "generator": "search",
                                                "gsrsearch": query, "gsrnamespace": 6, "gsrlimit": limit,
-                                               "iiurlwidth": self.thumb_width})
+                                               "iiurlwidth": self.thumb_width}, provider="commons")
         if "error" in d:
-            raise BackendError(f"commons error: {str(d['error'])[:120]}")
+            raise BackendError(f"commons error: {str(d['error'])[:120]}", provider="commons", url=COMMONS_API)
         return self._parse((d.get("query") or {}).get("pages", []), "commons_search")
 
     def files(self, names: list[str], origin: str = "wikidata_p18") -> list[CommonsFile]:
         if not names:
             return []
         d = _get_json(self.http, COMMONS_API, {**self._INFO, "action": "query", "iiurlwidth": self.thumb_width,
-                                               "titles": "|".join("File:" + n for n in names)})
+                                               "titles": "|".join("File:" + n for n in names)}, provider="commons")
         if "error" in d:
-            raise BackendError(f"commons error: {str(d['error'])[:120]}")
+            raise BackendError(f"commons error: {str(d['error'])[:120]}", provider="commons", url=COMMONS_API)
         return self._parse((d.get("query") or {}).get("pages", []), origin)
 
 
-def download_image(http: httpx.Client, url: str) -> tuple[bytes, str]:
-    """GET with the shared retry helper's policy; returns (bytes, content-type). Bounded size."""
+def download_image(
+    http: httpx.Client,
+    url: str,
+    *,
+    deadline: float | None = None,
+    max_backoff_total_s: float = 12.0,
+) -> tuple[bytes, str]:
+    """GET with bounded timeout, retries, and budget check; returns (bytes, content-type)."""
+    eff_deadline = deadline if deadline is not None else getattr(http, "_pptv01_deadline", None)
+    clean_url = sanitize_url(url)
+    t0 = time.monotonic()
     last = ""
+    attempts = 0
+    backoff_used = 0.0
+    timed_out = False
+
     for attempt in range(3):
+        if eff_deadline is not None and time.monotonic() >= eff_deadline:
+            elapsed = round(time.monotonic() - t0, 3)
+            raise BackendError(
+                f"download budget exhausted (provider=commons, url={clean_url})",
+                provider="commons",
+                url=clean_url,
+                elapsed_s=elapsed,
+                attempts=attempts,
+                timed_out=True,
+            )
+        attempts += 1
+        call_timeout = _clamp_timeout(http, eff_deadline)
         try:
-            r = http.get(url)
+            if call_timeout is not None:
+                r = http.get(url, timeout=call_timeout)
+            else:
+                r = http.get(url)
+        except httpx.TimeoutException as e:
+            timed_out = True
+            last = f"{type(e).__name__}"
         except httpx.HTTPError as e:
             last = f"{type(e).__name__}"
         else:
             if r.status_code == 200:
                 if len(r.content) > MAX_DOWNLOAD_BYTES:
-                    raise BackendError(f"image larger than {MAX_DOWNLOAD_BYTES} bytes")
+                    raise BackendError(
+                        f"image larger than {MAX_DOWNLOAD_BYTES} bytes",
+                        provider="commons",
+                        url=clean_url,
+                        elapsed_s=round(time.monotonic() - t0, 3),
+                        attempts=attempts,
+                    )
                 return r.content, r.headers.get("content-type", "").split(";")[0].strip()
             last = f"HTTP {r.status_code}"
             if r.status_code not in (429, 500, 502, 503, 504):
                 break
-        import pptv01.retrieval.backends as b
-        b._sleep(1.0 * (2 ** attempt))
-    raise BackendError(f"download failed: {last}")
+        if attempt < 2:
+            wait = min(1.0 * (2 ** attempt), max(0.0, max_backoff_total_s - backoff_used))
+            if wait <= 0:
+                break
+            if eff_deadline is not None and eff_deadline - time.monotonic() <= wait + 0.05:
+                timed_out = True
+                break
+            backoff_used += wait
+            import pptv01.retrieval.backends as b
+            b._sleep(wait)
+
+    elapsed = round(time.monotonic() - t0, 3)
+    raise BackendError(
+        f"download failed: {last} (provider=commons, url={clean_url}, elapsed={elapsed:.2f}s, attempts={attempts})",
+        provider="commons",
+        url=clean_url,
+        elapsed_s=elapsed,
+        attempts=attempts,
+        timed_out=timed_out,
+    )
 
 
 def verify_image(data: bytes, mime: str) -> tuple[int, int, str]:
@@ -255,29 +312,79 @@ SELECT = ["id", "doi", "title", "publication_year", "type", "primary_location", 
           "cited_by_count"]
 
 
-def pyalex_fetch(query: str, limit: int, *, api_key: str = "", email: str = "") -> list[dict]:
-    """Default OpenAlex fetch (pyalex). Raises BackendError with the quota/rate-limit cause spelled out."""
-    import pyalex
-    from pyalex import Works
-    pyalex.config.max_retries = 1
+def openalex_http_fetch(
+    http: httpx.Client,
+    query: str,
+    limit: int,
+    *,
+    api_key: str = "",
+    email: str = "",
+    deadline: float | None = None,
+) -> list[dict]:
+    """Fetch OpenAlex works via shared httpx client (explicit connect/read timeouts, proxy & budget aware)."""
+    params: dict[str, str | int] = {
+        "search": query,
+        "per-page": limit,
+        "select": ",".join(SELECT),
+    }
     if email:
-        pyalex.config.email = email
+        params["mailto"] = email
     if api_key:
-        pyalex.config.api_key = api_key
+        params["api_key"] = api_key
     try:
-        return list(Works().search(query).select(SELECT).get(per_page=limit))
-    except Exception as e:  # noqa: BLE001 - map every library error into BackendError
+        d = _get_json(http, OPENALEX_WORKS, params, provider="openalex", deadline=deadline)
+    except BackendError as e:
         msg = str(e)
-        code = getattr(getattr(e, "response", None), "status_code", None)
-        if code in (402, 403, 429) or re.search(r"\b(402|403|429)\b|budget|quota|rate.?limit", msg, re.I):
-            raise BackendError(f"OpenAlex quota/rate limit reached (HTTP {code or 'n/a'}): set PPTV01_OPENALEX_API_KEY "
-                               f"(free key) or retry tomorrow: {msg[:120]}") from None
-        raise BackendError(f"OpenAlex error: {type(e).__name__}: {msg[:160]}") from None
+        if re.search(r"\b(?:402|403|429)\b|budget|quota|rate.?limit", msg, re.I) and "budget exhausted" not in msg.lower():
+            raise BackendError(
+                f"OpenAlex quota/rate limit reached: set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: {msg[:160]}",
+                provider="openalex",
+                url=e.url or OPENALEX_WORKS,
+                elapsed_s=e.elapsed_s,
+                attempts=e.attempts,
+                timed_out=e.timed_out,
+            ) from None
+        raise
+    if not isinstance(d, dict):
+        raise BackendError("OpenAlex error: unexpected non-object response", provider="openalex", url=OPENALEX_WORKS)
+    return list(d.get("results") or [])
+
+
+def pyalex_fetch(
+    query: str,
+    limit: int,
+    *,
+    api_key: str = "",
+    email: str = "",
+    connect_timeout_s: float = 10.0,
+    read_timeout_s: float = 20.0,
+) -> list[dict]:
+    """Default OpenAlex fetch over timeout-enforced httpx (replaces untimeouted pyalex/requests)."""
+    contact = email or "https://github.com/lumine-0721/ai-acadmic-ppt-sys"
+    with make_http(
+        max(connect_timeout_s, read_timeout_s),
+        contact,
+        connect_timeout_s=connect_timeout_s,
+        read_timeout_s=read_timeout_s,
+    ) as http:
+        return openalex_http_fetch(http, query, limit, api_key=api_key, email=email)
 
 
 class OpenAlexClient:
-    def __init__(self, fetch: Callable[[str, int], list[dict]] | None = None, *, api_key: str = "", email: str = ""):
-        self._fetch = fetch or (lambda q, n: pyalex_fetch(q, n, api_key=api_key, email=email))
+    def __init__(
+        self,
+        fetch: Callable[[str, int], list[dict]] | None = None,
+        *,
+        api_key: str = "",
+        email: str = "",
+        http: httpx.Client | None = None,
+    ):
+        if fetch is not None:
+            self._fetch = fetch
+        elif http is not None:
+            self._fetch = lambda q, n: openalex_http_fetch(http, q, n, api_key=api_key, email=email)
+        else:
+            self._fetch = lambda q, n: pyalex_fetch(q, n, api_key=api_key, email=email)
         self.keyed = bool(api_key)
 
     def search(self, query: str, limit: int = 5) -> list[Work]:
@@ -309,7 +416,7 @@ class CrossrefVerifier:
 
     def work(self, doi: str) -> dict:
         params = {"mailto": self.contact} if "@" in self.contact else {}
-        d = _get_json(self.http, f"{CROSSREF_WORKS}/{doi}", params)
+        d = _get_json(self.http, f"{CROSSREF_WORKS}/{doi}", params, provider="crossref")
         return d.get("message") or {}
 
     def verify(self, doi: str, title: str) -> tuple[bool, str]:
