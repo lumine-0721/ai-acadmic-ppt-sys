@@ -175,3 +175,57 @@ def test_r7_3_llm_selector_falls_back_cleanly_on_invalid_output():
     sel = select_theme(pp, sp, llm=_BadLLM())
     assert sel.theme_id == "warm-espresso"
     assert sel.method == "rule"
+
+
+@pytest.mark.parametrize(
+    "theme_id",
+    [
+        "architectural-stone",
+        "data-journalism",
+        "eco-canopy",
+        "medical-clinical",
+        "swiss-minimal",
+        "tech-indigo",
+        "warm-espresso",
+    ],
+)
+def test_r7_3_theme_snapshot_parity(theme_id: str, tmp_path: Path):
+    """All 7 new R7-3 themes match their committed page_design.json snapshots identically."""
+    from pptv01.contracts import PageDesign
+
+    fx_dir = R6_SNAPSHOT_ROOT / "T12"
+    snap_path = V01_ROOT / "tests" / "fixtures" / "r7_theme_snapshots" / theme_id / "page_design.json"
+    assert snap_path.is_file(), f"missing snapshot {snap_path}"
+    expected = load_contract(PageDesign, snap_path)
+
+    for fn in ("production_plan.json", "slide_plan.json", "asset_registry.json", "user_input_requests.json", "slide_asset_mapping.json"):
+        shutil.copy2(fx_dir / fn, tmp_path / fn)
+    reg = load_contract(AssetRegistry, tmp_path / "asset_registry.json")
+    (tmp_path / "assets").mkdir(exist_ok=True)
+    for a in reg.assets:
+        if a.file_path:
+            dst = tmp_path / a.file_path
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            src = fx_dir / a.file_path
+            dst.write_bytes(src.read_bytes() if src.is_file() else b"stub")
+
+    got = run_stage_f(
+        load_contract(ProductionPlan, tmp_path / "production_plan.json"),
+        load_contract(SlidePlan, tmp_path / "slide_plan.json"),
+        reg,
+        load_contract(UserInputRequests, tmp_path / "user_input_requests.json"),
+        load_contract(SlideAssetMapping, tmp_path / "slide_asset_mapping.json"),
+        tmp_path,
+        theme_id=theme_id,
+    )
+    tok = get_theme(theme_id)
+    assert got.theme_id == theme_id
+    assert got.model_dump() == expected.model_dump()
+    for pg in got.pages:
+        assert any(
+            el.element_id == "bg_canvas" and el.fill_hex in (tok.background, tok.primary_deep)
+            for el in pg.elements
+        )
+        for el in pg.elements:
+            if el.kind is ElementKind.title:
+                assert el.font == tok.title_font
