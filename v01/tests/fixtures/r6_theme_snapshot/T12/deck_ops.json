@@ -130,7 +130,7 @@
         "w_in": 6.0,
         "h_in": 0.54,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
         "color_hex": "#CBD5E1",
         "align": "left",
@@ -602,13 +602,13 @@
         "shape_name": "cap_1",
         "text": "Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg)",
         "x_in": 6.68,
-        "y_in": 5.53,
+        "y_in": 5.455,
         "w_in": 6.0,
-        "h_in": 0.79,
+        "h_in": 0.865,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -652,7 +652,7 @@
         "x_in": 6.68,
         "y_in": 0.65,
         "w_in": 6.0,
-        "h_in": 4.82,
+        "h_in": 4.745,
         "crop_mode": "crop_fill"
       }
     },
@@ -709,7 +709,7 @@
         "https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg"
       ],
       "params": {
-        "text": "Page S003\nSpeaker/planning summary: 讲清定位和产品组合，与常见竞品做对比。\nLayout notes: planning summary (notes only): 讲清定位和产品组合，与常见竞品做对比。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x4.82in for 1280x960\n[A006] Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg\n待补充占位 U004: 待补充：用二维图对比精品、社区和连锁几种定位（U004）"
+        "text": "Page S003\nSpeaker/planning summary: 讲清定位和产品组合，与常见竞品做对比。\nLayout notes: planning summary (notes only): 讲清定位和产品组合，与常见竞品做对比。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x4.75in for 1280x960\n[A006] Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg\n待补充占位 U004: 待补充：用二维图对比精品、社区和连锁几种定位（U004）"
       }
     },
     {
@@ -1285,9 +1285,9 @@
         "w_in": 7.13,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "anchored_citation"
       }

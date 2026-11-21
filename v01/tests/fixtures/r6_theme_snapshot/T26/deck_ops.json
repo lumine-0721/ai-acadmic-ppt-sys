@@ -131,7 +131,7 @@
         "w_in": 6.0,
         "h_in": 0.54,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
         "color_hex": "#CBD5E1",
         "align": "left",
@@ -327,9 +327,9 @@
         "w_in": 6.0,
         "h_in": 0.54,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -549,9 +549,9 @@
         "w_in": 6.0,
         "h_in": 0.54,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -572,9 +572,9 @@
         "w_in": 5.6,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "anchored_citation"
       }
@@ -1015,13 +1015,13 @@
         "shape_name": "cap_1",
         "text": "Benh LIEU SONG, Public domain, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg)",
         "x_in": 6.93,
-        "y_in": 5.78,
+        "y_in": 5.455,
         "w_in": 5.75,
-        "h_in": 0.54,
+        "h_in": 0.865,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -1062,10 +1062,10 @@
       "params": {
         "shape_name": "ASSET_A008__vis_1",
         "file_path": "assets/A008.jpg",
-        "x_in": 8.784,
+        "x_in": 8.872,
         "y_in": 1.94,
-        "w_in": 2.042,
-        "h_in": 3.78,
+        "w_in": 1.867,
+        "h_in": 3.455,
         "crop_mode": "crop_fill"
       }
     },
@@ -1237,13 +1237,13 @@
         "shape_name": "cap_1",
         "text": "w:User:Overand derivative work: Overand ( talk ), Public domain, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg)",
         "x_in": 0.65,
-        "y_in": 5.53,
+        "y_in": 5.28,
         "w_in": 6.0,
-        "h_in": 0.79,
+        "h_in": 1.04,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -1284,10 +1284,10 @@
       "params": {
         "shape_name": "ASSET_A011__vis_1",
         "file_path": "assets/A011.jpg",
-        "x_in": 2.833,
+        "x_in": 2.875,
         "y_in": 0.65,
-        "w_in": 1.635,
-        "h_in": 4.82,
+        "w_in": 1.55,
+        "h_in": 4.57,
         "crop_mode": "crop_fill"
       }
     },
@@ -1459,13 +1459,13 @@
         "shape_name": "cap_1",
         "text": "Stefan Fussan, CC BY-SA 3.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg)",
         "x_in": 6.68,
-        "y_in": 5.78,
+        "y_in": 5.455,
         "w_in": 6.0,
-        "h_in": 0.54,
+        "h_in": 0.865,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -1506,10 +1506,10 @@
       "params": {
         "shape_name": "ASSET_A012__vis_1",
         "file_path": "assets/A012.jpg",
-        "x_in": 8.145,
+        "x_in": 8.243,
         "y_in": 0.65,
-        "w_in": 3.07,
-        "h_in": 5.07,
+        "w_in": 2.873,
+        "h_in": 4.745,
         "crop_mode": "crop_fill"
       }
     },

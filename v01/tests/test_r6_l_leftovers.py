@@ -138,3 +138,66 @@ def test_r6_l_no_pyalex_runtime_references_and_proxy_doc_exists():
     for token in ("trust_env", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "HF_ENDPOINT", "FASTEMBED_CACHE_PATH"):
         assert token in proxy_doc, f"missing {token!r} in docs/proxy.md"
     assert "docs/proxy.md" in (V01_ROOT / "README.md").read_text(encoding="utf-8")
+
+
+def test_r6_l_caption_and_footer_wcag_contrast_and_font_floor():
+    """R6-L #5: caption/citation colors meet WCAG AA (>= 4.5) on light and dark surfaces and start at >= 10.5pt."""
+    from pptv01.contracts import ElementKind, SlidePage
+    from pptv01.f_layout.layouts import SlotItem, build_layout_elements
+    from pptv01.f_layout.validate import MIN_FONT_PT
+    from pptv01.theme import ACADEMIC_DEFAULT_THEME, contrast_ratio
+
+    assert MIN_FONT_PT[ElementKind.caption] >= 10.5
+    assert MIN_FONT_PT[ElementKind.footer] >= 10.5
+
+    t = ACADEMIC_DEFAULT_THEME
+    for light_bg in (t.background, t.surface_light, t.surface_warm, t.surface_fact):
+        assert contrast_ratio(t.caption_on_light, light_bg) >= 4.5, f"low caption contrast on {light_bg}"
+        assert contrast_ratio(t.citation_on_light, light_bg) >= 4.5, f"low citation contrast on {light_bg}"
+    for dark_bg in (t.primary_deep, t.primary):
+        assert contrast_ratio(t.caption_on_dark, dark_bg) >= 4.5, f"low dark caption contrast on {dark_bg}"
+        assert contrast_ratio(t.citation_on_dark, dark_bg) >= 4.5, f"low dark citation contrast on {dark_bg}"
+
+    sp_page = SlidePage(page_id="S002", status="provisional", **GOOD_B["pages"][1])
+    rv = [
+        SlotItem(
+            slot_type="image",
+            asset_id="A001",
+            request_id=None,
+            asset_path="assets/A001.jpg",
+            label="Urban Street",
+            width_px=1280,
+            height_px=832,
+            attribution="Photographer, CC BY 4.0, via Wikimedia Commons",
+        )
+    ]
+    els_light = build_layout_elements(
+        "image-right",
+        sp_page,
+        list(sp_page.key_points),
+        rv,
+        [],
+        ["Author (2024). Climate Cooling Study. DOI: 10.1000/test"],
+        [],
+        theme=t,
+    )
+    caps = [e for e in els_light if e.kind is ElementKind.caption]
+    foots = [e for e in els_light if e.kind is ElementKind.footer]
+    assert caps and all((c.font_size_pt or 0) >= 10.5 and c.color_hex == t.caption_on_light for c in caps)
+    assert foots and all((f.font_size_pt or 0) >= 10.5 and f.color_hex == t.citation_on_light for f in foots)
+
+    els_dark = build_layout_elements(
+        "full-bleed",
+        sp_page,
+        list(sp_page.key_points),
+        rv,
+        [],
+        ["Author (2024). Climate Cooling Study. DOI: 10.1000/test"],
+        [],
+        theme=t,
+    )
+    dark_caps = [e for e in els_dark if e.kind is ElementKind.caption]
+    dark_foots = [e for e in els_dark if e.kind is ElementKind.footer]
+    assert dark_caps and all((c.font_size_pt or 0) >= 10.5 and c.color_hex == t.caption_on_dark for c in dark_caps)
+    assert dark_foots and all((f.font_size_pt or 0) >= 10.5 and f.color_hex == t.citation_on_dark for f in dark_foots)
+

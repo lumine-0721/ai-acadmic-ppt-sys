@@ -130,9 +130,9 @@
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#94A3B8",
+        "color_hex": "#CBD5E1",
         "align": "left",
         "role": "anchored_citation"
       }
@@ -360,9 +360,9 @@
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "anchored_citation"
       }
@@ -544,9 +544,9 @@
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "anchored_citation"
       }
@@ -841,9 +841,9 @@
         "w_in": 7.13,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "anchored_citation"
       }
@@ -1233,13 +1233,13 @@
         "shape_name": "cap_1",
         "text": "Rhododendrites, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg)",
         "x_in": 0.65,
-        "y_in": 3.205,
+        "y_in": 2.88,
         "w_in": 6.0,
-        "h_in": 0.54,
+        "h_in": 0.865,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -1260,9 +1260,9 @@
         "w_in": 6.0,
         "h_in": 0.54,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "attribution_caption"
       }
@@ -1303,10 +1303,10 @@
       "params": {
         "shape_name": "ASSET_A011__vis_1",
         "file_path": "assets/A011.jpg",
-        "x_in": 2.722,
+        "x_in": 2.843,
         "y_in": 0.65,
-        "w_in": 1.856,
-        "h_in": 2.495,
+        "w_in": 1.614,
+        "h_in": 2.17,
         "crop_mode": "crop_fill"
       }
     },

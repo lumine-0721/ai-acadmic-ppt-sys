@@ -128,9 +128,9 @@
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#94A3B8",
+        "color_hex": "#CBD5E1",
         "align": "left",
         "role": "anchored_citation"
       }
@@ -726,9 +726,9 @@
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
-        "font_size_pt": 9.5,
+        "font_size_pt": 10.5,
         "bold": false,
-        "color_hex": "#64748B",
+        "color_hex": "#475569",
         "align": "left",
         "role": "anchored_citation"
       }

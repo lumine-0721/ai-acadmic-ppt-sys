@@ -1,6 +1,7 @@
 {
   "schema_version": "0.1",
   "run_id": "T36",
+  "theme_id": "academic-default",
   "pages": [
     {
       "page_id": "S001",
@@ -125,9 +126,9 @@
           "align": "left",
           "text": "[A002] Definition of artificial intelligence and robots (2024) DOI:10.4337/9781035307555.00008",
           "font": "Microsoft YaHei",
-          "font_size_pt": 9.5,
+          "font_size_pt": 10.5,
           "bold": false,
-          "color_hex": "#94A3B8",
+          "color_hex": "#CBD5E1",
           "fill_hex": null,
           "line_hex": null,
           "role": "anchored_citation",
@@ -641,9 +642,9 @@
           "align": "left",
           "text": "[A006] A Modality-Agnostic Definition of multi-modal Hallucination (2026) DOI:10.1109/aiiot68874.2026.11569576",
           "font": "Microsoft YaHei",
-          "font_size_pt": 9.5,
+          "font_size_pt": 10.5,
           "bold": false,
-          "color_hex": "#64748B",
+          "color_hex": "#475569",
           "fill_hex": null,
           "line_hex": null,
           "role": "anchored_citation",

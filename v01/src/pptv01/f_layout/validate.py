@@ -28,8 +28,8 @@ MIN_FONT_PT: dict[ElementKind, float] = {
     ElementKind.title: 20.0,
     ElementKind.body: 12.0,
     ElementKind.bullet: 12.0,
-    ElementKind.caption: 9.0,
-    ElementKind.footer: 9.0,
+    ElementKind.caption: 10.5,
+    ElementKind.footer: 10.5,
     ElementKind.placeholder: 11.0,
 }
 

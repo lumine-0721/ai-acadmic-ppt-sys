@@ -695,7 +695,7 @@ def _design_real_visual(
         cap_text = "" if suppress_caption else item.attribution.strip()
         cap_h = 0.0
         if cap_text:
-            cap_fit = fit_text_to_box(cap_text, w, 0.56, 9.5, min_font_pt=MIN_FONT_PT[ElementKind.caption])
+            cap_fit = fit_text_to_box(cap_text, w, 0.56, 10.5, min_font_pt=MIN_FONT_PT[ElementKind.caption])
             if cap_fit.still_overflows:
                 floor_pt = MIN_FONT_PT[ElementKind.caption]
                 need_h = estimate_text_height_in(wrap_mixed_text(cap_text, w, floor_pt), floor_pt) + 0.14
@@ -745,7 +745,7 @@ def _design_real_visual(
                     w,
                     cap_h,
                     cap_text,
-                    9.5,
+                    10.5,
                     z_index=2,
                     color_hex=cap_color,
                     font=theme.font_family,
@@ -895,7 +895,7 @@ def _place_anchored_citation(
             w,
             h,
             cite_text,
-            9.5,
+            10.5,
             z_index=2,
             color_hex=cite_color,
             font=theme.font_family,
@@ -1406,7 +1406,7 @@ def build_layout_elements(
                     left_w,
                     round(max(0.42, band_bottom - (text_top + title_h + 0.08)), 3),
                     cap_text,
-                    9.5,
+                    10.5,
                     z_index=2,
                     color_hex=theme.caption_on_dark,
                     font=theme.font_family,
