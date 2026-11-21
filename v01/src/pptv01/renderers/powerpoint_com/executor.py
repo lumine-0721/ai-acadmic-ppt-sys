@@ -646,6 +646,7 @@ def _build_presentation_once(
                 if op.kind is DeckOpKind.add_chart:
                     with sess.step(f"build:add_chart:{op.op_id}"):
                         ch, ch_name = _add_chart_op(current_slide, op)
+                        sess.record_spawned_excel_pids()
                     if op.element_id:
                         slide_shapes[op.element_id] = ch
                     slide_shapes[ch_name] = ch

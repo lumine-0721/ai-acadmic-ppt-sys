@@ -153,7 +153,16 @@ def _probe_powerpoint_not_running(list_pids_fn: Callable[[], set[int]] | None = 
         )
     from pptv01.renderers.powerpoint_com.session import _list_powerpnt_pids
 
-    pids = set((list_pids_fn or _list_powerpnt_pids)())
+    try:
+        pids = set((list_pids_fn or _list_powerpnt_pids)())
+    except Exception as e:  # noqa: BLE001
+        return DoctorCheck(
+            "powerpoint_not_running",
+            required=True,
+            ok=False,
+            detail=f"无法枚举 POWERPNT.EXE 进程：{type(e).__name__}: {e}",
+            fix_hint="请检查 tasklist 命令是否可用，并在确认无 POWERPNT.EXE 运行后重试 `pptv01 doctor`。",
+        )
     if pids:
         return DoctorCheck(
             "powerpoint_not_running",

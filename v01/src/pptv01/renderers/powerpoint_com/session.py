@@ -72,26 +72,40 @@ def _ensure_com_initialized(pythoncom: Any) -> None:
         _COM_THREAD_STATE.initialized = True
 
 
-def _list_pids(image_name: str) -> set[int]:
-    """Return currently running PIDs for ``image_name`` on Windows (empty set elsewhere)."""
+def _list_pids(image_name: str, *, retries: int = 3, retry_delay_s: float = 0.15) -> set[int]:
+    """Return currently running PIDs for ``image_name`` on Windows (empty set elsewhere).
+
+    Retries transient ``tasklist`` failures and raises ``RuntimeError`` if enumeration
+    still fails — NEVER silently falls back to an empty set on Windows (which could
+    cause an unknown baseline to be mistaken for "no processes running").
+    """
     if sys.platform != "win32":
         return set()
-    try:
-        proc = subprocess.run(
-            ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        pids: set[int] = set()
-        want = image_name.lower()
-        for line in proc.stdout.splitlines():
-            parts = [p.strip().strip('"') for p in line.split(",")]
-            if len(parts) >= 2 and parts[0].lower() == want and parts[1].isdigit():
-                pids.add(int(parts[1]))
-        return pids
-    except Exception:
-        return set()
+    last_err: str = ""
+    attempts = max(1, int(retries))
+    for attempt in range(attempts):
+        try:
+            proc = subprocess.run(
+                ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if proc.returncode != 0:
+                last_err = f"tasklist exited with code {proc.returncode}: {(proc.stderr or proc.stdout).strip()}"
+            else:
+                pids: set[int] = set()
+                want = image_name.lower()
+                for line in proc.stdout.splitlines():
+                    parts = [p.strip().strip('"') for p in line.split(",")]
+                    if len(parts) >= 2 and parts[0].lower() == want and parts[1].isdigit():
+                        pids.add(int(parts[1]))
+                return pids
+        except Exception as e:
+            last_err = f"{type(e).__name__}: {e}"
+        if attempt + 1 < attempts:
+            time.sleep(retry_delay_s)
+    raise RuntimeError(f"failed to enumerate {image_name} PIDs via tasklist after {attempts} attempts: {last_err}")
 
 
 def _list_powerpnt_pids() -> set[int]:
@@ -124,11 +138,17 @@ def _wait_pids_exit(pids: set[int], timeout_s: float = 6.0, *, image_name: str =
         return True
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
-        alive = _list_pids(image_name) & pids
+        try:
+            alive = _list_pids(image_name, retries=1) & pids
+        except Exception:
+            alive = set(pids)
         if not alive:
             return True
         time.sleep(0.15)
-    return not bool(_list_pids(image_name) & pids)
+    try:
+        return not bool(_list_pids(image_name, retries=1) & pids)
+    except Exception:
+        return False
 
 
 def _import_com_modules() -> tuple[Any, Any]:
@@ -154,12 +174,19 @@ def probe_excel_com(excel_factory: Callable[[], Any] | None = None) -> tuple[boo
         except RendererUnavailableError:
             return False, "", ""
         _ensure_com_initialized(pythoncom)
-        pre_pids = _list_pids("EXCEL.EXE")
+        try:
+            pre_pids: set[int] | None = _list_pids("EXCEL.EXE")
+        except Exception:
+            pre_pids = None
         xl = None
         spawned: set[int] = set()
         try:
             xl = win32_client.DispatchEx("Excel.Application")
-            spawned = _list_pids("EXCEL.EXE") - pre_pids
+            if pre_pids is not None:
+                try:
+                    spawned = _list_pids("EXCEL.EXE") - pre_pids
+                except Exception:
+                    spawned = set()
             try:
                 xl.DisplayAlerts = False
             except Exception:
@@ -219,7 +246,13 @@ class PowerPointSession:
             step_timeout_s, env_var=ENV_COM_STEP_TIMEOUT_S, default=DEFAULT_COM_STEP_TIMEOUT_S
         )
         self._terminate_pids_fn = terminate_pids_fn or _terminate_pids
-        self._list_excel_pids_fn = list_excel_pids_fn or (lambda: _list_pids("EXCEL.EXE"))
+        if list_excel_pids_fn is not None:
+            self._list_excel_pids_fn = list_excel_pids_fn
+        elif app_factory is not None:
+            # Fake-COM test seam must NEVER hit real OS tasklist unless explicitly injected.
+            self._list_excel_pids_fn = lambda: set()
+        else:
+            self._list_excel_pids_fn = lambda: _list_pids("EXCEL.EXE")
         self._list_powerpnt_pids_fn = list_powerpnt_pids_fn
         self._allow_existing = _resolve_allow_existing(allow_existing_powerpoint)
         self._pythoncom: Any = None
@@ -227,8 +260,9 @@ class PowerPointSession:
         self._owned_presentations: list[Any] = []
         self._initial_open_count: int = 0
         self._spawned_pids: set[int] = set()
-        self._pre_excel_pids: set[int] = set()
+        self._pre_excel_pids: set[int] | None = None
         self._spawned_excel_pids: set[int] = set()
+        self._dispatched: bool = False
         self._owns_instance: bool = False
         self._prev_display_alerts: Any = None
         self._prev_automation_security: Any = None
@@ -258,12 +292,26 @@ class PowerPointSession:
     def timed_out(self) -> bool:
         return self._timed_out
 
-    def _collect_spawned_excel_pids(self) -> set[int]:
+    def record_spawned_excel_pids(self) -> set[int]:
+        """Record any Excel PIDs newly spawned after DispatchEx against a verified baseline.
+
+        NEVER guesses or falls back to an empty baseline: if the pre-launch baseline could not
+        be enumerated or we do not own the PowerPoint instance, returns an empty set so we never
+        terminate a user's Excel process.
+        """
+        if not self._dispatched or not self._owns_instance or self._pre_excel_pids is None:
+            return set()
         try:
-            cur = self._list_excel_pids_fn()
+            cur = set(self._list_excel_pids_fn())
         except Exception:
-            cur = set()
-        return cur - self._pre_excel_pids
+            return set()
+        newly_spawned = cur - self._pre_excel_pids
+        if newly_spawned:
+            self._spawned_excel_pids |= newly_spawned
+        return set(self._spawned_excel_pids)
+
+    def _collect_spawned_excel_pids(self) -> set[int]:
+        return self.record_spawned_excel_pids()
 
     def _on_timeout(self, *, kind: str, limit_s: float) -> None:
         with self._lock:
@@ -355,15 +403,21 @@ class PowerPointSession:
         self._started_monotonic = time.monotonic()
         self._step_started_monotonic = self._started_monotonic
         self._current_step = "session_connect"
+        self._dispatched = False
         try:
             self._pre_excel_pids = set(self._list_excel_pids_fn())
         except Exception:
-            self._pre_excel_pids = set()
+            # NEVER equate enumeration failure with "no Excel running" — keep baseline None so
+            # we never taskkill Excel based on an unknown baseline.
+            self._pre_excel_pids = None
 
         if self._app_factory is not None:
             pre_pids: set[int] = set()
             if self._list_powerpnt_pids_fn is not None:
-                pre_pids = set(self._list_powerpnt_pids_fn())
+                try:
+                    pre_pids = set(self._list_powerpnt_pids_fn())
+                except Exception as e:
+                    raise RendererUnavailableError(f"无法枚举 POWERPNT.EXE 进程（{e}），拒绝启动 PowerPoint COM。") from None
                 if pre_pids and not self._allow_existing:
                     raise RendererUnavailableError(
                         f"检测到 PowerPoint 已在运行（PID {sorted(pre_pids)}）。"
@@ -377,7 +431,12 @@ class PowerPointSession:
                 raise RendererUnavailableError(f"failed to initialize PowerPoint COM: {e}") from None
 
             if self._list_powerpnt_pids_fn is not None:
-                post_pids = set(self._list_powerpnt_pids_fn())
+                try:
+                    post_pids = set(self._list_powerpnt_pids_fn())
+                except Exception as e:
+                    app = None
+                    gc.collect()
+                    raise RendererUnavailableError(f"启动后无法枚举 POWERPNT.EXE 进程（{e}）。") from None
                 spawned = post_pids - pre_pids
                 if not spawned and not self._allow_existing:
                     app = None
@@ -401,6 +460,7 @@ class PowerPointSession:
                 )
 
             self.app = app
+            self._dispatched = True
             try:
                 self._initial_open_count = int(self.app.Presentations.Count)
             except Exception:
@@ -420,7 +480,10 @@ class PowerPointSession:
             return self
 
         pid_lister = self._list_powerpnt_pids_fn or _list_powerpnt_pids
-        pre_pids = set(pid_lister())
+        try:
+            pre_pids = set(pid_lister())
+        except Exception as e:
+            raise RendererUnavailableError(f"无法枚举 POWERPNT.EXE 进程（{e}），拒绝启动 PowerPoint COM。") from None
         if pre_pids and not self._allow_existing:
             raise RendererUnavailableError(
                 f"检测到 PowerPoint 已在运行（PID {sorted(pre_pids)}）。"
@@ -432,7 +495,11 @@ class PowerPointSession:
         _ensure_com_initialized(pythoncom)
 
         # Re-check PIDs right before DispatchEx in case a user opened PowerPoint during module import
-        pre_pids = set(pid_lister())
+        try:
+            pre_pids = set(pid_lister())
+        except Exception as e:
+            self._pythoncom = None
+            raise RendererUnavailableError(f"无法枚举 POWERPNT.EXE 进程（{e}），拒绝启动 PowerPoint COM。") from None
         if pre_pids and not self._allow_existing:
             self._pythoncom = None
             raise RendererUnavailableError(
@@ -445,7 +512,8 @@ class PowerPointSession:
         for _attempt in range(10):
             try:
                 app = _connect_powerpoint(win32_client)
-                spawned = set(pid_lister()) - pre_pids
+                post_pids = set(pid_lister())
+                spawned = post_pids - pre_pids
                 if not spawned and not self._allow_existing:
                     # PowerPoint attached to an existing instance instead of starting a new process:
                     # release COM proxy immediately without touching Presentations/DisplayAlerts/Quit/taskkill.
@@ -485,6 +553,7 @@ class PowerPointSession:
             ) from None
 
         self._spawned_pids = spawned
+        self._dispatched = True
         # Strictly own the instance ONLY when we actually spawned a new POWERPNT.EXE PID
         # and no pre-existing user presentations were open.
         self._owns_instance = bool(self._spawned_pids) and (self._initial_open_count == 0)
