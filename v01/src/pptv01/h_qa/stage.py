@@ -6,6 +6,7 @@ compatibility check (--cross-render) or legacy fallback when no DeckRenderer is 
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Callable
 
@@ -241,6 +242,34 @@ def run_stage_h(
         occ_report = check_deck_occupancy(current_design, measure_result=measure_res)
         occupancy_rows = [r.to_dict() for r in occ_report.pages]
         diagnostics.append(f"fill_rate: {occ_report.detail}")
+
+    reg_for_px = reg
+    if reg_for_px is None and (run_dir / "asset_registry.json").is_file():
+        try:
+            from pptv01.contracts import load_contract
+            reg_for_px = load_contract(AssetRegistry, run_dir / "asset_registry.json")
+        except Exception:
+            reg_for_px = None
+    if reg_for_px is not None:
+        rf_note = (reg_for_px.relevance_filter.note if reg_for_px.relevance_filter else "") or ""
+        hay = " ; ".join(p for p in (rf_note, reg_for_px.summary or "") if p)
+        m_deg = re.search(r"pixel_rules:\s*degraded\s*\([^)]*\)", hay)
+        if m_deg:
+            deg_line = m_deg.group(0)
+            diagnostics.append(deg_line)
+            if deg_line not in cross_notes:
+                cross_notes.append(deg_line)
+            summary_parts.append(deg_line)
+        elif "pixel_rules: degraded" in hay:
+            deg_line = "pixel_rules: degraded"
+            diagnostics.append(deg_line)
+            if deg_line not in cross_notes:
+                cross_notes.append(deg_line)
+            summary_parts.append(deg_line)
+        elif "pixel_rules: active" in hay or any(
+            "pixel_rules passed" in (a.checks.quality or "") for a in reg_for_px.assets
+        ):
+            diagnostics.append("pixel_rules: active")
 
     report = QAReport(
         schema_version=SCHEMA_VERSION,

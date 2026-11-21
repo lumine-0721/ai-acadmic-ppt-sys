@@ -82,9 +82,11 @@ class Scorer:
 
 def make(tmp_path, reqs, net=None, *, scorer=None, oa_fetch=None, env=None):
     net = net or Net()
-    sv = services_from_env({"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", **(env or {})},
-                           transport=httpx.MockTransport(net),
-                           openalex_fetch=oa_fetch or (lambda q, n: rp("openalex_uhi.json")[:n]))
+    sv = services_from_env(
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off", **(env or {})},
+        transport=httpx.MockTransport(net),
+        openalex_fetch=oa_fetch or (lambda q, n: rp("openalex_uhi.json")[:n]),
+    )
     sv.relevance = RelevanceFilter(scorer, 0.3 if scorer else None, mode="auto" if scorer else "structural")
     plan = ProductionPlan(run_id=RID, source_utterance="u", **{**GOOD_A, "topic": "世界著名建筑"})
     sp = SlidePlan(run_id=RID, status="provisional", narrative="n", pages=[
@@ -387,8 +389,11 @@ def test_runner_integrates_stage_d_and_reports_missing_assets(tmp_path):
     from pptv01.runner import run_pipeline
     from tests.conftest import GOOD_A, GOOD_B, GOOD_C
     from tests.fakes import FakeClient
-    sv = services_from_env({"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"}, transport=httpx.MockTransport(Net()),
-                           openalex_fetch=lambda q, n: rp("openalex_uhi.json")[:n])
+    sv = services_from_env(
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
+        transport=httpx.MockTransport(Net()),
+        openalex_fetch=lambda q, n: rp("openalex_uhi.json")[:n],
+    )
     U = "帮我做一个城市热岛效应的 PPT。"
     report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-d", assets=sv)
     st = {s.stage: s for s in report.stages}

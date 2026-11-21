@@ -81,9 +81,21 @@ SOFTWARE.
 
 ---
 
-## 4. Earlier V0.1 Notices (carried from `v01/NOTICE.md`)
+## 4. qdrant/fastembed & RapidAI/RapidOCR & hugohe3/ppt-master (R6-4 Pixel Filter)
 
-- **hugohe3/ppt-master** (MIT License, Copyright (c) 2025-2026 Hugo He, <https://github.com/hugohe3/ppt-master>): `slot_capacity.py` CJK/Latin glyph-advance estimation adapted in `v01/src/pptv01/f_layout/capacity.py`.
+- **qdrant/fastembed**: <https://github.com/qdrant/fastembed> (Apache License, Version 2.0) — optional `ImageEmbedding("Qdrant/clip-ViT-B-32-vision")` and `TextEmbedding("Qdrant/clip-ViT-B-32-text")` (CLIP ViT-B-32 weights MIT License) used in `v01/src/pptv01/d_retrieve/pixel_rules.py` with bounded load timeout and explicit offline degradation.
+- **RapidAI/RapidOCR**: <https://github.com/RapidAI/RapidOCR> (Apache License, Version 2.0) — optional `rapidocr-onnxruntime` OCR detector (`[vision]` extra) used in `v01/src/pptv01/d_retrieve/pixel_rules.py` and `v01/src/pptv01/grading/gates.py` (`no_text_only_visuals`).
+- **hugohe3/ppt-master** (`skills/ppt-master/scripts/image_ocr.py`, MIT License, Copyright (c) 2025-2026 Hugo He, <https://github.com/hugohe3/ppt-master>): RapidOCR text-box extraction pattern adapted in `v01/src/pptv01/d_retrieve/pixel_rules.py`, in addition to `slot_capacity.py` CJK/Latin glyph-advance estimation in `v01/src/pptv01/f_layout/capacity.py`.
+- **R6-4 Wikimedia Commons Test Fixtures** (`v01/tests/fixtures/r6_pixel_images/`):
+  - `Sponge_City.png` — `File:Sponge City.png`, author: **Jeb**, **CC BY 4.0** (<https://commons.wikimedia.org/wiki/File:Sponge_City.png>).
+  - `coffee_pourover.jpg` — `File:Pourover using a cupping brewer at NOLA, Peckham, London (50661427221).jpg`, author: **Bex Walton from London, England**, **CC BY 2.0** (<https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg>).
+  - `parthenon.jpg` — `File:The Parthenon in Athens.jpg`, author: **Steve Swayne**, **CC BY 2.0** (<https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg>).
+  - `cafe_de_flore.jpg` — `File:Café de Flore.jpg`, author: **Arnaud 25**, **Public domain** (<https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg>).
+
+---
+
+## 5. Earlier V0.1 Notices (carried from `v01/NOTICE.md`)
+
 - **slidevjs/slidev** (MIT License, Copyright (c) 2021-present Anthony Fu & Slidev contributors, <https://github.com/slidevjs/slidev>): canonical layout taxonomy adapted in `v01/src/pptv01/f_layout/layouts.py`.
 - **gitbrent/PptxGenJS** (MIT License, Copyright (c) 2015-present Brent Ely, <https://github.com/gitbrent/PptxGenJS>): structural layout hierarchy patterns referenced in `v01/src/pptv01/f_layout/layouts.py`.
 - **thomas-villani/pptlive** (commit `4b33e69217ba`, MIT License, Copyright (c) 2026 Tom Villani, <https://github.com/thomas-villani/pptlive>): COM chart/table/fake-COM patterns adapted in `v01/src/pptv01/renderers/powerpoint_com/` and `v01/tests/fake_com.py`.

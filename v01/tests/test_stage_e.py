@@ -242,7 +242,7 @@ def test_vision_client_from_env_checks_config():
 def test_runner_integrates_stage_e_with_real_acquired_asset(tmp_path):
     from pptv01.d_retrieve import services_from_env
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(Net()),
         openalex_fetch=lambda q, n: rp("openalex_uhi.json")[:n],
     )

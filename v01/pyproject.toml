@@ -27,6 +27,8 @@ verify = ["python-pptx>=1.0"]
 rank = ["fastembed>=0.3"]
 # opt-in cross-encoder reranker (needs torch; ~2.2 GB model; NOT the default, see docs/relevance-benchmark.md)
 rerank = ["sentence-transformers>=3", "torch"]
+# pixel-level OCR text-ratio filter (stage D + grading gate; RapidOCR Apache-2.0)
+vision = ["rapidocr-onnxruntime>=1.2"]
 
 [project.scripts]
 pptv01 = "pptv01.cli:main"
@@ -43,4 +45,5 @@ addopts = "-q"
 pythonpath = ["src", "tests"]
 markers = [
   "windows_com: tests requiring real Microsoft PowerPoint COM on Windows",
+  "vision_model: tests requiring cached CLIP/RapidOCR vision models (skipped when uncached)",
 ]

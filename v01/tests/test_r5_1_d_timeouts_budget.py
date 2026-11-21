@@ -68,6 +68,7 @@ def test_r5_1_single_timeout_records_provider_sanitized_url_and_elapsed(tmp_path
         {
             "PPTV01_ASSETS": "auto",
             "PPTV01_RELEVANCE": "structural",
+            "PPTV01_PIXEL_RULES": "off",
             "PPTV01_OPENALEX_API_KEY": "SUPER_SECRET_OA_KEY",
             "PPTV01_ASSETS_CONNECT_TIMEOUT_S": "1.0",
             "PPTV01_ASSETS_READ_TIMEOUT_S": "1.5",
@@ -121,6 +122,7 @@ def test_r5_1_blocking_openalex_fetch_is_cut_off_by_watchdog(tmp_path):
         {
             "PPTV01_ASSETS": "auto",
             "PPTV01_RELEVANCE": "structural",
+            "PPTV01_PIXEL_RULES": "off",
             "PPTV01_ASSETS_CONNECT_TIMEOUT_S": "0.15",
             "PPTV01_ASSETS_READ_TIMEOUT_S": "0.15",
             "PPTV01_ASSETS_BUDGET_S": "1.2",
@@ -173,6 +175,7 @@ def test_r5_1_total_budget_caps_many_hanging_requirements_and_emits_placeholders
         {
             "PPTV01_ASSETS": "auto",
             "PPTV01_RELEVANCE": "structural",
+            "PPTV01_PIXEL_RULES": "off",
             "PPTV01_ASSETS_CONNECT_TIMEOUT_S": "0.15",
             "PPTV01_ASSETS_READ_TIMEOUT_S": "0.15",
             "PPTV01_ASSETS_BUDGET_S": "0.6",
@@ -233,6 +236,7 @@ def test_r5_1_pipeline_continues_to_complete_with_placeholders_after_d_timeout(t
         {
             "PPTV01_ASSETS": "auto",
             "PPTV01_RELEVANCE": "structural",
+            "PPTV01_PIXEL_RULES": "off",
             "PPTV01_ASSETS_CONNECT_TIMEOUT_S": "0.15",
             "PPTV01_ASSETS_READ_TIMEOUT_S": "0.15",
             "PPTV01_ASSETS_BUDGET_S": "0.5",

@@ -41,6 +41,7 @@ from .image_rules import (
     inspect_image_with_vision,
 )
 from .license import check_license, needs_attribution, plain
+from .pixel_rules import PixelFilter, PixelVerdict
 from .sources import (
     COMMONS_API, CROSSREF_WORKS, IMAGE_MIMES, MAX_ASPECT, MIN_RASTER_WIDTH, NON_SUBJECT_CLASSES, OPENALEX_WORKS,
     WIKIDATA_API, CommonsClient, CommonsFile, CrossrefVerifier, OpenAlexClient, WdEntity,
@@ -57,7 +58,8 @@ ENV_CONNECT_TIMEOUT = "PPTV01_ASSETS_CONNECT_TIMEOUT_S"
 ENV_READ_TIMEOUT = "PPTV01_ASSETS_READ_TIMEOUT_S"
 ENV_BUDGET = "PPTV01_ASSETS_BUDGET_S"
 NO_TARGET_ENTITY_TYPES = {"dataset", "publication"}
-MAX_DOWNLOAD_TRIES = 3
+MAX_DOWNLOAD_TRIES = 5
+MAX_PIXEL_RANK_POOL = 3
 _CJK = re.compile(r"[\u3400-\u9fff]")
 
 
@@ -72,6 +74,7 @@ class DServices:
     contact: str = ""
     disabled_reason: str = ""
     vision_client: ChatClient | None = None
+    pixel_filter: PixelFilter | None = None
     budget_s: float = 180.0
     connect_timeout_s: float = 10.0
     read_timeout_s: float = 20.0
@@ -98,11 +101,13 @@ def _parse_pos_float(env: Mapping[str, str], key: str, default: float) -> float:
 
 def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.BaseTransport | None = None,
                       openalex_fetch=None, *, vision_client: ChatClient | None = None,
+                      pixel_filter: PixelFilter | None = None,
                       progress_fn: Callable[[str], None] | None = None) -> DServices:
     env = os.environ if env is None else env
     rel = filter_from_env(env)
     if (env.get(ENV_ASSETS, "auto").strip().lower() or "auto") == "none":
-        return DServices(None, None, None, None, None, rel, disabled_reason=f"{ENV_ASSETS}=none", progress_fn=progress_fn)
+        return DServices(None, None, None, None, None, rel, disabled_reason=f"{ENV_ASSETS}=none",
+                         pixel_filter=pixel_filter, progress_fn=progress_fn)
     if (env.get(ENV_ASSETS, "auto").strip().lower() or "auto") != "auto":
         raise LLMConfigError(f"{ENV_ASSETS} must be auto or none")
     try:
@@ -120,6 +125,7 @@ def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.Bas
     if v_client is None and env.get("PPTV01_E_VISION_MODEL", "").strip():
         from pptv01.e_mapping.stage import vision_client_from_env
         v_client = vision_client_from_env(env)
+    pf = pixel_filter if pixel_filter is not None else PixelFilter.from_env(env, progress_fn=progress_fn)
     return DServices(
         http,
         WikidataClient(http),
@@ -129,6 +135,7 @@ def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.Bas
         rel,
         contact,
         vision_client=v_client,
+        pixel_filter=pf,
         budget_s=budget_s,
         connect_timeout_s=connect_to,
         read_timeout_s=read_to,
@@ -524,9 +531,15 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             demoted.append(item)
         else:
             fresh.append(item)
-    # 4) download best unused candidate, verify, optional vision check, check sha256 dedupe, fall through on failure
+    # 4) download best unused candidate, verify, pixel rules + CLIP rank pool, optional vision check, dedupe
     chosen = None
     sha_fallback = None
+    passing_pool: list[tuple] = []
+    use_clip_ranking = (
+        sv.pixel_filter is not None
+        and sv.pixel_filter.mode == "auto"
+        and sv.pixel_filter.clip_scorer is not None
+    )
     for f, score, how in fresh[:MAX_DOWNLOAD_TRIES]:
         if ctx.budget_exhausted():
             ctx.budget_exhausted_triggered = True
@@ -544,6 +557,16 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
                                             decision="rejected", reason=str(e), score=score))
             continue
+        pv: PixelVerdict | None = None
+        if sv.pixel_filter is not None and sv.pixel_filter.mode != "off":
+            pv = sv.pixel_filter.assess_image(data, rq, entity=entity)
+            if not pv.accepted:
+                tag = pv.summary_tag()
+                ctx.log(f"pixel_rules rejected {f.title}: {pv.reason} [{tag}]")
+                cand_score = round(pv.clip_positive, 4) if pv.clip_positive is not None else score
+                cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
+                                                decision="rejected", reason=f"{pv.reason} [{tag}]", score=cand_score))
+                continue
         vis_rel: Literal["relevant", "weak", "irrelevant", "not_assessed"] = "not_assessed"
         vis_note = ""
         if sv.vision_client is not None:
@@ -560,15 +583,46 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             owner_rec = ctx.used_by_sha[sha]
             demoted_reasons[f.title] = f"demoted: same sha256 as {owner_rec.asset_id}"
             if sha_fallback is None:
-                sha_fallback = (f, score, how, data, w, h, sha, owner_rec, vis_rel, vis_note)
+                sha_fallback = (f, score, how, data, w, h, sha, owner_rec, vis_rel, vis_note, pv)
             continue
-        chosen = (f, score, how, data, w, h, sha, None, vis_rel, vis_note)
-        break
+        if not passing_pool and (
+            f.origin == "wikidata_p18" or not use_clip_ranking or pv is None or pv.clip_positive is None
+        ):
+            chosen = (f, score, how, data, w, h, sha, None, vis_rel, vis_note, pv)
+            break
+        passing_pool.append((f, score, how, data, w, h, sha, vis_rel, vis_note, pv))
+        if len(passing_pool) >= MAX_PIXEL_RANK_POOL:
+            break
+    if chosen is None and passing_pool:
+        ranked_pool = sorted(
+            passing_pool,
+            key=lambda it: (
+                it[9].clip_positive if it[9] is not None and it[9].clip_positive is not None else -1.0,
+                it[1] if it[1] is not None else -1.0,
+            ),
+            reverse=True,
+        )
+        top = ranked_pool[0]
+        chosen = (top[0], top[1], top[2], top[3], top[4], top[5], top[6], None, top[7], top[8], top[9])
+        for rf, rscore, _rhow, _rdata, _rw, _rh, _rsha, _rvr, _rvn, rpv in ranked_pool[1:]:
+            rtag = rpv.summary_tag() if rpv is not None else "passed"
+            rcand_score = round(rpv.clip_positive, 4) if rpv is not None and rpv.clip_positive is not None else rscore
+            cand_log.append(
+                CandidateRecord(
+                    title=rf.title,
+                    url=rf.page_url,
+                    license=rf.license_short,
+                    origin=rf.origin,
+                    decision="rejected",
+                    reason=f"passed pixel rules [{rtag}] but ranked below selected candidate by CLIP positive score",
+                    score=rcand_score,
+                )
+            )
     if chosen is None and demoted:
         f, score, how = demoted[0]
         owner_rec = ctx.used_by_id[f.title]
         chosen = (f, score, how, None, owner_rec.width, owner_rec.height, owner_rec.sha256, owner_rec,
-                  owner_rec.visual_relevance, "reused visual check from owner")
+                  owner_rec.visual_relevance, "reused visual check from owner", None)
     if chosen is None and sha_fallback is not None:
         chosen = sha_fallback
     if chosen is None:
@@ -585,7 +639,7 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         miss_notes += [f"Wikidata candidate {r}" for r in ctx.wd_rejected.get(primary.name, [])[:3]]
         return _missing(rq, "; ".join(miss_notes), entity=entity[0] if entity else None, candidates=cand_log,
                         uncovered_targets=uncovered)
-    f, score, how, data, w, h, sha, shared_rec, vis_rel, vis_note = chosen
+    f, score, how, data, w, h, sha, shared_rec, vis_rel, vis_note, chosen_pv = chosen
     tried = {c.title for c in cand_log}
     for g, gscore, _ in ordered:
         if g.title != f.title and g.title not in tried:
@@ -606,8 +660,21 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         how = f"{how}; reused from {shared_with} (no unused candidate available)"
     artist = (f.artist or f.credit)[:200] or None
     credit = f"{artist or 'unknown author'}, {f.license_short}, via Wikimedia Commons ({f.page_url})"
+    if chosen_pv is not None:
+        px_tag = chosen_pv.summary_tag()
+        sel_reason = f"{how}; pixel_rules: {px_tag}"
+        sel_score = round(chosen_pv.clip_positive, 4) if chosen_pv.clip_positive is not None else score
+        quality_str = (
+            f"vision: {vis_rel}; pixel_rules passed ({px_tag})"
+            if vis_rel != "not_assessed"
+            else f"pixel_rules passed ({px_tag})"
+        )
+    else:
+        sel_reason = how
+        sel_score = score
+        quality_str = "not assessed in D" if vis_rel == "not_assessed" else f"vision: {vis_rel}"
     cand_log.append(CandidateRecord(title=f.title, url=f.page_url, license=f.license_short, origin=f.origin,
-                                    decision="selected", reason=how, score=score))
+                                    decision="selected", reason=sel_reason, score=sel_score))
     notes = [f"target {primary.name!r} ({primary.verification.value})"]
     notes += [f"Wikidata candidate {r}" for r in ctx.wd_rejected.get(primary.name, [])[:3]]
     if primary.verification.value == "to_verify":
@@ -638,7 +705,7 @@ def _acquire_image(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
             relevance=rel_check,
             usability=f"licence {f.license_short}" + ("; attribution required" if needs_attribution(f.license_short) else ""),
             format=f"{f.mime} {w}x{h}, {size_bytes} bytes, opened with Pillow, sha256 recorded",
-            quality="not assessed in D" if vis_rel == "not_assessed" else f"vision: {vis_rel}"))
+            quality=quality_str))
     if shared_rec is None:
         ctx.used_by_id[f.title] = rec
         ctx.used_by_sha[sha] = rec
@@ -865,15 +932,24 @@ def run_stage_d(plan: ProductionPlan, slide_plan: SlidePlan, reqs: AssetRequirem
             delattr(services.http, "_pptv01_deadline")
 
     sc, model, thr = ctx.scorer_info
+    note_parts = [n for n in (ctx.note, services.relevance.unavailable) if n]
+    px = services.pixel_filter
+    summary_str = f"{sum(r.status is AssetStatus.acquired for r in records)}/{len(records)} requirements acquired; {sum(r.status is AssetStatus.missing for r in records)} missing"
+    if px is not None and px.mode == "auto":
+        if px.degraded_note:
+            ctx.log(px.degraded_note)
+            note_parts.append(px.degraded_note)
+            summary_str += f"; {px.degraded_note}"
+        elif any(r.type is AssetType.image and "pixel_rules" in (r.checks.quality or "") for r in records):
+            note_parts.append(px.status_summary)
     info = RelevanceInfo(mode=services.relevance.mode, rules_version=RULES_VERSION, scorer=sc, model=model, threshold=thr,
                          n_candidates=ctx.n_cand, n_kept=ctx.n_kept, n_filtered=ctx.n_filtered,
-                         note=ctx.note or services.relevance.unavailable)
-    n_ok = sum(r.status is AssetStatus.acquired for r in records)
+                         note="; ".join(note_parts))
     reg = AssetRegistry(
         run_id=plan.run_id, assets=records, sources=ctx.calls or [SourceCall(backend="none", purpose="asset retrieval",
                                                                              status="disabled")],
         relevance_filter=info,
-        summary=f"{n_ok}/{len(records)} requirements acquired; {sum(r.status is AssetStatus.missing for r in records)} missing")
+        summary=summary_str)
     from .validate import validate_registry
     validate_registry(reg, reqs, run_dir)
     write_contract(reg, run_dir / REGISTRY_FILE)

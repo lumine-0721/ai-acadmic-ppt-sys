@@ -115,7 +115,7 @@ def test_r6_replay_parthenon_rejects_arkansas_conflict_and_marks_uninspected_not
         return httpx.Response(404)
 
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(handler),
     )
     plan, sp = _make_plan_and_sp("古希腊帕特农神庙建筑特征")
@@ -171,7 +171,7 @@ def test_r6_t02_a009_pekin_illinois_rejected_for_beijing_target(tmp_path):
         return httpx.Response(404)
 
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(handler),
     )
     sv.relevance = RelevanceFilter(HighScorer(), 0.30, mode="auto")
@@ -212,7 +212,7 @@ def test_r6_t02_a011_solarpunk_illustration_rejected_as_real_scene_evidence(tmp_
         return httpx.Response(404)
 
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(handler),
     )
     plan, sp = _make_plan_and_sp("城市立体绿化与屋顶花园降温案例")
@@ -261,7 +261,7 @@ def test_r6_vision_client_in_stage_d_rejects_irrelevant_and_verifies_relevant(tm
         ]
     )
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(handler),
         vision_client=vision,
     )
@@ -327,7 +327,7 @@ def test_n5_b15_beijing_never_falls_back_to_new_york_iss_photo(tmp_path):
         return httpx.Response(200, content=img, headers={"content-type": "image/jpeg"})
 
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(handler),
     )
     sv.relevance = RelevanceFilter(LenientScorer(), 0.30, mode="auto")
@@ -394,7 +394,7 @@ def test_n5_b14_three_unrelated_homonym_places_general_rules(tmp_path):
             return httpx.Response(200, content=img, headers={"content-type": "image/jpeg"})
 
         sv = services_from_env(
-            {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+            {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
             transport=httpx.MockTransport(handler),
         )
         sv.relevance = RelevanceFilter(WrongFirstScorer(), 0.30, mode="auto")
@@ -464,7 +464,7 @@ def test_n5_live_wikidata_disambiguation_rejects_pekin_illinois_even_with_multit
         return httpx.Response(200, content=img, headers={"content-type": "image/jpeg"})
 
     sv = services_from_env(
-        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
         transport=httpx.MockTransport(handler),
     )
     plan, sp = _make_plan_and_sp("城市热岛效应")

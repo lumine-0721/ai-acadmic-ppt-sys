@@ -19,6 +19,7 @@ from pptv01 import textcheck
 from pptv01.contracts import (
     AssetRegistry,
     AssetStatus,
+    AssetType,
     CONTRACT_FILES,
     DeckOpKind,
     DeckOps,
@@ -35,6 +36,7 @@ from pptv01.contracts import (
     load_contract,
 )
 from pptv01.d_retrieve.license import needs_attribution
+from pptv01.d_retrieve.pixel_rules import OCR_TEXT_AREA_RATIO_MAX, is_ocr_exempt
 from pptv01.f_layout.capacity import LAYOUT_CAPACITY_SPECS
 from pptv01.f_layout.layouts import (
     LEGACY_LAYOUT_ID,
@@ -668,6 +670,128 @@ def _check_fill_rate_gate(design: PageDesign | None) -> GateResult:
     )
 
 
+_CACHED_OCR_UNSET = object()
+_CACHED_OCR_RUNNER: object = _CACHED_OCR_UNSET
+_OCR_RATIO_RE = re.compile(r"ocr_ratio=([0-9]+(?:\.[0-9]+)?)")
+
+
+def _get_gate_ocr_runner():
+    """Return a lazily cached local RapidOCR runner (no network downloads), or None if unavailable."""
+    global _CACHED_OCR_RUNNER
+    if _CACHED_OCR_RUNNER is _CACHED_OCR_UNSET:
+        try:
+            from pptv01.d_retrieve.pixel_rules import RapidOcrAreaRunner
+            _CACHED_OCR_RUNNER = RapidOcrAreaRunner(load_timeout_s=15.0)
+        except BaseException:
+            _CACHED_OCR_RUNNER = None
+    return _CACHED_OCR_RUNNER
+
+
+def _check_no_text_only_visuals_gate(
+    run_dir: Path,
+    reg: AssetRegistry | None,
+    uir: UserInputRequests | None = None,
+    *,
+    ocr_runner=None,
+) -> GateResult:
+    """Warn-level gate flagging acquired/provided photo visuals with signs, screenshots, or high text density."""
+    if reg is None:
+        return GateResult(
+            gate="no_text_only_visuals",
+            status="not_run",
+            detail="asset_registry.json absent (stage D not run)",
+        )
+
+    warnings: list[str] = []
+    hay = " ; ".join(
+        p
+        for p in (
+            reg.relevance_filter.note if reg.relevance_filter else "",
+            reg.summary or "",
+        )
+        if p
+    )
+    m_deg = re.search(r"pixel_rules:\s*degraded\s*\([^)]*\)", hay)
+    if m_deg:
+        warnings.append(m_deg.group(0))
+    elif "pixel_rules: degraded" in hay:
+        warnings.append("pixel_rules: degraded")
+
+    checked = 0
+    runner = ocr_runner
+
+    for asset in reg.assets:
+        if asset.status not in (AssetStatus.acquired, AssetStatus.substituted, AssetStatus.drawn):
+            continue
+        if is_ocr_exempt(asset.type) or asset.type is not AssetType.image:
+            continue
+        checked += 1
+        quality = asset.checks.quality or ""
+        if asset.visual_relevance == "irrelevant":
+            warnings.append(f"{asset.asset_id}: visual_relevance=irrelevant")
+            continue
+        if "CLIP rejected" in quality or "OCR rejected" in quality:
+            warnings.append(f"{asset.asset_id}: {quality[:120]}")
+            continue
+        m_ratio = _OCR_RATIO_RE.search(quality)
+        if m_ratio:
+            rec_ratio = float(m_ratio.group(1))
+            if rec_ratio > OCR_TEXT_AREA_RATIO_MAX:
+                warnings.append(
+                    f"{asset.asset_id}: recorded ocr_ratio={rec_ratio:.3f} > {OCR_TEXT_AREA_RATIO_MAX:.2f}"
+                )
+            continue
+        if asset.file_path:
+            fpath = run_dir / asset.file_path
+            if fpath.is_file():
+                if runner is None:
+                    runner = _get_gate_ocr_runner()
+                if runner is not None:
+                    try:
+                        ratio = float(runner(fpath.read_bytes()))
+                        if ratio > OCR_TEXT_AREA_RATIO_MAX:
+                            warnings.append(
+                                f"{asset.asset_id} ({asset.file_path}): ocr_ratio={ratio:.3f} > {OCR_TEXT_AREA_RATIO_MAX:.2f}"
+                            )
+                    except Exception as exc:
+                        warnings.append(f"{asset.asset_id}: local OCR failed ({type(exc).__name__})")
+
+    if uir is not None:
+        for req in uir.requests:
+            if req.status is not UserRequestStatus.provided or not req.provided:
+                continue
+            if req.kind is not UserRequestKind.image or is_ocr_exempt(req.kind.value):
+                continue
+            p = Path(req.provided)
+            fpath = p if p.is_absolute() else (run_dir / p)
+            if not fpath.is_file():
+                continue
+            checked += 1
+            if runner is None:
+                runner = _get_gate_ocr_runner()
+            if runner is not None:
+                try:
+                    ratio = float(runner(fpath.read_bytes()))
+                    if ratio > OCR_TEXT_AREA_RATIO_MAX:
+                        warnings.append(
+                            f"{req.request_id} ({fpath.name}): ocr_ratio={ratio:.3f} > {OCR_TEXT_AREA_RATIO_MAX:.2f}"
+                        )
+                except Exception as exc:
+                    warnings.append(f"{req.request_id}: local OCR failed ({type(exc).__name__})")
+
+    if warnings:
+        return GateResult(
+            gate="no_text_only_visuals",
+            status="warn",
+            detail="; ".join(warnings[:6]),
+        )
+    return GateResult(
+        gate="no_text_only_visuals",
+        status="pass",
+        detail=f"{checked} image visual(s) checked cleanly (max OCR area ratio <= {OCR_TEXT_AREA_RATIO_MAX:.2f})",
+    )
+
+
 def _check_mapped_visuals_placed_gate(
     mapping: SlideAssetMapping | None,
     design: PageDesign | None,
@@ -825,6 +949,13 @@ def check_gates(run_dir: Path) -> GateReport:
         )
     )
     results.append(_check_fill_rate_gate(design if isinstance(design, PageDesign) else None))
+    results.append(
+        _check_no_text_only_visuals_gate(
+            run_dir,
+            reg if isinstance(reg, AssetRegistry) else None,
+            uir if isinstance(uir, UserInputRequests) else None,
+        )
+    )
     results.append(
         _check_mapped_visuals_placed_gate(
             mapping if isinstance(mapping, SlideAssetMapping) else None,
