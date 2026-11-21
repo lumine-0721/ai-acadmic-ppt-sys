@@ -2,11 +2,11 @@
 
 > 读者：接手写代码的 Agent。本文自包含：读完即可开工，不需要别的上下文。
 > 仓库：<https://github.com/lumine-0721/ai-acadmic-ppt-sys>，本项目目录 `v01/`。
-> **代码基线（重要，第 3 版）**：你上一轮的成果在分支 `feature/v01-office-renderer`（头提交 `7ceb945`，已评审，见第 4.1 节）。**下一轮继续在这个分支上做（或从它拉 `feature/v01-office-renderer-2`）**，做第 5 节任务（**先做 N2，再做 N0**，然后 N1 / N3–N8）；Windows 实机测试清单在第 5B 节，由用户在真机上跑——**N2 合入之前不要重跑 5B**（上一轮冒烟已因 B8 挂死）。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
+> **代码基线（重要）：** 当前是 `feature/v01-office-renderer` 头提交 `51703f4`（第 3 轮 N0/N2 已通过，见第 5 节）。**下一步是用户按第 5B 节在本机做真实 Windows 冒烟**（跑之前必须先关掉所有 PowerPoint）。N7 等 5B 回传通过后再做；未完成项不要另开无关分支乱推。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
 > **环境已确认（用户实测，2026-11-20）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel），不是 Office 2021。策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑。**
-> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最新（2026-11-21）：先看第 5 节开头「第 3 轮复核」，修完那两条再跑 5B。** **最要紧的事先做 N2：** 上一轮真实 Windows 冒烟因 B8（`GetActiveObject` 附着到用户已打开的 PowerPoint，且无超时）挂死，必须先隔离实例并加上看门狗，然后才是 N0（全量 `pytest` 在没装 Office 的机器上是红的）。python-pptx 仍在默认生成路径里（N7，须等 5B 通过）。环境是 Microsoft 365 而不是 2021（已确认，B12/N1 只剩文档与 doctor 的整改）。
+> **第 3 版相对第 2 版的变化**：第 4.1 节是对 R0–R7（`7ceb945`）的评审结果和新 bug 清单（B8–B17，带文件:行）；第 5 节是新任务 N0–N8；第 5B 节是 Windows 真机测试清单；原 R0–R7 任务书移到 5A 归档。**最新（2026-11-20 美东）：第 3 轮已通过（N0、N2 在 `51703f4` 修好）。下一步是用户按第 5B 节做真实 Windows 冒烟，跑之前先关掉所有 PowerPoint。** python-pptx 仍在默认生成路径里（N7，须等 5B 通过）。环境是 Microsoft 365 而不是 2021（已确认）。
 
 ---
 ## 1. 项目目标与现状
@@ -231,12 +231,34 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 第 3 轮任务清单（先做 N2，再做 N0，然后 N1 / N3–N8；每项一个小批次）
+## 5. 第 3 轮任务清单（N0/N2 已通过；下一步是 5B 真机冒烟）
 
-> **基线：** 继续在 `feature/v01-office-renderer`（头 `7ceb945`）上做，或从它再拉 `feature/v01-office-renderer-2`；只推你自己的分支。规则（第 2 节）全部照旧。
-> **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器。** **N2 未合入之前，不要再跑 5B 的 doctor / `windows_com` / Smoke 4**（上一轮真实 Windows 冒烟已因 B8 挂死）。N0、N1、N3、N4 大部分 Linux 就能测，可与 N2 分开提交，但 **推送顺序以 N2 为先**。
+> **基线：** 继续在 `feature/v01-office-renderer`（头 `51703f4`，第 3 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
+> **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器（N7）。** N0–N6 已通过，可以开始 5B。跑 5B 之前必须先关掉所有 PowerPoint（见 5B「冒烟前检查单」）。
 
-### 第 3 轮复核（2026-11-21，宝特；对象 `feature/v01-office-renderer` 头 `e90b80f`）：N0–N6 已推，剩两处必须修
+### 第 3 轮已通过（2026-11-20 美东，宝特；对象 `feature/v01-office-renderer` 头 `51703f4`）
+
+e90b80f 之后新到 2 个提交（均 2026-11-20 美东 11:19 PM，作者 Antigravity (Gemini)）：
+
+| 提交 | 内容 |
+| --- | --- |
+| `2d0c3ef` | N0：在 `test_n0_windows_com_skips_when_powerpoint_unavailable` 注入假 pywin32 模块，覆盖「PowerPoint COM unavailable」分支；另有「pywin32 缺失」用例 |
+| `51703f4` | N2：启动前若已有 `POWERPNT.EXE` 则拒绝；`DispatchEx` 后若无新 PID 则立即释放并报错；`pptv01 doctor` 增加 `powerpoint_not_running` 阻断项 |
+
+**测试（评审机 Linux，全部 `PPTV01_*` unset，`pytest -o addopts="" -rs`）：516 passed，6 skipped（均为 `windows_com`，原因：当前平台是 linux），pytest 退出码 0。**
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| **N0** | ✅ 通过 | `tests/test_n0_windows_com_skip.py:19-32` 在没装 pywin32 时断言原因含 `pywin32 not installed`；`:35-52` 注入假 `pythoncom` / `win32com` / `win32com.client` 后再测 `PowerPoint COM unavailable` 分支。Linux 全量退出码 0。 |
+| **N2 启动前拒绝** | ✅ 通过 | `session.py:424-428`（真 COM 路径）与 `:364-371`（app_factory 路径）：已有 PID 且未显式允许时抛 `RendererUnavailableError`（「检测到 PowerPoint 已在运行…请先保存并关闭所有 PowerPoint 窗口」），不调用 `DispatchEx`。测试：`tests/test_n2_com_session_safety.py:20-43`、`:139-152`。 |
+| **N2 无新 PID 则报错** | ✅ 通过 | `session.py:448-460`：`DispatchEx` 后 `spawned` 为空则把 COM 引用置空并 `gc.collect()`，不碰 `Presentations` / `Quit` / `taskkill`，抛同样的明确错误。测试：`:46-86`、`:154-159`。 |
+| **N2 不附着、不误杀** | ✅ 通过 | 生产代码 `_connect_powerpoint`（`session.py:117-119`）只用 `DispatchEx`；`rg GetActiveObject` / `GetObject(` 在 `src/pptv01/` 仅出现在说明注释（`:5`）。`Quit` / `taskkill` 只作用于 `_owns_instance` 且 `_spawned_pids` 非空（`session.py:487-490, 510-549`）。测试：`:110-132`、`:277` 起。 |
+| **N2 看门狗** | ✅ 通过（此前已有，仍在） | 会话超时默认 120s、单步 45s（`session.py:36-37, 294-340`）；超时只杀自己启动的 PPT/Excel PID（`:277-290`）。测试：`:187`、`:226`。 |
+| **N2 doctor 阻断** | ✅ 通过 | `doctor.py` `_probe_powerpoint_not_running`（约 `:144-172`）为必检项；正在运行则 `[FAIL]` 并提示先关闭。测试：`tests/test_r7_doctor.py:94-110`。可选环境变量 `PPTV01_ALLOW_EXISTING_POWERPOINT` 仅作显式高级跳过，默认拒绝（符合此前约定）。 |
+
+**下一步（给用户，不是给反重力写代码）：按第 5B 节在本机做真实 Windows 冒烟。** 开始前务必走「冒烟前检查单」：关掉所有 PowerPoint 窗口（包括「文件 → 账户」），任务管理器里结束残留的 `POWERPNT.EXE` / `EXCEL.EXE`，跑的过程中不要再打开 PowerPoint。把 doctor、三组 pytest 退出码、Smoke 4 的 zip 和勾选结果回传。N7（切换默认渲染器、删除 python-pptx 写路径）仍须等 5B 回传通过后再做。
+
+### 第 3 轮复核原文（2026-11-21，对象当时的头 `e90b80f`；下面两条已在 `2d0c3ef` / `51703f4` 修好，勿再做）
 
 宝特在 Linux 上清环境跑了全量 `pytest`：除下面第 1 条外全部通过（`windows_com` 用例按预期跳过）。N2 的方向正确（只用 `DispatchEx`、记录自己启动的 PID、每步和整个会话都有超时、生产代码 `rg GetActiveObject` 为 0），但还有一个会再次挂死的缺口（第 2 条）。**这两条做完、推送之后，再跑 5B。**
 
@@ -249,7 +271,7 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 
 ### 紧急：先做 N2（COM 会话必须隔离，否则冒烟会再挂死）
 
-上一轮用户在真机跑 Smoke 4 时进程挂死。最可能的原因：用户当时开着 PowerPoint（在「文件 → 账户」里核对版本），COM 会话通过 `GetActiveObject` 连上了这个正在运行的实例（B8），和/或弹出了模态对话框，而代码没有超时看门狗，于是一直等下去。**在修好 B8 并推送之前，不要重跑 5B。**
+上一轮用户在真机跑 Smoke 4 时进程挂死。最可能的原因：用户当时开着 PowerPoint（在「文件 → 账户」里核对版本），COM 会话通过 `GetActiveObject` 连上了这个正在运行的实例（B8），和/或弹出了模态对话框，而代码没有超时看门狗，于是一直等下去。**B8/N2 已在 `51703f4` 修好（见上方「第 3 轮已通过」）。现在可以按 5B 重跑，但必须先关掉所有 PowerPoint。**
 
 要求（修 B8，规则 11；这是本轮**第一项**任务）：
 
@@ -302,7 +324,7 @@ Office.js add-in、macOS/Linux 渲染、云端批量（用户已说"以后再用
 
 > 目的：把"只在 fake COM 里验证过"的东西，在**真实 PowerPoint** 上验证，并把结果发回给宝特。按顺序做，**每一步的输出都复制/保存**。
 > 约定：路径用你机器上的仓库路径（下面以 `F:\ggagy\ai-acadmic-ppt-sys\v01` 为例）；PowerShell 里**不要把 pytest 接管道**（会吞退出码）。贴中文命令时建议用 **PowerShell 7**，或先执行 `chcp 65001`。
-> **先决（2026-11-20 更新）：必须先合入 N2（COM 隔离 + 超时看门狗），再跑本节的 doctor / `windows_com` / Smoke 4。** 上一轮冒烟在用户开着「文件 → 账户」核对版本时挂死，根因就是 B8（`GetActiveObject` 附着到已运行实例，且无超时）。N2 未到之前不要重跑。
+> **先决（2026-11-20 美东更新）：第 3 轮已通过（头 `51703f4`），现在可以跑本节的 doctor / `windows_com` / Smoke 4。** 上一轮冒烟在用户开着「文件 → 账户」时挂死；N2 已改为「已有 PowerPoint 就拒绝并明确报错」，所以**跑之前必须先关掉所有窗口并清掉残留进程**（见下面检查单），否则 doctor 和冒烟会直接失败（这是预期行为，不是挂死）。
 
 ### 冒烟前检查单（doctor、`windows_com`、Smoke 4 之前都要做；每一步都做一遍）
 
@@ -331,7 +353,7 @@ Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue |
 # 确认是本次残留后再结束：
 Get-Process POWERPNT,EXCEL -ErrorAction SilentlyContinue | Stop-Process -Force
 ```
-3. 把挂死时的最后一段终端输出、是否弹出过激活/登录/安全模式对话框、任务管理器截图，一起回传给宝特。**修好 N2 之前不要立刻重跑。**
+3. 把挂死时的最后一段终端输出、是否弹出过激活/登录/安全模式对话框、任务管理器截图，一起回传给宝特。确认已按检查单关干净 PowerPoint 之后，可以再跑一次；若在 `51703f4` 上仍然挂死（而不是立刻报「请先关闭 PowerPoint」），把完整输出发回。
 
 
 **0. 拿到最新代码和冒烟答案（不要 commit 这些）**
