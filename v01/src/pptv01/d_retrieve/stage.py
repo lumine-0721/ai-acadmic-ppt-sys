@@ -3,8 +3,8 @@
 Per requirement type (V0.1 wires two classes first, as the technical plan 6.5 asks):
   image      Wikidata (disambiguate named target, P18 = representative Commons file) + Commons search
              -> licence allowlist -> format/size -> relevance filter -> download -> Pillow-verify -> assets/<id>.<ext>
-  reference  OpenAlex (pyalex) -> relevance filter -> Crossref DOI verification -> assets/<id>.json (citation record)
-             fallback to Crossref search when OpenAlex fails (the failure is recorded)
+  reference  OpenAlex (httpx) -> relevance filter -> Crossref DOI verification -> assets/<id>.json (citation record)
+             fallback to Crossref search when OpenAlex fails (the failure is recorded; 429/402/403 opens run circuit breaker)
   others     recorded as ``missing`` with the reason (diagram/icon are drawn later; statistic/chart_data/table need a
              cited dataset and no source is wired yet). Nothing is ever fabricated.
 
@@ -203,6 +203,12 @@ class _Ctx:
         self.budget_exhausted_triggered = False
         self.cur_req_providers: list[str] = []
         self.cur_req_timeouts: list[str] = []
+        self.last_call_error: BackendError | None = None
+        self.oa_circuit_open = False
+        self.oa_circuit_code: int | None = None
+        self.oa_circuit_opened_at = ""
+        self.oa_circuit_skipped = 0
+        self.oa_first_error_elapsed_s = 0.0
 
     def remaining_s(self) -> float:
         return max(0.0, self.deadline - time.monotonic())
@@ -237,6 +243,7 @@ class _Ctx:
     def call(self, backend: str, purpose: str, query: str, fn, *, count=len, url: str = ""):
         """Run one API call with timeout & budget enforcement, logging (ok / no_results / error)."""
         clean_url = sanitize_url(url) if url else ""
+        self.last_call_error = None
         if backend not in self.cur_req_providers:
             self.cur_req_providers.append(backend)
         if self.budget_exhausted():
@@ -264,6 +271,7 @@ class _Ctx:
         try:
             res = _run_with_timeout(fn, self.call_limit_s(), provider=backend, url=clean_url or query)
         except BackendError as e:
+            self.last_call_error = e
             elapsed = e.elapsed_s if e.elapsed_s is not None else round(time.monotonic() - t0, 3)
             attempts = e.attempts if e.attempts is not None else 1
             err_url = sanitize_url(e.url or clean_url) or None
@@ -724,6 +732,24 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     oa_failed: list[str] = []
     works: list[Work] = []
     for q in queries:
+        if ctx.oa_circuit_open:
+            ctx.oa_circuit_skipped += 1
+            oa_failed.append(q)
+            msg = f"openalex: circuit_open after {ctx.oa_circuit_code} at {ctx.oa_circuit_opened_at} (skipped)"
+            ctx.log(f"skip openalex query={q!r}: {msg}")
+            ctx.calls.append(
+                SourceCall(
+                    backend="openalex",
+                    purpose="search works",
+                    query=q[:200],
+                    status="disabled",
+                    error=msg[:280],
+                    url=OPENALEX_WORKS,
+                    elapsed_s=0.0,
+                    attempts=0,
+                )
+            )
+            break
         if ctx.budget_exhausted():
             ctx.budget_exhausted_triggered = True
             oa_failed.append(q)
@@ -731,6 +757,21 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
         res = ctx.call("openalex", "search works", q, lambda q=q: sv.openalex.search(q, 6), url=OPENALEX_WORKS)
         if res is None:
             oa_failed.append(q)
+            err = ctx.last_call_error
+            code = getattr(err, "status_code", None) if err is not None else None
+            if code is None and err is not None:
+                m_code = re.search(r"\b(402|403|429)\b", str(err))
+                if m_code:
+                    code = int(m_code.group(1))
+            if code in (402, 403, 429) or (err is not None and "quota/rate limit" in str(err).lower()):
+                ctx.oa_circuit_open = True
+                ctx.oa_circuit_code = code or 429
+                ctx.oa_circuit_opened_at = now().isoformat(timespec="seconds")
+                ctx.oa_first_error_elapsed_s = float(getattr(err, "elapsed_s", None) or 0.0)
+                ctx.log(
+                    f"openalex: circuit_open after {ctx.oa_circuit_code} at {ctx.oa_circuit_opened_at}; "
+                    "skipping remaining OpenAlex queries and routing directly to Crossref"
+                )
             break                                  # quota / outage: do not hammer; fall back below
         works += [w for w in res if w.doi and w.openalex_id not in {x.openalex_id for x in works}]
         if exact and any(similar(w.title, primary.name) >= 0.85 for w in works):
@@ -879,7 +920,7 @@ def _acquire_reference(ctx: _Ctx, rq: AssetRequirement) -> AssetRecord:
     is_oa = w.origin == "openalex"
     return AssetRecord(
         asset_id=rq.asset_id, status=AssetStatus.acquired, type=AssetType.reference, file_path=rel, source_url=rec["url"],
-        source_name="OpenAlex (pyalex)" if is_oa else "Crossref",
+        source_name="OpenAlex" if is_oa else "Crossref",
         license_or_terms=("OpenAlex metadata, CC0; bibliographic record only" if is_oa
                           else "Crossref metadata (bibliographic record only)"),
         author=", ".join(a for a in w.authors[:3] if a) or None, identifier=w.doi, retrieved_at=now(),
@@ -942,6 +983,16 @@ def run_stage_d(plan: ProductionPlan, slide_plan: SlidePlan, reqs: AssetRequirem
             summary_str += f"; {px.degraded_note}"
         elif any(r.type is AssetType.image and "pixel_rules" in (r.checks.quality or "") for r in records):
             note_parts.append(px.status_summary)
+    if ctx.oa_circuit_open:
+        n_skip = ctx.oa_circuit_skipped
+        est_saved_s = round(6.0 + n_skip * max(12.0, ctx.oa_first_error_elapsed_s * 3.0), 1)
+        oa_note = (
+            f"openalex: circuit_open after {ctx.oa_circuit_code} at {ctx.oa_circuit_opened_at} "
+            f"(skipped {n_skip} request(s), est. saved ~{est_saved_s:.1f}s)"
+        )
+        ctx.log(oa_note)
+        note_parts.append(oa_note)
+        summary_str += f"; {oa_note}"
     info = RelevanceInfo(mode=services.relevance.mode, rules_version=RULES_VERSION, scorer=sc, model=model, threshold=thr,
                          n_candidates=ctx.n_cand, n_kept=ctx.n_kept, n_filtered=ctx.n_filtered,
                          note="; ".join(note_parts))

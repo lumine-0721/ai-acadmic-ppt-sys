@@ -16,7 +16,7 @@ No multi-agent orchestrator, no Deck IR, no legacy handoff files.
 | **A** production plan (+ `retrieval_brief`) | implemented |
 | **B** research + provisional slide plan | implemented; real retrieval (Wikipedia, Crossref, optional SearXNG) + relevance filter (structural rules, fastembed, optional bge-reranker; kept AND filtered hits recorded); structured `asset_needs` |
 | **C** asset requirements | implemented: every B need is covered or dropped with a reason; checked for traceability, concrete purpose, acceptance criteria |
-| **D** asset registry & user requests | implemented: Wikimedia Commons images (licence allowlist, author, source page) with Wikidata disambiguation/P18, cross-requirement deduplication (`shared_with`), OpenAlex (pyalex) + Crossref DOI verification; deterministic `user_input_requests.json` for `missing` items (`--on-missing wait\|placeholder`, `requests`/`provide` CLI) |
+| **D** asset registry & user requests | implemented: Wikimedia Commons images (licence allowlist, author, source page) with Wikidata disambiguation/P18, cross-requirement deduplication (`shared_with`), CLIP + RapidOCR pixel filtering (`pixel_rules`), OpenAlex (httpx + quota circuit breaker) + Crossref DOI verification; deterministic `user_input_requests.json` for `missing` items (`--on-missing wait\|placeholder`, `requests`/`provide` CLI) |
 | **E** slide asset mapping | implemented: maps only acquired/drawn/substituted or user-provided assets; optional VLM relevance (`PPTV01_E_VISION_MODEL`, else `not_assessed`) |
 | **F** page layout design + previews | implemented: 13.333×7.5 in geometry, CJK/Latin `slot_capacity` fitting, aspect-ratio adaptation, `PLACEHOLDER_U###` boxes, Pillow schematic previews (`layout schematic, not a render`), centralized `ThemeTokens` (`academic-default` via `PageDesign.theme_id` → Stage G) |
 | **G** native PPTX generation | implemented: `python-pptx` native text/shapes/charts/tables/images, slide notes attribution & licence checks, re-open verification |
@@ -35,7 +35,7 @@ pip install -e ".[dev]"            # add ,rank for the fastembed relevance score
 pytest
 ```
 
-Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx, cn2an, pyalex, pillow (pytest for dev; fastembed optional).
+Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx, cn2an, pillow (pytest for dev; fastembed / rapidocr-onnxruntime optional). See [`docs/proxy.md`](docs/proxy.md) for proxy, `HF_ENDPOINT` mirror, and model cache configuration.
 
 ## Environment variables (secrets only from env, never in code/logs)
 

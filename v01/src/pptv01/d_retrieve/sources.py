@@ -2,7 +2,7 @@
 
   Wikidata   entity search + P18 (representative image on Commons)   https://www.wikidata.org/w/api.php
   Commons    file search + imageinfo/extmetadata (licence, author)   https://commons.wikimedia.org/w/api.php
-  OpenAlex   works search through pyalex (MIT)                       https://docs.openalex.org
+  OpenAlex   works search over httpx REST API                     https://docs.openalex.org
   Crossref   DOI verification                                        https://api.crossref.org
 
 Every failure raises BackendError (never swallowed into fake data). HTTP is injectable (httpx transport) and the
@@ -332,17 +332,23 @@ def openalex_http_fetch(
     if api_key:
         params["api_key"] = api_key
     try:
-        d = _get_json(http, OPENALEX_WORKS, params, provider="openalex", deadline=deadline)
+        d = _get_json(http, OPENALEX_WORKS, params, provider="openalex", deadline=deadline, retry_on_429=False)
     except BackendError as e:
         msg = str(e)
-        if re.search(r"\b(?:402|403|429)\b|budget|quota|rate.?limit", msg, re.I) and "budget exhausted" not in msg.lower():
+        m_quota = re.search(r"\b(402|403|429)\b", msg)
+        code = e.status_code if e.status_code is not None else (int(m_quota.group(1)) if m_quota else None)
+        if (
+            (code in (402, 403, 429) or re.search(r"\b(?:402|403|429)\b|budget|quota|rate.?limit", msg, re.I))
+            and "budget exhausted" not in msg.lower()
+        ):
             raise BackendError(
-                f"OpenAlex quota/rate limit reached: set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: {msg[:160]}",
+                f"OpenAlex quota/rate limit reached ({code or 'quota'}): set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: {msg[:160]}",
                 provider="openalex",
                 url=e.url or OPENALEX_WORKS,
                 elapsed_s=e.elapsed_s,
                 attempts=e.attempts,
                 timed_out=e.timed_out,
+                status_code=code or 429,
             ) from None
         raise
     if not isinstance(d, dict):
@@ -350,7 +356,7 @@ def openalex_http_fetch(
     return list(d.get("results") or [])
 
 
-def pyalex_fetch(
+def openalex_default_fetch(
     query: str,
     limit: int,
     *,
@@ -359,7 +365,7 @@ def pyalex_fetch(
     connect_timeout_s: float = 10.0,
     read_timeout_s: float = 20.0,
 ) -> list[dict]:
-    """Default OpenAlex fetch over timeout-enforced httpx (replaces untimeouted pyalex/requests)."""
+    """Default OpenAlex fetch over timeout-enforced httpx."""
     contact = email or "https://github.com/lumine-0721/ai-acadmic-ppt-sys"
     with make_http(
         max(connect_timeout_s, read_timeout_s),
@@ -384,7 +390,7 @@ class OpenAlexClient:
         elif http is not None:
             self._fetch = lambda q, n: openalex_http_fetch(http, q, n, api_key=api_key, email=email)
         else:
-            self._fetch = lambda q, n: pyalex_fetch(q, n, api_key=api_key, email=email)
+            self._fetch = lambda q, n: openalex_default_fetch(q, n, api_key=api_key, email=email)
         self.keyed = bool(api_key)
 
     def search(self, query: str, limit: int = 5) -> list[Work]:

@@ -75,6 +75,7 @@ class BackendError(RuntimeError):
         elapsed_s: float | None = None,
         attempts: int | None = None,
         timed_out: bool = False,
+        status_code: int | None = None,
     ) -> None:
         super().__init__(message)
         self.provider = provider
@@ -82,6 +83,7 @@ class BackendError(RuntimeError):
         self.elapsed_s = elapsed_s
         self.attempts = attempts
         self.timed_out = timed_out
+        self.status_code = status_code
 
 
 @dataclass
@@ -155,6 +157,7 @@ def _get_json(
     provider: str = "",
     deadline: float | None = None,
     max_backoff_total_s: float = 12.0,
+    retry_on_429: bool = True,
 ) -> dict:
     eff_deadline = deadline if deadline is not None else getattr(http, "_pptv01_deadline", None)
     host = httpx.URL(url).host
@@ -166,6 +169,7 @@ def _get_json(
 
     t0 = time.monotonic()
     last = "unknown error"
+    last_status: int | None = None
     attempts = 0
     backoff_used = 0.0
     timed_out = False
@@ -180,6 +184,7 @@ def _get_json(
                 elapsed_s=elapsed,
                 attempts=attempts,
                 timed_out=True,
+                status_code=last_status,
             )
         attempts += 1
         wait = 1.0 * (2 ** attempt)
@@ -206,9 +211,11 @@ def _get_json(
                         url=clean_url,
                         elapsed_s=elapsed,
                         attempts=attempts,
+                        status_code=r.status_code,
                     ) from None
+            last_status = r.status_code
             last = f"HTTP {r.status_code} from {host}"
-            if r.status_code == 429 or r.status_code >= 500:
+            if (r.status_code == 429 and retry_on_429) or r.status_code >= 500:
                 try:
                     wait = min(float(r.headers.get("Retry-After", wait)), 10.0)
                 except ValueError:
@@ -221,7 +228,8 @@ def _get_json(
                     url=clean_url,
                     elapsed_s=elapsed,
                     attempts=attempts,
-                )  # 4xx other than 429: retrying will not help
+                    status_code=r.status_code,
+                )  # 4xx (or non-retrying 429): fail fast without backoff
 
         if attempt < RETRIES:
             rem_backoff = max_backoff_total_s - backoff_used
@@ -244,6 +252,7 @@ def _get_json(
         elapsed_s=elapsed,
         attempts=attempts,
         timed_out=timed_out,
+        status_code=last_status,
     )
 
 

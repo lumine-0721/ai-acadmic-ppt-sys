@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import builtins
-import json
 import sys
 import threading
 import time
 from types import SimpleNamespace
 
 import httpx
-import pytest
 from PIL import Image, ImageDraw
 from pptx import Presentation
 
@@ -25,7 +22,7 @@ from pptv01.contracts import (
     load_contract,
 )
 from pptv01.d_retrieve import run_stage_d, services_from_env
-from pptv01.d_retrieve.sources import OpenAlexClient, openalex_http_fetch, pyalex_fetch
+from pptv01.d_retrieve.sources import openalex_default_fetch
 from pptv01.retrieval import relevance as rel_mod
 from pptv01.retrieval.backends import make_http, sanitize_url
 from pptv01.runner import run_pipeline
@@ -306,8 +303,8 @@ def test_r5_1_fastembed_load_timeout_degrades_to_structural_without_hanging(monk
     assert "user" not in rf.unavailable and "pw" not in rf.unavailable
 
 
-def test_r5_1_sanitize_url_and_pyalex_fetch_uses_httpx_timeouts(monkeypatch):
-    """pyalex_fetch delegates to timeout-bounded httpx (never raw requests without timeout) and sanitize_url drops secrets."""
+def test_r5_1_sanitize_url_and_openalex_default_fetch_uses_httpx_timeouts(monkeypatch):
+    """openalex_default_fetch delegates to timeout-bounded httpx (never raw requests without timeout) and sanitize_url drops secrets."""
     assert (
         sanitize_url("https://user:secret@api.openalex.org/works?search=ai&api_key=MYKEY&mailto=a@b.c")
         == "https://api.openalex.org/works?search=ai&mailto=a%40b.c"
@@ -333,6 +330,6 @@ def test_r5_1_sanitize_url_and_pyalex_fetch_uses_httpx_timeouts(monkeypatch):
     import pptv01.d_retrieve.sources as src_mod
 
     monkeypatch.setattr(src_mod, "make_http", wrapped_make)
-    rows = pyalex_fetch("ai", 3, api_key="k", connect_timeout_s=2.5, read_timeout_s=4.5)
+    rows = openalex_default_fetch("ai", 3, api_key="k", connect_timeout_s=2.5, read_timeout_s=4.5)
     assert len(rows) == 1 and rows[0]["title"] == "AI"
     assert seen and seen[0].connect == 2.5 and seen[0].read == 4.5
