@@ -291,6 +291,25 @@ def _detect_subregions(text: str) -> set[str]:
     return {name for name, pat in _SUBREGION_PATTERNS if pat.search(text)}
 
 
+def check_wikidata_entity_geo_conflict(target_name: str, entity_label: str, entity_desc: str) -> str | None:
+    """Reject a Wikidata disambiguation candidate whose description conflicts geographically with ``target_name``."""
+    want_countries = _detect_countries(target_name, candidate_side=False)
+    cand_countries = _detect_countries(f"{entity_label} {entity_desc}", candidate_side=True)
+    if want_countries and cand_countries and not (want_countries & cand_countries):
+        return (
+            f"geographic conflict: target {target_name!r} expects country {sorted(want_countries)}, "
+            f"but Wikidata candidate indicates {sorted(cand_countries)}"
+        )
+    want_subregions = _detect_subregions(target_name)
+    cand_subregions = _detect_subregions(f"{entity_label} {entity_desc}")
+    if want_subregions and cand_subregions and not (want_subregions & cand_subregions):
+        return (
+            f"geographic conflict: target {target_name!r} expects subregion {sorted(want_subregions)}, "
+            f"but Wikidata candidate indicates {sorted(cand_subregions)}"
+        )
+    return None
+
+
 def check_geographic_entity_conflict(
     f: CommonsFile,
     rq: AssetRequirement,
@@ -301,24 +320,33 @@ def check_geographic_entity_conflict(
 ) -> str | None:
     """General country and sub-national administrative conflict check (B14 fix).
 
-    Compares expected country/subregion signals from the requirement target + Wikidata P17/description
+    Compares expected country/subregion signals from the PRIMARY target + Wikidata P17/description
     against the candidate's Commons title, description, and Categories.
+    (Never mixes uncovered secondary targets like '纽约' into the primary target's country set.)
     """
     ent_label = entity.label if entity else entity_label
     ent_desc = entity.description if entity else entity_desc
-    target_text = " ".join(
-        [
-            *(t.name for t in rq.targets),
-            rq.purpose,
-            *rq.query_hints,
-            ent_label,
-            ent_desc,
-        ]
-    )
+    primary_name = rq.targets[0].name if rq.targets else ""
+    primary_countries = _detect_countries(primary_name, candidate_side=False)
+    primary_subregions = _detect_subregions(primary_name)
+
+    if primary_countries or primary_subregions:
+        # Primary target explicitly specifies a place/country -> do not let secondary targets or noisy hints dilute it
+        want_countries = primary_countries | _detect_countries(f"{ent_label} {ent_desc}", entity=entity, candidate_side=True)
+        # If entity itself conflicts with primary_countries, trust primary_countries
+        if primary_countries and not (primary_countries & want_countries):
+            want_countries = primary_countries
+        elif primary_countries:
+            want_countries = primary_countries
+        want_subregions = primary_subregions
+    else:
+        target_text = " ".join([primary_name, rq.purpose, *rq.query_hints, ent_label, ent_desc])
+        want_countries = _detect_countries(target_text, entity=entity, candidate_side=False)
+        want_subregions = _detect_subregions(target_text)
+
     cand_text = " | ".join([f.title, f.name, f.description, *f.categories])
 
     # 1) Country-level conflict (e.g., China vs USA/Illinois, France vs USA/Texas, UK vs USA/Massachusetts, Greece vs USA/Arkansas)
-    want_countries = _detect_countries(target_text, entity=entity, candidate_side=False)
     cand_countries = _detect_countries(cand_text, candidate_side=True)
     if want_countries and cand_countries and not (want_countries & cand_countries):
         return (
@@ -327,7 +355,6 @@ def check_geographic_entity_conflict(
         )
 
     # 2) Same-country sub-national conflict (e.g., Springfield, Illinois vs Springfield, Oregon)
-    want_subregions = _detect_subregions(target_text)
     cand_subregions = _detect_subregions(cand_text)
     if want_subregions and cand_subregions and not (want_subregions & cand_subregions):
         return (

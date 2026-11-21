@@ -512,6 +512,13 @@ def _build_presentation_once(
                         color_hex=p.get("color_hex"),
                         align=str(p.get("align", "left")),
                     )
+                    # Native layout placeholders start at Z-order 1 before bg_header is added;
+                    # bring placeholder to front (msoBringToFront = 0, Office 97+/2021 baseline API)
+                    # so header background bands can never occlude the slide title.
+                    try:
+                        sh.ZOrder(0)
+                    except Exception:
+                        pass
                     if op.element_id:
                         slide_shapes[op.element_id] = sh
                     slide_shapes[sh_name] = sh
@@ -580,6 +587,12 @@ def _build_presentation_once(
                             align=str(p.get("align", "center")),
                             vertical_anchor=MSO_ANCHOR_MIDDLE,
                         )
+                    if sh_name.lower().startswith("bg_") or str(p.get("role", "")) in ("header_band", "background_card"):
+                        # Send background bands behind native layout placeholders (msoSendToBack = 1)
+                        try:
+                            sh.ZOrder(1)
+                        except Exception:
+                            pass
                     if op.element_id:
                         slide_shapes[op.element_id] = sh
                     slide_shapes[sh_name] = sh

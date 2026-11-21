@@ -406,3 +406,85 @@ def test_n5_b14_three_unrelated_homonym_places_general_rules(tmp_path):
         wrong_c = next(c for c in a.candidates if c.title == wrong_page["title"])
         assert wrong_c.decision == "rejected"
         assert "geographic/entity conflict" in wrong_c.reason
+
+
+def test_n5_live_wikidata_disambiguation_rejects_pekin_illinois_even_with_multitarget_new_york(tmp_path):
+    """Live Smoke 4 T02 A009 regression: Wikidata returns Q578328 (Pekin, Illinois) with exact alias '北京'
+    alongside Q956 (北京市), and requirement has secondary target '纽约'.
+    Stage D must reject Q578328 at entity disambiguation and select Q956 (Beijing, China).
+    """
+    img = _jpeg()
+    wd_search = {
+        "search": [
+            {
+                "id": "Q578328",
+                "label": "Pekin",
+                "description": "city and county seat of Tazewell County, Illinois, United States",
+                "match": {"type": "alias", "language": "zh", "text": "北京"},
+            },
+            {
+                "id": "Q956",
+                "label": "北京市",
+                "description": "中华人民共和国首都暨直辖市",
+                "match": {"type": "label", "language": "zh", "text": "北京市"},
+            },
+        ]
+    }
+    wd_ent_q956 = {
+        "entities": {
+            "Q956": {
+                "id": "Q956",
+                "labels": {"en": {"value": "Beijing"}, "zh": {"value": "北京市"}},
+                "descriptions": {"en": {"value": "capital city of China"}},
+                "aliases": {"zh": [{"value": "北京"}], "en": [{"value": "Peking"}]},
+                "claims": {
+                    "P17": [{"mainsnak": {"datavalue": {"value": {"id": "Q148"}}}, "rank": "normal"}],
+                    "P18": [{"mainsnak": {"datavalue": {"value": "Beijing_skyline_from_northeast_4th_ring_road.jpg"}}, "rank": "normal"}],
+                },
+            }
+        }
+    }
+    beijing_p18 = _commons_page(
+        "File:Beijing skyline from northeast 4th ring road.jpg",
+        index=1,
+        desc="Beijing skyline in China",
+        categories="Beijing|China",
+    )
+
+    def handler(req_: httpx.Request) -> httpx.Response:
+        q = dict(req_.url.params)
+        if req_.url.host == "www.wikidata.org":
+            if q.get("action") == "wbsearchentities":
+                return httpx.Response(200, json=wd_search)
+            if q.get("props") == "claims":
+                return httpx.Response(200, json={"entities": {"Q578328": {"claims": {}}, "Q956": {"claims": {}}}})
+            return httpx.Response(200, json=wd_ent_q956)
+        if req_.url.host == "commons.wikimedia.org":
+            return httpx.Response(200, json={"query": {"pages": [beijing_p18]}})
+        return httpx.Response(200, content=img, headers={"content-type": "image/jpeg"})
+
+    sv = services_from_env(
+        {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural"},
+        transport=httpx.MockTransport(handler),
+    )
+    plan, sp = _make_plan_and_sp("城市热岛效应")
+    multi_req = {
+        "asset_id": "A009",
+        "page_ids": ["S001"],
+        "need_refs": ["S001#1"],
+        "type": "image",
+        "purpose": "以北京、纽约等典型城市展示城市热岛实景",
+        "targets": [
+            {"name": "北京", "entity_type": "place", "verification": "to_verify"},
+            {"name": "纽约", "entity_type": "place", "verification": "to_verify"},
+        ],
+        "query_hints": ["Beijing urban heat island", "New York urban heat island"],
+        "priority": "required",
+        "acceptance": ["真实场景", "许可明确"],
+    }
+    reg = run_stage_d(plan, sp, AssetRequirements(run_id=RID, requirements=[multi_req]), tmp_path, sv)
+    a = reg.assets[0]
+    assert a.status is AssetStatus.acquired
+    assert a.entity is not None and a.entity.qid == "Q956"
+    assert a.identifier == "File:Beijing skyline from northeast 4th ring road.jpg"
+    assert any("Q578328" in alt and "geographic conflict" in alt for alt in a.entity.alternatives)

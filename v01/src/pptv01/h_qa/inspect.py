@@ -175,6 +175,8 @@ def inspect_deck(
     for idx, slide in enumerate(prs.slides):
         pid = page_ids[idx] if idx < len(page_ids) else f"S{idx + 1:03d}"
         fg_boxes: list[tuple[str, tuple[float, float, float, float]]] = []
+        bg_z_boxes: list[tuple[int, str, tuple[float, float, float, float]]] = []
+        fg_z_text_boxes: list[tuple[int, str, tuple[float, float, float, float]]] = []
         geo_boxes: list[GeoBox] = []
         bound_h_by_name: dict[str, float] = {}
         pic_count = 0
@@ -335,6 +337,10 @@ def inspect_deck(
 
             if not is_bg and not is_conn:
                 fg_boxes.append((eid, (x, y, w, h)))
+                if has_txt:
+                    fg_z_text_boxes.append((s_i, eid, (x, y, w, h)))
+            elif is_bg and eid.lower().startswith(("bg_", "card_")):
+                bg_z_boxes.append((s_i, eid, (x, y, w, h)))
 
         # Pure-arithmetic empty card, undersized image slot, & edge-alignment checks (B6 / pptlive geometry lint)
         for card_id, detail in find_empty_cards(geo_boxes, bound_heights_pt=bound_h_by_name):
@@ -396,6 +402,21 @@ def inspect_deck(
                         element_id=id_b,
                         description=f"foreground occlusion between {id_a} and {id_b} ({area:.2f} sq in)",
                     ))
+
+        # 4b) z-order check: an opaque bg_*/card_* shape placed ABOVE a text/placeholder shape hides it!
+        for bg_z, bg_id, bg_box in bg_z_boxes:
+            for fg_z, fg_id, fg_box in fg_z_text_boxes:
+                if bg_z > fg_z:
+                    area = _overlap_area(bg_box, fg_box)
+                    fg_area = fg_box[2] * fg_box[3]
+                    if fg_area > 0 and (area / fg_area) > 0.30:
+                        issues.append(QAIssue(
+                            page_id=pid,
+                            kind=QAIssueKind.occlusion,
+                            severity=Severity.blocker,
+                            element_id=fg_id,
+                            description=f"background shape {bg_id} (z={bg_z}) sits above foreground text {fg_id} (z={fg_z}), hiding content",
+                        ))
 
         # 5) rendered PNG sanity check (non-blank)
         if rendered_pngs and idx < len(rendered_pngs):

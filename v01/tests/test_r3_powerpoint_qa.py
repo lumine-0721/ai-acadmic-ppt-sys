@@ -364,6 +364,33 @@ def test_runner_relative_out_dir_handles_resolved_renderer_paths(tmp_path, monke
     assert any(f.startswith("render/slide_") for f in st["H"].output_files)
 
 
+def test_qa_detects_bg_header_occluding_title_in_z_order(tmp_path):
+    """Real Smoke 4 regression: bg_header placed above native title in Z-order must trigger blocker occlusion."""
+    from pptv01.h_qa.inspect import inspect_deck
+
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    sl = prs.slides.add_slide(prs.slide_layouts[5])  # Title Only (placeholder at z=0)
+    sl.shapes.title.name = "title"
+    sl.shapes.title.left = Inches(0.65)
+    sl.shapes.title.top = Inches(0.22)
+    sl.shapes.title.width = Inches(12.03)
+    sl.shapes.title.height = Inches(0.88)
+    sl.shapes.title.text = "咖啡店创业计划"
+    # Adding bg_header AFTER title puts it at z=1 (ABOVE title, hiding it!)
+    bg = sl.shapes.add_shape(1, Inches(0.0), Inches(0.0), Inches(13.333), Inches(1.24))
+    bg.name = "bg_header"
+    p = tmp_path / "zorder_bug.pptx"
+    prs.save(str(p))
+
+    issues = inspect_deck(p)
+    assert any(
+        i.kind is QAIssueKind.occlusion and i.severity.value == "blocker" and "bg_header" in i.description
+        for i in issues
+    ), f"expected z-order blocker occlusion, got: {issues}"
+
+
 # ------------------------------------------------------------------ 3. Real Windows PowerPoint COM R3 test
 @pytest.mark.windows_com
 def test_r3_real_powerpoint_com_detects_and_repairs_measured_text_overflow(tmp_path):

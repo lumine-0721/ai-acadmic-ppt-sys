@@ -35,6 +35,7 @@ from .image_rules import (
     check_geographic_entity_conflict,
     check_non_photo_artwork,
     check_target_entity_match,
+    check_wikidata_entity_geo_conflict,
     inspect_image_with_vision,
 )
 from .license import check_license, needs_attribution, plain
@@ -192,8 +193,11 @@ def _resolve_entity(ctx: _Ctx, rq: AssetRequirement, name: str, etype: str) -> t
     kept: list[WdEntity] = []
     for e in found:
         bad = sorted(NON_SUBJECT_CLASSES[t] for t in types.get(e.qid, set()) if t in NON_SUBJECT_CLASSES)
+        geo_bad = check_wikidata_entity_geo_conflict(name, e.label, e.description)
         if bad:
             rejected.append(f"{e.qid} {e.label[:60]} - rejected: instance of {', '.join(bad)}")
+        elif geo_bad:
+            rejected.append(f"{e.qid} {e.label[:60]} - rejected: {geo_bad}")
         else:
             kept.append(e)
     ctx.wd_rejected[name] = rejected
