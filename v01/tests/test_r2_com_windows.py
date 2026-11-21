@@ -87,7 +87,9 @@ def test_real_powerpoint_com_build_export_measure_and_b5_five_node_diagram(tmp_p
 
 
 @pytest.mark.windows_com
-def test_real_powerpoint_com_leaves_unrelated_open_presentation_untouched(tmp_path):
+def test_real_powerpoint_com_leaves_unrelated_open_presentation_untouched(tmp_path, monkeypatch):
+    from pptv01.renderers.protocol import RendererUnavailableError
+
     renderer = PowerPointComRenderer()
     import pythoncom
     import win32com.client
@@ -99,16 +101,21 @@ def test_real_powerpoint_com_leaves_unrelated_open_presentation_untouched(tmp_pa
     from pptv01.renderers.powerpoint_com.session import _ensure_com_initialized
 
     _ensure_com_initialized(pythoncom)
-    app = win32com.client.Dispatch("PowerPoint.Application")
+    app = win32com.client.DispatchEx("PowerPoint.Application")
     user_pres = None
     try:
         user_pres = app.Presentations.Add(WithWindow=0)
         user_pres.Slides.Add(1, 12)
         before_count = int(app.Presentations.Count)
 
+        # 1) Default N2 safety guard: MUST refuse when PowerPoint is already running!
+        with pytest.raises(RendererUnavailableError, match="检测到 PowerPoint 已在运行"):
+            renderer.build(ops_no_chart, tmp_path)
+
+        # 2) Explicit opt-in still leaves the user's open presentation 100% untouched
+        monkeypatch.setenv("PPTV01_ALLOW_EXISTING_POWERPOINT", "1")
         res = renderer.build(ops_no_chart, tmp_path)
         assert res.pptx_path.is_file()
-        # User presentation must still be open and have its slide intact
         assert int(app.Presentations.Count) == before_count
         assert int(user_pres.Slides.Count) == 1
     finally:

@@ -90,6 +90,25 @@ def test_r7_cli_doctor_exit_code_reflects_report(monkeypatch, capsys):
     assert "NOT READY" in capsys.readouterr().out
 
 
+def test_n2_doctor_blocks_when_powerpoint_already_running():
+    """Round-3 N2: doctor must report a running POWERPNT.EXE as a required blocking failure with close hint."""
+    from pptv01.doctor import _probe_powerpoint_not_running
+
+    blocked = _probe_powerpoint_not_running(list_pids_fn=lambda: {12345, 67890})
+    assert blocked.required is True
+    assert blocked.ok is False
+    assert "PowerPoint 正在运行" in blocked.detail and "12345" in blocked.detail
+    assert "关闭所有 PowerPoint 窗口" in blocked.fix_hint
+
+    rep = run_doctor(probes=[lambda: blocked])
+    assert rep.ok is False
+    txt = format_doctor_report(rep)
+    assert "[FAIL]" in txt and "NOT READY" in txt
+
+    clean = _probe_powerpoint_not_running(list_pids_fn=lambda: set())
+    assert clean.required is True and clean.ok is True
+
+
 @pytest.mark.windows_com
 def test_r7_windows_real_doctor_all_required_green(capsys):
     """Run real `pptv01 doctor` on this Windows desktop machine and verify edition metadata + required checks pass."""
@@ -99,7 +118,7 @@ def test_r7_windows_real_doctor_all_required_green(capsys):
     assert rc == 0, f"pptv01 doctor failed: {captured}"
     assert data["ok"] is True
     by_name = {c["name"]: c for c in data["checks"]}
-    for req in ("windows_os", "python", "pywin32", "powerpoint_com", "excel_com", "cjk_fonts"):
+    for req in ("windows_os", "python", "pywin32", "powerpoint_not_running", "powerpoint_com", "excel_com", "cjk_fonts"):
         assert by_name[req]["ok"] is True, f"{req} failed: {by_name[req]}"
     assert "16.0" in by_name["powerpoint_com"]["detail"]
     assert "产品类型：" in by_name["powerpoint_com"]["detail"]

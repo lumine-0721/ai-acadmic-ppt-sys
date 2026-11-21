@@ -36,8 +36,16 @@ DEFAULT_COM_TIMEOUT_S = 120.0
 DEFAULT_COM_STEP_TIMEOUT_S = 45.0
 ENV_COM_TIMEOUT_S = "PPTV01_COM_TIMEOUT_S"
 ENV_COM_STEP_TIMEOUT_S = "PPTV01_COM_STEP_TIMEOUT_S"
+ENV_ALLOW_EXISTING_PPT = "PPTV01_ALLOW_EXISTING_POWERPOINT"
 
 _COM_THREAD_STATE = threading.local()
+
+
+def _resolve_allow_existing(allow_existing: bool | None) -> bool:
+    if allow_existing is not None:
+        return bool(allow_existing)
+    raw = os.environ.get(ENV_ALLOW_EXISTING_PPT, "").strip().lower()
+    return raw in ("1", "true", "yes", "on")
 
 
 def _resolve_timeout_s(timeout_s: float | None, *, env_var: str = ENV_COM_TIMEOUT_S, default: float = DEFAULT_COM_TIMEOUT_S) -> float:
@@ -202,6 +210,8 @@ class PowerPointSession:
         step_timeout_s: float | None = None,
         terminate_pids_fn: Callable[[set[int]], None] | None = None,
         list_excel_pids_fn: Callable[[], set[int]] | None = None,
+        list_powerpnt_pids_fn: Callable[[], set[int]] | None = None,
+        allow_existing_powerpoint: bool | None = None,
     ) -> None:
         self._app_factory = app_factory
         self._timeout_s = _resolve_timeout_s(timeout_s, env_var=ENV_COM_TIMEOUT_S, default=DEFAULT_COM_TIMEOUT_S)
@@ -210,6 +220,8 @@ class PowerPointSession:
         )
         self._terminate_pids_fn = terminate_pids_fn or _terminate_pids
         self._list_excel_pids_fn = list_excel_pids_fn or (lambda: _list_pids("EXCEL.EXE"))
+        self._list_powerpnt_pids_fn = list_powerpnt_pids_fn
+        self._allow_existing = _resolve_allow_existing(allow_existing_powerpoint)
         self._pythoncom: Any = None
         self.app: Any = None
         self._owned_presentations: list[Any] = []
@@ -349,20 +361,50 @@ class PowerPointSession:
             self._pre_excel_pids = set()
 
         if self._app_factory is not None:
+            pre_pids: set[int] = set()
+            if self._list_powerpnt_pids_fn is not None:
+                pre_pids = set(self._list_powerpnt_pids_fn())
+                if pre_pids and not self._allow_existing:
+                    raise RendererUnavailableError(
+                        f"检测到 PowerPoint 已在运行（PID {sorted(pre_pids)}）。"
+                        "PowerPoint 只允许一个实例，请先保存并关闭所有 PowerPoint 窗口后再运行。"
+                    )
             try:
-                self.app = self._app_factory()
+                app = self._app_factory()
             except RendererUnavailableError:
                 raise
             except Exception as e:
                 raise RendererUnavailableError(f"failed to initialize PowerPoint COM: {e}") from None
+
+            if self._list_powerpnt_pids_fn is not None:
+                post_pids = set(self._list_powerpnt_pids_fn())
+                spawned = post_pids - pre_pids
+                if not spawned and not self._allow_existing:
+                    app = None
+                    gc.collect()
+                    raise RendererUnavailableError(
+                        "启动 PowerPoint 后未检测到新进程 PID（说明 COM 连到了已有 PowerPoint 实例）。"
+                        "请先保存并关闭所有 PowerPoint 窗口后再运行。"
+                    )
+                self._spawned_pids = spawned
+            else:
+                raw_pids = getattr(app, "spawned_pids", None)
+                if raw_pids is not None:
+                    self._spawned_pids = set(raw_pids)
+
+            is_preexisting = bool(getattr(app, "is_preexisting", False))
+            if is_preexisting and not self._allow_existing:
+                app = None
+                gc.collect()
+                raise RendererUnavailableError(
+                    "检测到 PowerPoint 已在运行。PowerPoint 只允许一个实例，请先保存并关闭所有 PowerPoint 窗口后再运行。"
+                )
+
+            self.app = app
             try:
                 self._initial_open_count = int(self.app.Presentations.Count)
             except Exception:
                 self._initial_open_count = 0
-            raw_pids = getattr(self.app, "spawned_pids", None)
-            if raw_pids is not None:
-                self._spawned_pids = set(raw_pids)
-            is_preexisting = bool(getattr(self.app, "is_preexisting", False))
             self._owns_instance = (not is_preexisting) and (self._initial_open_count == 0)
             try:
                 self._prev_display_alerts = getattr(self.app, "DisplayAlerts", None)
@@ -377,14 +419,43 @@ class PowerPointSession:
             self._start_session_watchdog()
             return self
 
+        pid_lister = self._list_powerpnt_pids_fn or _list_powerpnt_pids
+        pre_pids = set(pid_lister())
+        if pre_pids and not self._allow_existing:
+            raise RendererUnavailableError(
+                f"检测到 PowerPoint 已在运行（PID {sorted(pre_pids)}）。"
+                "PowerPoint 只允许一个实例，请先保存并关闭所有 PowerPoint 窗口后再运行。"
+            )
+
         pythoncom, win32_client = _import_com_modules()
         self._pythoncom = pythoncom
         _ensure_com_initialized(pythoncom)
-        pre_pids = _list_powerpnt_pids()
+
+        # Re-check PIDs right before DispatchEx in case a user opened PowerPoint during module import
+        pre_pids = set(pid_lister())
+        if pre_pids and not self._allow_existing:
+            self._pythoncom = None
+            raise RendererUnavailableError(
+                f"检测到 PowerPoint 已在运行（PID {sorted(pre_pids)}）。"
+                "PowerPoint 只允许一个实例，请先保存并关闭所有 PowerPoint 窗口后再运行。"
+            )
+
         last_err: Exception | None = None
+        spawned: set[int] = set()
         for _attempt in range(10):
             try:
                 app = _connect_powerpoint(win32_client)
+                spawned = set(pid_lister()) - pre_pids
+                if not spawned and not self._allow_existing:
+                    # PowerPoint attached to an existing instance instead of starting a new process:
+                    # release COM proxy immediately without touching Presentations/DisplayAlerts/Quit/taskkill.
+                    app = None
+                    gc.collect()
+                    self._pythoncom = None
+                    raise RendererUnavailableError(
+                        "启动 PowerPoint 后未检测到新进程 PID（说明 COM 连到了已有 PowerPoint 实例）。"
+                        "请先保存并关闭所有 PowerPoint 窗口后再运行。"
+                    )
                 _ = str(app.Version)
                 init_count = int(app.Presentations.Count)
                 try:
@@ -402,6 +473,8 @@ class PowerPointSession:
                 self._initial_open_count = init_count
                 last_err = None
                 break
+            except RendererUnavailableError:
+                raise
             except Exception as e:
                 last_err = e
                 time.sleep(0.6)
@@ -411,7 +484,7 @@ class PowerPointSession:
                 f"Microsoft PowerPoint COM ('PowerPoint.Application') is unavailable: {last_err}"
             ) from None
 
-        self._spawned_pids = _list_powerpnt_pids() - pre_pids
+        self._spawned_pids = spawned
         # Strictly own the instance ONLY when we actually spawned a new POWERPNT.EXE PID
         # and no pre-existing user presentations were open.
         self._owns_instance = bool(self._spawned_pids) and (self._initial_open_count == 0)
@@ -493,6 +566,8 @@ def open_powerpoint_session(
     step_timeout_s: float | None = None,
     terminate_pids_fn: Callable[[set[int]], None] | None = None,
     list_excel_pids_fn: Callable[[], set[int]] | None = None,
+    list_powerpnt_pids_fn: Callable[[], set[int]] | None = None,
+    allow_existing_powerpoint: bool | None = None,
 ) -> Iterator[PowerPointSession]:
     with PowerPointSession(
         app_factory=app_factory,
@@ -500,6 +575,8 @@ def open_powerpoint_session(
         step_timeout_s=step_timeout_s,
         terminate_pids_fn=terminate_pids_fn,
         list_excel_pids_fn=list_excel_pids_fn,
+        list_powerpnt_pids_fn=list_powerpnt_pids_fn,
+        allow_existing_powerpoint=allow_existing_powerpoint,
     ) as sess:
         yield sess
 

@@ -7,12 +7,107 @@ from types import SimpleNamespace
 
 import pytest
 
+from pptv01.renderers.powerpoint_com import session as com_session
 from pptv01.renderers.powerpoint_com.session import (
     _connect_powerpoint,
     open_powerpoint_session,
 )
-from pptv01.renderers.protocol import RenderExecutionError
+from pptv01.renderers.protocol import RenderExecutionError, RendererUnavailableError
 from tests.fake_com import FakePowerPointApp
+
+
+def test_n2_refuses_when_powerpoint_already_running_before_launch_without_calling_dispatchex(monkeypatch):
+    """Round-3 N2 (a): if POWERPNT.EXE PID already exists before launch, raise clear error and NEVER call DispatchEx."""
+    dispatchex_calls: list[str] = []
+    terminated: list[set[int]] = []
+
+    fake_pythoncom = SimpleNamespace(CoInitialize=lambda: None)
+    fake_win32 = SimpleNamespace(
+        DispatchEx=lambda progid: (dispatchex_calls.append(progid), FakePowerPointApp())[1]
+    )
+    monkeypatch.setattr(com_session, "_import_com_modules", lambda: (fake_pythoncom, fake_win32))
+    monkeypatch.setattr(com_session, "_ensure_com_initialized", lambda _pc: None)
+
+    with pytest.raises(RendererUnavailableError) as excinfo:
+        with open_powerpoint_session(
+            list_powerpnt_pids_fn=lambda: {23456},
+            terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+        ):
+            pass
+
+    msg = str(excinfo.value)
+    assert "检测到 PowerPoint 已在运行" in msg and "23456" in msg
+    assert "请先保存并关闭所有 PowerPoint 窗口" in msg
+    assert dispatchex_calls == []
+    assert terminated == []
+
+
+def test_n2_refuses_when_dispatchex_spawns_no_new_pid_without_touching_instance(monkeypatch):
+    """Round-3 N2 (b): if DispatchEx produces no new PID (attached to existing instance), abort immediately
+    without calling Presentations.Add, Quit, or taskkill."""
+    dispatchex_calls: list[str] = []
+    terminated: list[set[int]] = []
+    app = FakePowerPointApp()
+    app.DisplayAlerts = 2
+    app.AutomationSecurity = 1
+    add_called = False
+    orig_add = app.Presentations.Add
+
+    def tracked_add(*args, **kwargs):
+        nonlocal add_called
+        add_called = True
+        return orig_add(*args, **kwargs)
+
+    app.Presentations.Add = tracked_add  # type: ignore[method-assign]
+
+    fake_pythoncom = SimpleNamespace(CoInitialize=lambda: None)
+    fake_win32 = SimpleNamespace(
+        DispatchEx=lambda progid: (dispatchex_calls.append(progid), app)[1]
+    )
+    monkeypatch.setattr(com_session, "_import_com_modules", lambda: (fake_pythoncom, fake_win32))
+    monkeypatch.setattr(com_session, "_ensure_com_initialized", lambda _pc: None)
+
+    # Pre-launch returns empty; post-launch ALSO returns empty -> no new PID spawned!
+    with pytest.raises(RendererUnavailableError) as excinfo:
+        with open_powerpoint_session(
+            list_powerpnt_pids_fn=lambda: set(),
+            terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+        ):
+            pass
+
+    msg = str(excinfo.value)
+    assert "未检测到新进程 PID" in msg
+    assert "请先保存并关闭所有 PowerPoint 窗口" in msg
+    assert dispatchex_calls == ["PowerPoint.Application"]
+    assert add_called is False
+    assert app.quit_called is False
+    assert app.DisplayAlerts == 2
+    assert app.AutomationSecurity == 1
+    assert terminated == []
+
+
+def test_n2_app_factory_pre_and_post_pid_guards():
+    """Verify the same pre-launch & post-launch PID guards hold on the app_factory test seam."""
+    factory_calls = 0
+
+    def factory():
+        nonlocal factory_calls
+        factory_calls += 1
+        return FakePowerPointApp()
+
+    # Pre-existing PID -> factory never called
+    with pytest.raises(RendererUnavailableError, match="检测到 PowerPoint 已在运行"):
+        with open_powerpoint_session(app_factory=factory, list_powerpnt_pids_fn=lambda: {9001}):
+            pass
+    assert factory_calls == 0
+
+    # No new PID after factory -> refused without touching Presentations/Quit
+    created_app = FakePowerPointApp()
+    with pytest.raises(RendererUnavailableError, match="未检测到新进程 PID"):
+        with open_powerpoint_session(app_factory=lambda: created_app, list_powerpnt_pids_fn=lambda: set()):
+            pass
+    assert created_app.quit_called is False
+    assert created_app.Presentations.Count == 0
 
 
 def test_n2_connect_powerpoint_uses_dispatchex_never_getactiveobject():
@@ -37,13 +132,13 @@ def test_n2_connect_powerpoint_uses_dispatchex_never_getactiveobject():
 
 
 def test_n2_preexisting_empty_powerpoint_is_never_quit():
-    """User has an open PowerPoint with 0 open decks -> session must NOT call Quit()."""
+    """With explicit allow_existing_powerpoint=True opt-in, an existing empty PowerPoint is still NEVER Quit()."""
     app = FakePowerPointApp()
     app.is_preexisting = True  # type: ignore[attr-defined]
     app.DisplayAlerts = 2
     app.AutomationSecurity = 1
 
-    with open_powerpoint_session(app_factory=lambda: app) as sess:
+    with open_powerpoint_session(app_factory=lambda: app, allow_existing_powerpoint=True) as sess:
         assert sess.owns_instance is False
         pres = sess.track_presentation(app.Presentations.Add(0))
         assert app.Presentations.Count == 1
@@ -56,14 +151,14 @@ def test_n2_preexisting_empty_powerpoint_is_never_quit():
 
 
 def test_n2_preexisting_powerpoint_with_user_deck_left_untouched():
-    """User has an open PowerPoint with 1 deck -> our session closes ONLY our own deck and never Quits."""
+    """With explicit allow_existing_powerpoint=True opt-in, our session closes ONLY our deck and never Quits."""
     app = FakePowerPointApp()
     app.is_preexisting = True  # type: ignore[attr-defined]
     user_pres = app.Presentations.Add(-1)
     user_pres.Slides.Add(1, 12)
     assert app.Presentations.Count == 1
 
-    with open_powerpoint_session(app_factory=lambda: app) as sess:
+    with open_powerpoint_session(app_factory=lambda: app, allow_existing_powerpoint=True) as sess:
         assert sess.owns_instance is False
         ours = sess.track_presentation(app.Presentations.Add(0))
         assert app.Presentations.Count == 2
@@ -119,6 +214,7 @@ def test_n2_watchdog_timeout_never_kills_preexisting_user_powerpoint():
             app_factory=lambda: app,
             timeout_s=0.12,
             terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+            allow_existing_powerpoint=True,
         ) as sess:
             sess._timeout_event.wait(timeout=1.0)
             time.sleep(0.05)

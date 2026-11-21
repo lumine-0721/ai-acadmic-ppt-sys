@@ -141,6 +141,37 @@ def _probe_pywin32() -> DoctorCheck:
     return DoctorCheck("pywin32", required=True, ok=True, detail=f"pywin32 {ver}")
 
 
+def _probe_powerpoint_not_running(list_pids_fn: Callable[[], set[int]] | None = None) -> DoctorCheck:
+    """Blocking check: refuse COM automation when PowerPoint is already running (single-instance COM hazard)."""
+    if sys.platform != "win32" and list_pids_fn is None:
+        return DoctorCheck(
+            "powerpoint_not_running",
+            required=True,
+            ok=False,
+            detail="not applicable on non-Windows platform",
+            fix_hint="Run `pptv01 doctor` on Windows desktop before COM rendering.",
+        )
+    from pptv01.renderers.powerpoint_com.session import _list_powerpnt_pids
+
+    pids = set((list_pids_fn or _list_powerpnt_pids)())
+    if pids:
+        return DoctorCheck(
+            "powerpoint_not_running",
+            required=True,
+            ok=False,
+            detail=f"检测到 PowerPoint 正在运行（PID {sorted(pids)}）— 阻断 COM 自动化",
+            fix_hint="PowerPoint 只允许单实例运行，请先保存并关闭所有 PowerPoint 窗口（含任务管理器中残留的 POWERPNT.EXE）再重新运行。",
+            metadata={"running_pids": sorted(pids)},
+        )
+    return DoctorCheck(
+        "powerpoint_not_running",
+        required=True,
+        ok=True,
+        detail="no running POWERPNT.EXE process detected",
+        metadata={"running_pids": []},
+    )
+
+
 def _probe_powerpoint() -> DoctorCheck:
     from pptv01.renderers.powerpoint_com import PowerPointComRenderer
     from pptv01.renderers.protocol import RendererUnavailableError
@@ -311,6 +342,7 @@ def run_doctor(
         _probe_os,
         _probe_python,
         _probe_pywin32,
+        _probe_powerpoint_not_running,
         _probe_powerpoint,
         _probe_excel,
         _probe_cjk_fonts,
