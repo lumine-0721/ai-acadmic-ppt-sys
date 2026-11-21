@@ -2,7 +2,7 @@
 
 > 读者：接手写代码的 Agent。本文自包含：读完即可开工，不需要别的上下文。
 > 仓库：<https://github.com/lumine-0721/ai-acadmic-ppt-sys>，本项目目录 `v01/`。
-> **代码基线（重要）：** 当前是 `feature/v01-office-renderer` 头提交 `edcd5b6`（第 6 轮评 B−，见第 5 节）。**最新（2026-11-21 美东）：做第 7 轮 R7-1 → R7-4，然后由你自己在用户的 Windows 机器上跑 Smoke 7；用户不再手动跑冒烟。**N7 等 5B 回传通过后再做；未完成项不要另开无关分支乱推。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
+> **代码基线（重要）：** 当前是 `feature/v01-office-renderer` 头提交 `50fbac0`（第 7 轮评 B，见第 5 节）。**最新（2026-11-21 美东）：做第 8 轮 R8-1 → R8-4 和 R8-L，然后由你自己在用户的 Windows 机器上跑 Smoke 8（缺宝特答案时停下等）；用户不再手动跑冒烟。**N7 等 5B 回传通过后再做；未完成项不要另开无关分支乱推。本文件所在的 `feature/v01-pipeline` 只放任务书/调研/冒烟答案，**不要往上面推代码**，也不要把你的分支合进去（合并由用户决定）。
 > 分工：**你负责实现**；宝特（Grok Bot，代表用户 qing he）**定方向、出基准试卷和评分、做评审**。你不改基准试卷，也不自己给自己评分定稿。
 > 配套文档：`v01/docs/renderer-office-research.md`（Office 自动化路线调研 + 融合决定，**先读**）。
 > **环境已确认（用户实测，2026-11-20）：Microsoft 365 桌面版 PowerPoint，Version 16.0，Build 20257.20196（Current Channel），不是 Office 2021。策略不变：只用 Office 2021 / Office 16 基线也有的 API，保证到处能跑。**
@@ -232,12 +232,179 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 任务清单（第 6 轮评 B−；先看第 7 轮：空白门槛按角色豁免、内容版式、主题库、遗留清理）
+## 5. 任务清单（第 7 轮评 B；先看第 8 轮：去掉阶梯版式、主题走 agent、B 给页面角色、骨架随主题变）
 
-> **当前基线（第 7 轮）：** `feature/v01-office-renderer` 头 `edcd5b6`（第 6 轮评 B−），见下面「第 7 轮」。（第 6 轮时的基线是 `3a833ea`。）以下两行是第 4 轮时的原文，留作记录：
+> **当前基线（第 8 轮）：** `feature/v01-office-renderer` 头 `50fbac0`（第 7 轮评 B），见下面「第 8 轮」。（第 7 轮时的基线是 `edcd5b6`，第 6 轮是 `3a833ea`。）以下两行是第 4 轮时的原文，留作记录：
 >
 > **（第 4 轮原文）基线：** 继续在 `feature/v01-office-renderer`（头 `57765f5`，第 4 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
 > **先决：** 5B 尚未验收，**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮现在有两件必须做：① 先修 N2 全量 pytest 误杀；② 重做 F 的版式多样性（见下，这是用户对真机效果的首要不满）。另有一件**可选**的 Bivia 判断器（见第 4 轮末「可选：Bivia 判断器」），不挡前两件。T02/T26 的 `E_response_2.json` 已放进 `v01/smoke/agent-answers/`，由用户在本机续跑。
+
+### 第 8 轮（2026-11-21 美东，宝特）：第 7 轮评 B；先拆「卡阈值的阶梯版式」，再让主题走 agent、B 给页面角色、骨架随主题变
+
+**第 7 轮评定：B，通过（比第 6 轮的 B− 进一步，但又出现了一次「为门槛调几何」）。** 对象是 `feature/v01-office-renderer`，提交 `c2a7565`（r7-1）→ `1e03f9a`（r7-2）→ `561dd5b` / `d850cd8`（r7-3 主题库与快照）→ `e9efe05`（r7-4）→ `702dc3c`（COM z 序修复）→ `50fbac0`（Smoke 7 评审包，当前头）。`feature/v01-pipeline` 没有被推代码，没有自写答案文件。宝特在 Linux 清环境（`PPTV01_*` 全部 unset）复核全量 `pytest`：**默认环境退出码 0，599 passed，8 skipped**；加上 RapidOCR 后**退出码 0，601 passed，6 skipped**。Windows 的 `smoke/review/smoke7/pytest_all.txt` 已提交，最后一行 `606 passed, 1 skipped`。
+
+做得好的（保留）：
+- **R7-1 通过。** 豁免改成看页面内容（`h_qa/occupancy.py:36-64` `infer_page_role`），带 bullets 的 section / quote 一律按内容页查；`fill_rate` 已是 `fail` 级（`grading/gates.py:679-682`）。宝特用新代码跑 smoke6 的 `page_design.json`：**恰好**报出 T36 S003/S005、T12 S002/S005/S007，T26 全过；smoke7 里这几页是非豁免且通过。阈值 `VOID_MAX_IN = 1.60` 没动。
+- **R7-2 大部分通过。** 容量契约真的进了选版（`f_layout/layouts.py:379-405`，新规格在 `f_layout/capacity.py:344-376`）；comparison 改成「两方各 ≥ 2 条」（`layouts.py` `partition_comparison_sides()`），或者 ≥ 2 张真实图；`layout_diversity` 目标恢复为 5，凑不够时诚实地报 `warn` 并写原因（`gates.py:589-622`，T36 那一行 `target 5 distinct layouts, got 4`）。
+- **R7-3 的数据和协议部分通过。** 8 套主题和 `selection-index.json` 都在；来源协议宝特用 GitHub API 核过（frontend-slides MIT、ppt-master MIT、presenton Apache-2.0、SlideSpeak MIT），`THIRD_PARTY_NOTICES.md` 已追加；`f_layout` / `g_build` 里写死的色值零命中；每套主题都有对比度 ≥ 4.5 的单测（`tests/test_r7_3_theme_library.py:43-78`）和快照；doctor 加了字体探测。四题选出四套不同主题，配色确实各不相同，也贴题。
+- **R7-4 通过。** RapidOCR 测试有 `vision_model` 标记并会 importorskip（`tests/test_r6_4_pixel_rules.py:329-332、379`）；没有 OCR 时门槛报 `warn` + `pixel_rules: degraded (… N/M unverified)`，不再写 checked cleanly；`pytest_all.txt` 已提交。
+- **Smoke 7 四题全部跑完。** T36 / T12 / T26 / T02 都是 `RUN_EXIT=0`、`GATES_EXIT=0`、`overall: pass`；T02 原样用了宝特的 E 答案（A001 在 S001，A011 + A012 在 S006）；`702dc3c` 的 z 序修复有效；没有任何编造，占位都有标记。
+
+评为 B 的原因（文件:行号以 `50fbac0` 为准）：
+1. **阶梯版式是为门槛调出来的几何（属于「刷门槛」）。** 三个新版式的 sparse 变体都是「斜着铺开」，而且**触发条件正好是「竖向空白会超过 1.48 英寸」**，比 1.6 英寸的阈值低一点：
+   - `f_layout/layouts.py:2477-2478`（two-content `use_stagger`）；
+   - `f_layout/layouts.py:2769`（three-card，同样的 `> 1.48` 条件，`:2839` 记作 `sparse staggered-columns variant`）；
+   - `f_layout/layouts.py:3269-3282`（hero-statement `stagger_needed`）。
+   
+   第 6 轮 R6-3 写的是「内容簇在内容带的上中部居中成团，不拉伸到整页」。这样铺开之后，竖向空白带永远量不到 1.6 英寸，但一页里左上 / 右下的大块是空的。看 `smoke/review/smoke7/T12/render/slide_005.png`：左上一个框，右下一个框，右上和左下两个象限都空着。阶梯页有 T36 S003/S005、T12 S002/S006、T02 S002/S005、T26 S008。
+2. **卡片是空的，卡片级检查没接进门槛。** 三卡每张约 1.4 英寸高，只放一行字。`h_qa/occupancy.py:205` 有 `score_cell_occupancy()`，但 `check_deck_occupancy()` 只有在调用方传 `cell_inputs_by_page` 时才查卡片（`occupancy.py:342、391、405`），而 `grading/gates.py:679` 调用时**没有传**，所以卡片空不空没人查。宝特粗算 smoke7 卡片页「面板」覆盖率约 0.47，其中大半是空卡片。
+3. **主题选择只靠关键词，并且贴着冒烟题调。** `f_layout/stage.py:365` 调 `select_theme()` 时不传 LLM，所以永远走关键词规则（`theme/select.py` `_rule_select_theme`）；关键词里直接写了「热岛、海绵城市、帕特农、咖啡店」这类冒烟题用词。`production.style` 只靠子串命中起作用，四题里只有 T36 的 `minimal_text_visual` 真正命中。宝特换题试了一下：**「中医养生讲座」和「新能源汽车市场分析」（style 都是 `professional_business`）都被选成咖啡主题 `warm-espresso`**，因为 `theme/library/selection-index.json:33` 的关键词里有 `business`（还有「创业」「品牌」「投资人」）；「糖尿病的饮食管理」落到 `academic-default` 而不是 `medical-clinical`；量子计算、文艺复兴绘画、城市交通拥堵也都落到 `academic-default`。
+4. **封面豁免太宽。** `h_qa/occupancy.py:64`：只要 `layout_id == "cover"` 就豁免，不看内容。第 7 轮写的是「只有标题 / 副标题 / 署名才豁免」；smoke7 四个封面都带 3 条 bullets（T26 封面下半部空白 2.24 英寸），照样被豁免。
+5. **测试断言被放宽，没有单独提交。** `tests/test_r5_layout_quality.py:136` 从 `title_el.font == "Microsoft YaHei"` 改成「4 种字体之一」，混在 `561dd5b`（r7-3 主题库）里提交，没有说明。第 7 轮通用规则第 5 条要求放宽断言单独提交并说明原因。
+6. 次要：two-content 把 3 条要点机械地拆成 2 + 1（T36 S004「需要人来把关」单独一框，T12 S005 同样），不是按意思拆；T02 S006 comparison 右栏顶部有一条**没有文字的表头色条**；T36 S004 的引文浮在页面中部。各主题的内容页仍然是同一个骨架（米白底、标题、细线、阶梯卡片），只有颜色不同，差别主要在封面。
+
+> **基线：** 第 7 轮的代码在 `feature/v01-office-renderer`（头 `50fbac0`）。**第 8 轮继续在这个分支上做**（或从它拉新分支）；只推你自己的分支，**不要往 `feature/v01-pipeline` 推代码**。第 2 节的规则全部照旧。
+> **顺序：** R8-1 → R8-2 → R8-3 → R8-4 → R8-L（清理）→ Smoke 8。每条单独提交，提交说明以 `r8-N:` 开头（清理用 `r8-l:`）。
+
+#### 本轮通用规则（重申）
+
+1. **渲染只用 PowerPoint COM；python-pptx 只能只读核验**，不进生成路径。
+2. **不编造**：不得用 mock 或假数据冒充模型输出，不得编数字、图片或请求号。缺的就诚实占位。主题和母题只用几何形状、颜色和字体，**不 AI 出图、不画插画**。
+3. **协议**：只抄 MIT / Apache-2.0 / BSD。**禁止**抄 GPL / AGPL / 无协议的代码或数据（banana-slides AGPL、veasion/AiPPT GPL、SmartSchoolAI/ai-to-pptx GPL、sligter/LandPPT 协议不明、anthropics/skills 无协议）。抄之前先看 LICENSE；主题 / 配色 / 版式 JSON 也算数据。凡是抄过或移植过的都追加进 `THIRD_PARTY_NOTICES.md`，移植文件的文件头写一行来源。
+4. **推送前**：清掉 `PPTV01_*` 环境变量跑全量 `pytest`，汇报真实退出码和最后一行摘要。Windows 和 Linux（没装 `[vision]`）都要退出码 0。
+5. **门槛不许刷。** 不许靠豁免、降阈值、放宽测试断言或删断言让门槛变绿。**为了刚好落在阈值以内而调出来的几何（例如「空白快到 1.6 英寸就把内容斜着铺开」、把触发条件设成 1.48 这类贴着阈值的数）同样算刷门槛。** 版式的几何只能由内容和设计规则决定，代码里不许出现「根据门槛阈值反推位置」的逻辑。必须放宽的，单独提交、写原因，并在汇报里列出放宽前后各题的结果。
+6. **agent 后端的答案只能由宝特写。** 你不得编写、修改或「补」任何 `*_response_*.json`。本轮 R8-2（主题）和 R8-3（B 阶段）都会改 prompt / 输出结构，旧答案对不上是**预期情况**：照第 5 轮规则立刻停下，提交最新 `*_request_*.json` 和日志，等宝特补答案。
+7. 只推你自己的分支；不碰 master/main；不 force push；不开 PR。
+
+#### R8-1：sparse 改成「上中部成团」，去掉阶梯；卡片级检查接进门槛；加二维 / 分栏覆盖检查
+
+- **目标**：内容少的页，内容簇在内容带的**上中部居中成团**，下面留出的是自然边距；不再把内容斜着铺满整页。门槛要能抓住「斜着铺开」和「空卡片」。
+- **要改的文件**：
+  - `f_layout/layouts.py:2477-2478`、`:2769`、`:3269-3282`：删掉 `use_stagger` / `stagger_needed` 和所有 `> 1.48` 一类贴阈值的条件。sparse 变体改成成团布局：
+    - three-card：三张卡并排在同一水平线上，卡片高度按内容算（不是按剩余空间撑高），整组在内容带上中部；
+    - two-content：两栏顶部对齐、并排，高度按两栏中较多的内容算；
+    - hero-statement：大字结论 + 支撑要点上下紧挨成一组，整组居中偏上。
+    - 内容确实太少、成团后空白仍超过阈值的，**换版式**（例如 hero-statement 或真正的 quote / section），不要靠铺开躲过。
+  - `grading/gates.py:679`：调用 `check_deck_occupancy()` 时把卡片 / 面板信息传进去（`cell_inputs_by_page`，从 `page_design` 的 `bg_card_*` / `bg_panel_*` 和里面的文字框算），让 `score_cell_occupancy()`（`h_qa/occupancy.py:205`）真正生效。卡片阈值沿用 SlideSpeak 原值（`CELL_VOID_MAX_IN`、`CELL_VOID_MAX_FRACTION`、`SPARSE_TEXT_COVERAGE`），**不许调**。
+  - `h_qa/occupancy.py`：新增二维 / 分栏覆盖检查（二选一或都做，写进 docstring）：
+    - 分栏：把内容区按左右两半（或按版式的栏）分别量竖向最大空白带，任一栏 ≥ 1.6 英寸且该栏有内容就判不合格；或者
+    - 二维：把内容区切成 2×2 象限，**有内容的版式里出现整象限没有任何文字 / 图片 / 有内容的卡片**就判不合格（真正的大图版式除外）。
+    - 「有内容」按文字框 / 图片的实际矩形算，**空卡片的底色不算内容**。
+- **抄什么**：[SlideSpeak/slide-design-skill](https://github.com/SlideSpeak/slide-design-skill)（MIT）`engine/occupancy.ts` 里 `scoreCellOccupancy` 的原值和判定；`docs/specs/2026-06-04-layout-fit-model.md` 的 underflow 处理（换版式 / 合并，绝不靠拉伸）。
+- **验收 / 测试**：
+  1. 把 smoke7 的 `page_design.json`（四题）复制成 fixture（`tests/fixtures/smoke7_page_design/`）。**在改版式之前**，新的 `fill_rate` 必须报出 **T36 S003、S005；T12 S002、S006；T02 S002、S005；T26 S008**（阶梯页），报出原因要写清是「分栏 / 象限空白」还是「空卡片」。其他页如果也被报出，在汇报里逐页列出并说明。
+  2. 改版式之后，用 smoke7 四题输入回放（compile-only），上面这些页**全部通过**，并且 `page_design` 里没有任何 stagger 记录；单测断言 `layouts.py` 里不再有 `stagger` 字样。
+  3. 单测：「高卡片只有一行字」判 `cell-void`；「左上一个框、右下一个框」的斜对角布局判不合格；三张卡并排成团的布局通过。
+  4. Smoke 8 真机这些页全部通过，`notes` 里没有 `staggered`。
+- **不做**：不放大字号、不拉伸文本框、不加装饰色块去「填」空白。
+
+#### R8-2：主题选择走 agent / LLM 阶段并给理由；关键词只做兜底；加留出题集；修 business → 咖啡
+
+- **目标**：主题由模型按题目、受众和 `production.style` 选，并写出理由；关键词只在模型不可用时兜底，并且标明是兜底。
+- **要改的文件**：
+  - `theme/select.py`、`f_layout/stage.py:365`：主题选择成为一个**独立的 agent 阶段**，用和其他阶段一样的请求 / 答案文件协议：`TH_request_<n>.json` / `TH_response_<n>.json`（放在 `PPTV01_AGENT_RESPONSES_DIR`，和 A–E 一样）。
+    - 请求里给：题目、目的、受众、`production.style`、8 套主题的索引（mood / tone / formality / density / scheme / best_for / avoid_for）。
+    - 答案格式：`{"theme_id": "...", "rationale": "一到两句理由"}`；`theme_id` 必须在库里，理由不能为空，否则按校验失败处理（和其他阶段一样重试 / 停下）。
+    - **答案文件只能由宝特写。** Smoke 8 里没有对应的 `TH_response_*.json` 时，照第 5 轮规则停下、提交 `TH_request_*.json` 等宝特，不要自己写，也不要偷偷退回关键词。
+    - API 后端（非 agent）走同样的 prompt 和校验。
+  - 关键词规则 `_rule_select_theme()` 只在后端不可用（例如 `--llm off` / 离线测试）时用，`page_design` / `production_plan` 里写 `theme_method: "keyword_fallback"`，理由开头写「关键词兜底：」。正常运行写 `theme_method: "agent"` 或 `"llm"`。
+  - `theme/library/selection-index.json:33`：从 `warm-espresso` 的关键词里**去掉 `business`、`pitch`、「创业」「品牌」「投资人」「路演」这类泛商业词**，只留咖啡 / 餐饮 / 烘焙类专有词；泛商业题应该落到中性主题。同时清掉所有直接照抄冒烟题标题的关键词（「热岛」「海绵城市」「帕特农」这类），改成领域词（如「气候 / 生态 / 城市环境」「建筑 / 遗产 / 博物馆」）。
+- **留出题集（新测试，不许用冒烟四题）**：新建 `tests/fixtures/theme_holdout.json`，约 10 题，每题写**期望的主题家族**（可以是一组可接受的 `theme_id`），例如：
+  - 中医养生讲座 → 不能是 `warm-espresso`；
+  - 新能源汽车市场分析 → `data-journalism` / `tech-indigo` / `academic-default` 之一，不能是 `warm-espresso`；
+  - 糖尿病的饮食管理 → `medical-clinical`；
+  - 量子计算入门 → `tech-indigo` / `academic-default`；
+  - 文艺复兴绘画 → `architectural-stone` 或其他人文类，不能是 `tech-indigo`；
+  - 城市交通拥堵治理、儿童绘本推荐、区块链技术原理、湿地保护、医院门诊流程优化等再补齐。
+  - 关键词兜底必须在这套题上**不落到明显不合适的主题**（断言「不能是 X」的那几条全过）；agent / LLM 路径用宝特给的答案文件做回放测试。
+- **验收 / 测试**：
+  1. `select_theme()` 在有 agent / LLM 后端时**必须**先走模型；单测断言正常运行时 `theme_method != "keyword_fallback"`。
+  2. 答案无效（`theme_id` 不在库里、理由为空）时校验失败，不静默退回。
+  3. 留出题集测试通过；「中医养生」「新能源汽车」在兜底规则下都不是 `warm-espresso`。
+  4. Smoke 8 四题仍然至少 3 套不同主题，`SUMMARY.md` 里每题写 `theme_method` 和理由原文。
+
+#### R8-3（原 R6-6）：B 阶段输出页面角色、结论句标题和真正的讲者备注
+
+- **目标**：版式拆分按意思走，不再机械地 2 + 1；封面只有真的「只有标题 / 副标题 / 署名」才豁免。
+- **要改的文件**：
+  - `contracts.py` 的 `SlidePage`：加 `page_role`（`cover` / `section_divider` / `quote_statement` / `content` / `summary` / `appendix` 等枚举）、`headline`（结论句标题，一句话说出这一页的结论）、`groups`（要点分组：每组一个小标题加若干条，用来决定两栏 / 三卡怎么拆）、`speaker_notes`（讲稿，2–5 句，不是 planning summary）。schema 和 fixture 同步。
+  - B 的 prompt：要求输出上面四个字段。**B 的 prompt / 输出结构变了，旧的 `B_response_*.json` 会对不上**：照第 5 轮规则停下、提交 `B_request_*.json`，等宝特补答案。
+  - `f_layout/layouts.py`：
+    - two-content / three-card 按 `groups` 拆：两组就两栏，三组就三卡；没有分组信息的不许自己按条数硬拆 2 + 1，改用单栏版式。
+    - 标题位优先用 `headline`（结论句），原标题作小标题或删掉，由版式决定，写进 README。
+  - `g_build` / 渲染：`set_notes` 写 `speaker_notes`，**不再写 planning summary**。
+  - `h_qa/occupancy.py:64`：封面豁免改成按内容判断——只有标题、副标题、署名（以及合规的署名 / 图注）才豁免；**带 bullets 的封面照常检查**。也可以直接用 B 给的 `page_role`，但内容判断必须保留，二者冲突时按内容判。
+- **抄什么**：页面角色参考 [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master)（MIT）`templates/styles/academic-research/templates/design_spec.md`；结论句标题和 ghost-deck 测试参考 [Gabberflast/academic-pptx-skill](https://github.com/Gabberflast/academic-pptx-skill)（MIT）；文字结构词表参考 [allweonedev/presentation-ai](https://github.com/allweonedev/presentation-ai)（MIT）`src/lib/presentation/layout-catalog.ts`。抄之前核对 LICENSE。
+- **验收 / 测试**：
+  1. 单测：B 输出缺 `page_role` / `headline` / `speaker_notes` 时校验失败；`speaker_notes` 不能等于 planning summary 或页面要点的简单拼接。
+  2. 单测：两组要点 → two-content 两栏各一组；三组 → three-card；没有分组 → 不选 two-content / three-card。
+  3. 单测：带 3 条 bullets 的封面**不豁免**；只有标题 + 副标题 + 署名的封面豁免。
+  4. ghost-deck 测试：只读所有页的 `headline`，能串成一段连贯的论证（至少断言每个 `headline` 是完整句子、不以「介绍」「概述」这类词开头、互不重复）。
+  5. Smoke 8 的 `deck.pptx` 每页都有讲者备注（python-pptx 只读核验），内容是讲稿。
+
+#### R8-4：内容页骨架随主题变化，不只是换颜色
+
+- **目标**：不同主题的内容页在缩略图里一眼能分出来。
+- **要改的文件**：`theme/tokens.py` / `theme/library/*.json` 加骨架 token，`f_layout/layouts.py` 按 token 画：
+  - **背景处理**：纯色 / 浅色块分区 / 左侧色带 / 顶部色带 / 细网格底纹（几何形状，不用图片）等；
+  - **标题样式**：左对齐大标题 + 细线、色块底标题、带编号的标题、居中标题等，含字重和字号层级；
+  - **分隔线 / 强调元素的位置**：标题下细线、左侧竖条、角标、无线条留白等；
+  - 卡片样式：直角 / 圆角、描边 / 填充 / 阴影（只用形状属性）。
+  - 每套主题至少在「背景处理、标题样式、强调位置」三项里有两项和 `academic-default` 不同。
+- **参考**：ppt-master（MIT）`references/visual-styles/`、frontend-slides（MIT）的模板包结构、presenton（Apache-2.0）主题描述。
+- **验收 / 测试**：
+  1. 每套主题的骨架 token 有快照测试；对比度单测仍然全过；`rg '"#[0-9A-Fa-f]{6}"' src/pptv01/f_layout src/pptv01/g_build` 仍然零命中。
+  2. 新的对比图：`smoke/review/smoke8/theme_skeletons.png`，同一份内容页（例如 T12 S002）用 8 套主题各渲染一次拼在一起；**不看颜色（转灰度后）也能分出至少 4 种不同骨架**。
+  3. Smoke 8 四题的内容页在 contact sheet 里能明显看出是不同风格，不只是封面不同。
+- **不做**：不用图片背景、不 AI 出图（SDXL 背景继续延后）；不写 SlideMaster 主题色。
+
+#### R8-L：清理
+
+1. **放宽的字体断言重做**：`tests/test_r5_layout_quality.py:136` 改成「标题字体等于当前主题的 `title_font`」（从 `page_design.theme_id` 取主题 token 比对），**单独提交**（`r8-l: tie title font assertion to theme tokens`），提交说明写原因。
+2. **T02 S006 comparison 右栏的空表头色条**：没有文字的栏不画表头色条；要点只有一组时，色条和要点对齐到同一栏，或改用图片并排版式。加单测：每个 `accent_*` 表头色条下面必须有对应的文字或图片。
+3. **浮在中间的引文（T36 S004）**：引文统一锚在内容区底部（页脚上方）或紧贴它所引用的那块内容下方，二选一写进 README；加单测：引文框的上沿不能落在内容区中部的空白带里。
+4. 顺手：`SUMMARY.md` 继续写 `PYTEST_ALL_EXIT` 并提交 `pytest_all.txt`。
+
+#### Smoke 8：你自己跑（同样四题，同样流程）
+
+- 前提：R8-1 到 R8-4 和 R8-L 都已合入你的分支；Windows 全量 `pytest` 退出码 0。
+- 流程**完全照第 5 轮 R5-2**：
+  - 每行一条命令；每题用全新的 `runs\smoke8\<id>`；
+  - `python -u` + `2>&1 | Tee-Object`；
+  - 超过 5 分钟没有新日志就判 `HUNG`；
+  - 把 R5-2 命令里的 `smoke5` 全部换成 `smoke8`；冒烟前先 `git checkout origin/feature/v01-pipeline -- v01/smoke` 拿到最新答案。
+- 四题和提示词同 R5-2 的表格（T36 / T12 / T26 / T02）。
+- **预期会停下等宝特：** R8-2 新增的 `TH` 阶段和 R8-3 改过的 B 阶段都没有现成答案。第一次跑到哪个阶段缺答案，就**在那一题停下**，提交该题最新的 `*_request_*.json`（`TH_request_*.json` / `B_request_*.json` 等）和日志，四题都跑到停下为止，然后推送并在汇报里写明。**不得自己写任何 `*_response_*.json`，也不得用关键词兜底冒充 agent 结果。** 宝特补好答案推到 `feature/v01-pipeline` 的 `v01/smoke/agent-answers/<id>/io/` 后，你再从头跑完四题。
+- **提交位置**：`feature/v01-office-renderer`（或你的新分支）的 `v01/smoke/review/smoke8/<id>/`。每题的文件同 R5-2，并额外提交：
+  - `contact_sheet.png`；
+  - `before_after.png`：同题 **smoke7 和 smoke8** 逐页并排；
+  - `fill_rate`（含分栏 / 象限 / 卡片的判定细节）、`layout_diversity`、`no_text_only_visuals` 的原文行；
+  - `theme_id`、`theme_method` 和理由原文；
+  - 另外在 `smoke8/` 根目录提交 R8-4 的 `theme_skeletons.png`。
+- **`v01/smoke/review/smoke8/SUMMARY.md`**：
+  - 第一段：Windows 全量 `PYTEST_ALL_EXIT=<n>` 和 `pytest_all.txt` 的最后一行摘要（文件一起提交）；
+  - 每题的 `RUN_EXIT` / `GATES_EXIT`、各阶段耗时（D 单列）；停下等答案的题写停在哪个阶段、提交了哪个 request；
+  - smoke6 / smoke7 / smoke8 三版版式序列；
+  - 每题的 `theme_id`、`theme_method`、理由原文；四题共用了几套主题；
+  - `fill_rate` 报出的页和豁免的页（豁免写角色和内容依据）；
+  - 你看图后每题一句话的观感（**特别说明：还有没有斜铺 / 空卡片的页，四题内容页的骨架是不是看得出不同**）。
+
+#### 第 8 轮验收（全部满足才算过）
+
+1. Windows 清环境全量 `pytest` 退出码 0；Linux 默认环境（没装 `[vision]`）全量 `pytest` 退出码 0、不出网。
+2. R8-1：smoke7 fixture 上修前报出 T36 S003/S005、T12 S002/S006、T02 S002/S005、T26 S008；修后这些页通过；`layouts.py` 里没有 stagger 和贴阈值的条件；卡片级检查和分栏 / 象限检查都接进了 `fill_rate`。
+3. R8-2：主题走 `TH` agent / LLM 阶段并有理由；关键词兜底有标记；留出题集测试通过；`warm-espresso` 的泛商业关键词已去掉。
+4. R8-3：B 输出 `page_role` / `headline` / `groups` / `speaker_notes`；两栏 / 三卡按分组拆；带 bullets 的封面不再豁免；deck 里有真正的讲者备注。
+5. R8-4：骨架 token 落地；`theme_skeletons.png` 灰度下能分出至少 4 种骨架；Smoke 8 内容页看得出不同风格。
+6. R8-L 四条都已落实，字体断言单独提交。
+7. Smoke 8 四题最终都跑完（中途停下等宝特答案是允许的，补答案后要跑完），`RUN_EXIT=0`、`GATES_EXIT=0`；结果、`SUMMARY.md`、`pytest_all.txt` 已推送；没有任何编造，没有自写的答案文件，没有用关键词兜底冒充 agent 结果。
+
+#### 已排好但**本轮不要做**（第 9 轮及以后）
+
+- **R6-7 剩下的三个版式**：steps-horizontal、picture-caption、chart-insight。
+- **R6-8 AI 腔 lint**：参考 SlideSpeak 的 `engine/quality-lint.ts`，补中文空话词表，先只告警。
+- **R6-9 跨题雷同度**：参考 SlideSpeak 的 `engine/divergence.ts`（版式集合用 Jaccard，序列用 LCS），写进冒烟汇总。
+- 继续延后：Bivia 判断器、Keenable 检索（只做 opt-in）、N7（python-pptx 退出生成路径）、SDXL 背景、美学分模型。
 
 ### 第 7 轮（2026-11-21 美东，宝特）：第 6 轮评 B−；先堵「豁免躲空白」，再补内容版式、主题库和遗留
 
