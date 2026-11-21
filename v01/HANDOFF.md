@@ -231,10 +231,31 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 契约 + schema + fixture 同步机制；`user_input_requests` 由代码而非 LLM 生成；`no_fabricated_visuals`/`placeholders_marked` 两条硬门槛的**设计**（实现要加固，见 B4）；E 的 `not_assessed` 诚实标注；`--on-missing wait|placeholder`；占位的外观与命名；署名检查；每站调研一页。
 
 ---
-## 5. 第 3 轮任务清单（N0/N2 已通过；下一步是 5B 真机冒烟）
+## 5. 任务清单（第 3 轮已通过；5B 进行中，尚未验收；先看第 4 轮）
 
 > **基线：** 继续在 `feature/v01-office-renderer`（头 `51703f4`，第 3 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
-> **先决：** 5B 的 Windows 实机测试由用户在真机上跑；**宝特收到回传之前，不要删旧 G、不要改默认渲染器（N7）。** N0–N6 已通过，可以开始 5B。跑 5B 之前必须先关掉所有 PowerPoint（见 5B「冒烟前检查单」）。
+> **先决：** 5B 尚未验收（缺 zip 与目视），**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮先修下面这一条测试隔离问题。
+
+### 第 4 轮（2026-11-21 美东，宝特）：5B 尚未通过；先修全量 pytest 里露出的 N2 误杀
+
+**5B 目前只是部分结果，不能算通过。** 用户在 `51703f4` 上跑了真机 Smoke 4。机器已更正为 **Office 2021 Home & Student Retail**，PowerPoint / Excel **16.0.20625.20108**（零售版 Click-to-Run 的 Build 可以到 20xxx，不能只凭 Build 号写成 Microsoft 365）。`pptv01 doctor` 为 READY。T12、T36：`RUN_EXIT=0`、`GATES_EXIT=0`。T02、T26：`RUN_EXIT=3`（D 取到的素材与预写 E 答案对不上，agent 后端在等新的 `E_response_*.json`）。zip 和目视检查还没交回，**5B 仍算未完成**。
+
+用户本机全量 pytest（清环境）：**1 failed，520 passed，1 skipped**。单独跑 `-m windows_com` 与 `-m "not windows_com"` 都是退出码 0。失败用例：`tests/test_n2_com_session_safety.py:222` `test_n2_watchdog_timeout_never_kills_preexisting_user_powerpoint`（`assert [{41916}] == []`，该用例单独跑是绿的）。
+
+**根因（不是模块级「PID 列表」没清掉，而是假 COM 测试在 Windows 上误用了真实进程表）：**
+
+- 该用例（`:211-222`）只注入了假的 `app_factory`，**没有**注入 `list_excel_pids_fn`。于是会话在 `__enter__` / 超时路径里走默认实现 `lambda: _list_pids("EXCEL.EXE")`（`session.py:222-223, 359, 261-266`）。`_list_pids`（`:75-94`）在 Windows 上会跑真的 `tasklist`；Linux 上固定返回空集，所以评审机上看不出来。
+- 看门狗 `_on_timeout`（`:277-290`）以及超时后的 `__exit__`（`:536-541`）会把 `当前 Excel PID − _pre_excel_pids` 当成「本会话新拉起的」并交给 `terminate_pids_fn`。41916 是真实 OS PID，不是测试里的假 PID。
+- `_list_pids` 一旦异常或 `tasklist` 暂时没列出进程，就会返回空集（`:94`）；`__enter__` 里再包一层 `except` 也把基线设成空集（`:360-361`）。基线为空时，稍后出现的任何 `EXCEL.EXE`（上一轮 `windows_com`/doctor/preflight 残留、任务管理器里还在启动的进程、或 tasklist 抖动）都会被当成「自己启动的」去杀。这也会解释「单独跑绿、整场全量红」。
+- 代码里没有模块级/类级的 `_spawned_pids` 缓存；`_COM_THREAD_STATE`（`:41`）只记 `CoInitialize`。
+
+**修法（N2 回归，可在 Linux 上用假列表测，但必须在 Windows 全量 pytest 上验收）：**
+
+1. 所有 fake-COM 会话测试（尤其 `test_n2_watchdog_*`）必须注入稳定的 `list_excel_pids_fn` / `list_powerpnt_pids_fn`，禁止在单测里打到真实 `tasklist`。
+2. 生产路径不要把「tasklist 失败 / 空基线」当成「机器上没有 Excel」；列举失败应报错或重试，不得据此 `taskkill`。只终止在 `DispatchEx` 之后明确记入 `_spawned_*` 的 PID。
+3. 验收：Windows 上清环境先跑全量 `pytest`（不要拆成两个 `-m`），退出码必须为 0；再确认该用例单独跑、以及「先跑 `-m windows_com` 再在同一会话跑该用例」也绿。把三个退出码写进汇报。
+
+5B 其余事项（T02/T26 补答、打包 zip、目视勾选）仍按第 5B 节执行，通过之前不要做 N7。
 
 ### 第 3 轮已通过（2026-11-20 美东，宝特；对象 `feature/v01-office-renderer` 头 `51703f4`）
 
