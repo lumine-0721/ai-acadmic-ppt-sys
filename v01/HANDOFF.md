@@ -61,6 +61,7 @@ Python ≥ 3.11。完整说明见 `v01/README.md`、`v01/docs/V0.1-技术方案.
 | `PPTV01_RELEVANCE` (`auto`/`structural`/`off`)、`_SCORER`、`_THRESHOLD` | B/D 的相关性过滤；默认 fastembed@0.30 |
 | `PPTV01_ASSETS` (`auto`/`none`)、`PPTV01_OPENALEX_API_KEY/_EMAIL`、`PPTV01_COMMONS_THUMB_WIDTH`、`PPTV01_ASSETS_TIMEOUT_S` | D 阶段 |
 | `PPTV01_GRADER_BACKEND` (`api`/`agent`) + `_BASE_URL/_API_KEY/_MODEL/_VISION_MODEL` 或 `_EXCHANGE_DIR` | PPTEval 评分后端；未配置则报错，绝不编分 |
+| `PPTV01_BIVIA_JUDGE` + `A8_API_KEY` | **可选**。同时设置（`PPTV01_BIVIA_JUDGE=1` 或 `on`）才调用 Articul8 Bivia 做是/否把关；缺任一变量、网络失败或弃权时流水线照常跑，不得变成硬依赖。密钥不得进代码/日志/提交。见第 4 轮「可选：Bivia 判断器」 |
 
 ### 代码与契约位置
 ```
@@ -234,7 +235,7 @@ v01/docs/                     技术方案、基准规范、grading.md、stage-d
 ## 5. 任务清单（第 3 轮已通过；5B 进行中，尚未验收；先看第 4 轮）
 
 > **基线：** 继续在 `feature/v01-office-renderer`（头 `51703f4`，第 3 轮已通过）上做，或从它再拉新分支；只推你自己的分支。规则（第 2 节）全部照旧。
-> **先决：** 5B 尚未验收，**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮现在有两件：① 先修 N2 全量 pytest 误杀；② 重做 F 的版式多样性（见下，这是用户对真机效果的首要不满）。T02/T26 的 `E_response_2.json` 已放进 `v01/smoke/agent-answers/`，由用户在本机续跑。
+> **先决：** 5B 尚未验收，**不要删旧 G、不要改默认渲染器（N7）。** 第 4 轮现在有两件必须做：① 先修 N2 全量 pytest 误杀；② 重做 F 的版式多样性（见下，这是用户对真机效果的首要不满）。另有一件**可选**的 Bivia 判断器（见第 4 轮末「可选：Bivia 判断器」），不挡前两件。T02/T26 的 `E_response_2.json` 已放进 `v01/smoke/agent-answers/`，由用户在本机续跑。
 
 ### 第 4 轮（2026-11-21 美东，宝特）：5B 尚未通过；先修 N2 误杀，并重做版式多样性
 
@@ -293,7 +294,31 @@ F 为每一页按内容类型选出一个 `layout_id`（至少覆盖：封面 co
 调研一页写到 `v01/docs/stage-f-layout-diversity.md`（候选、许可证、取舍、融合了什么），先于或随实现提交。
 
 
+#### 可选：Bivia 判断器（H/E/C 的把关后端，非必须，不挡上面的 N2 与版式）
+
+用户提供了 Articul8 [Bivia](https://docs.articul8.ai/bivia/)（`POST /boolean`：是/否 + 校准把握，可看图；`status` 可为 `abstained`）。宝特用 smoke 真案例和 HANDOFF 里的 B2/B7/B13/B14/B15 做了 60 次调用（52 fast + 8 deep；fast 设 `think=false`）。图片不能让 Bivia 服务器直接抓 Wikimedia URL（会 422 Forbidden），评测改为本地下载 800px 缩略图再传 raw base64。脚本和结果在评测机的 `/workspace/bivia-eval/`（**不要把 key、调用原始记录或图片推进本仓**）。
+
+**结论：值得做成可选后端，但绝不能当硬依赖，也不能单靠它给错图放行。**
+
+fast 分类结果：
+
+- **陈述是否被文献支撑：14/14（100%）。** 最稳，适合 E/H 问「这句话能否从这条参考文献（标题/摘要）得出」。
+- **图片是否就是目标地点：19/22（86%）。** 能正确拒绝：伊利诺伊州 Pekin 公园不是北京（B7）、Solarpunk 插画不是北京真实照片、阿肯色州同名地点不是雅典帕特农（B14）。**但有两个高把握误判「是」，其中一个正是 B15 的错图：** `File:ISS-39 New York City.jpg` 被说成北京（fast p=0.97，deep 仍判 yes、p=0.98）；天津桥园公园也被说成北京（p=0.99）。北京的 Landsat 真图反而被判「不是」（p=0.88；deep 弃权）。城市远景/卫星图上的「是」不可当作「就是目标地点」的充分条件。
+- **C 阶段是否在要求或允许自绘：6/8。** 四条否定句（如「不允许凭空绘制」，B13）全部判对。「否则自绘并说明」判对，但更短的「否则自绘」被高把握判错；「不允许凭空绘制数据，但缺失示意图可自绘」fast 低把握判错，deep 改正。
+- **是否规划说明而非听众正文（B2）：5/8。** 不够稳，先不要当硬门槛。
+
+deep 模式更爱弃权（8 次里 5 次），能修正个别 fast 错案，但没纠正 B15 那张纽约照；服务端延迟约 0.7–4.5 秒，token 明显高于 fast（本次 deep 8 次就约 6.1 万 billable）。只建议在 fast 把握不足时加一刀，不要当默认。本次 60 次合计约 14.4 万 billable token（按每百万 input $0.042 约 $0.006）。每次调用至少按 1000 token 计；免费额度 90 天过期；遇 429 要退避。
+
+**若做，必须满足：**
+
+1. 默认关闭。只有同时设置 `A8_API_KEY` 和 `PPTV01_BIVIA_JUDGE=1`（或 `on`）才调用。缺 key、网络失败、非 2xx、或解析失败时，流水线必须照常跑完，不得变成硬依赖，也不得因此把素材/陈述直接判通过。
+2. `status=abstained` 或把握低于约定阈值（建议默认 0.90，可配）时，按缺失处理：标 `needs_review`，或退回占位 /「待补充」。不得据此放行。
+3. 看图核验只许做**否决**：Bivia 高把握说「不是该地点」则拒绝该候选；Bivia 说「是」也不得单独作为「候选就是目标实体」的充分条件（B15 的纽约照、天津公园就是高把握误肯定）。仍要叠加元数据 / 实体命中规则（见 N5）。
+4. 单测必须用假客户端；默认 `pytest` **不准出网**。禁止把 key 写入代码、日志、fixtures 或提交。
+5. 这是可选项，排在 N2 和版式多样性之后；不完成也不挡第 4 轮必做项的验收。
+
 ### 第 3 轮已通过（2026-11-20 美东，宝特；对象 `feature/v01-office-renderer` 头 `51703f4`）
+
 
 e90b80f 之后新到 2 个提交（均 2026-11-20 美东 11:19 PM，作者 Antigravity (Gemini)）：
 
