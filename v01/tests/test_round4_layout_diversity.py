@@ -8,14 +8,13 @@ from pathlib import Path
 
 import pytest
 from PIL import Image
-from pptx import Presentation
-from pptx.util import Inches
 
 from pptv01.contracts import (
     AssetRegistry,
     CANVAS_H_IN,
     CANVAS_W_IN,
     DeckOpKind,
+    DeckOps,
     DesignElement,
     ElementKind,
     PageDesign,
@@ -489,3 +488,223 @@ def test_round4_all_canonical_layouts_build_cleanly_including_needs_input_list()
         entry = PageDesignEntry(page_id="S001", layout_id=lid, layout_name=lid, elements=els)
         probs = validate_page_geometry(entry)
         assert not probs, f"layout {lid} geometry failed: {probs}"
+
+
+def test_r5_3_multi_visual_five_slide_deck_places_all_ten_visuals_and_passes_gate(tmp_path):
+    """Round-5 R5-3 #3: 5-slide deck where EVERY slide has 2 real images must place ALL 10 images (never drop 2nd on cover/section/etc.)."""
+    from pptv01.f_layout.validate import validate_page_geometry
+
+    pp = ProductionPlan(
+        run_id=RID,
+        source_utterance="制作一份5页图文并茂的AI专题演示。",
+        **GOOD_A,
+    )
+    pages = [
+        {
+            "page_id": f"S00{i}",
+            "title": title,
+            "goal": f"目标 {i}",
+            "key_points": [f"第{i}页要点一：核心特征", f"第{i}页要点二：实证结论"],
+            "content_summary": f"第{i}页双图演示",
+            "visual_intent": "双图比较",
+            "asset_needs": [],
+            "status": "provisional",
+        }
+        for i, title in enumerate(
+            ["专题概览", "第一部分：方法演进", "实验对比分析", "关键指标趋势", "核心结论与启示"],
+            1,
+        )
+    ]
+    sp = SlidePlan(run_id=RID, status="provisional", narrative="五页每页两张真实图片。", pages=pages)
+
+    assets_dir = tmp_path / "assets"
+    assets_dir.mkdir(exist_ok=True)
+    asset_rows = []
+    mapping_rows = []
+    for k in range(1, 11):
+        aid = f"A{k:03d}"
+        p = assets_dir / f"{aid}.png"
+        p.write_bytes(_png(1200, 800, color=(20 + k * 15, 70 + k * 10, 140)))
+        asset_rows.append(
+            {
+                "asset_id": aid,
+                "status": "acquired",
+                "type": "image",
+                "file_path": f"assets/{aid}.png",
+                "width": 1200,
+                "height": 800,
+                "mime": "image/png",
+                "source_url": f"https://example.org/{aid}.png",
+                "source_name": "Wikimedia",
+                "license_or_terms": "CC BY 4.0",
+                "author": f"Author {aid}",
+                "attribution": f"Author {aid}, CC BY 4.0",
+                "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                "retrieved_at": "2026-11-21T00:00:00+08:00",
+            }
+        )
+        page_num = (k - 1) // 2 + 1
+        mapping_rows.append(
+            {
+                "page_id": f"S00{page_num}",
+                "asset_id": aid,
+                "usage": f"第{page_num}页配图{aid}",
+                "accepted": True,
+            }
+        )
+
+    reg = AssetRegistry(run_id=RID, assets=asset_rows)
+    uir = UserInputRequests(run_id=RID, requests=[], summary="0 open")
+    mapping = SlideAssetMapping(run_id=RID, mappings=mapping_rows, unused_assets=[])
+    write_contract(pp, tmp_path / "production_plan.json")
+    write_contract(sp, tmp_path / "slide_plan.json")
+    write_contract(reg, tmp_path / "asset_registry.json")
+    write_contract(uir, tmp_path / "user_input_requests.json")
+    write_contract(mapping, tmp_path / "slide_asset_mapping.json")
+
+    design = run_stage_f(pp, sp, reg, uir, mapping, tmp_path)
+    write_contract(design, tmp_path / "page_design.json")
+    assert len(design.pages) == 5
+
+    placed_asset_ids: set[str] = set()
+    for p in design.pages:
+        assert not validate_page_geometry(p), f"{p.page_id} failed geometry"
+        page_imgs = [e for e in p.elements if e.kind is ElementKind.image]
+        assert len(page_imgs) == 2, f"{p.page_id} ({p.layout_id}) dropped visual(s): {page_imgs}"
+        placed_asset_ids.update(e.asset_id for e in page_imgs if e.asset_id)
+
+    assert placed_asset_ids == {f"A{k:03d}" for k in range(1, 11)}
+
+    gates = {r.gate: r for r in check_gates(tmp_path).results}
+    assert gates["layout_diversity"].status == "pass", gates["layout_diversity"].detail
+    assert gates["mapped_visuals_placed"].status == "pass", gates["mapped_visuals_placed"].detail
+
+    # Counterexample: drop 2nd image from cover (S001) -> mapped_visuals_placed gate MUST FAIL!
+    bad_pages = []
+    for p in design.pages:
+        if p.page_id == "S001":
+            kept = [e for e in p.elements if e.asset_id != "A002"]
+            bad_pages.append(p.model_copy(update={"elements": kept}))
+        else:
+            bad_pages.append(p)
+    write_contract(design.model_copy(update={"pages": bad_pages}), tmp_path / "page_design.json")
+    gates_bad = {r.gate: r for r in check_gates(tmp_path).results}
+    assert gates_bad["mapped_visuals_placed"].status == "fail"
+    assert "A002" in gates_bad["mapped_visuals_placed"].detail
+
+
+def test_r5_3_placeholder_missing_request_id_raises_not_u001():
+    """Round-5 R5-3 #4: placeholder without request_id must raise ValueError instead of fabricating U001 / PLACEHOLDER_None."""
+    from pptv01.contracts import SlidePage
+
+    page = SlidePage(
+        page_id="S001",
+        title="缺失请求号测试",
+        goal="测试边界",
+        key_points=["要点一"],
+        content_summary="备注",
+        visual_intent="图示",
+        asset_needs=[],
+        status="provisional",
+    )
+    bad_ph = SlotItem("placeholder", None, None, None, "待补充：数据缺失")
+    with pytest.raises(ValueError, match="missing request_id"):
+        build_layout_elements("section", page, page.key_points, [], [bad_ph], [], [])
+    with pytest.raises(ValueError, match="missing request_id"):
+        build_layout_elements("needs-input-list", page, page.key_points, [], [bad_ph], [], [])
+
+
+def test_r5_3_deck_ops_mismatch_and_corrupt_fail_layout_diversity_gate(tmp_path):
+    """Round-5 R5-3 #5: corrupt or slide-count-mismatched deck_ops.json must FAIL layout_diversity (never silently pass)."""
+    def _p(pid: str, lid: str) -> PageDesignEntry:
+        return PageDesignEntry(
+            page_id=pid,
+            layout_id=lid,
+            layout_name=lid,
+            elements=[
+                DesignElement(element_id="title", kind=ElementKind.title, x_in=0.65, y_in=0.5, w_in=12.0, h_in=0.9, z_index=2, text=f"Title {pid}", font_size_pt=28.0),
+                DesignElement(element_id="bullets", kind=ElementKind.bullet, x_in=0.65, y_in=1.8, w_in=11.0, h_in=2.5, z_index=2, text="• Point", font_size_pt=18.0),
+            ],
+        )
+
+    design = PageDesign(
+        run_id=RID,
+        pages=[_p("S001", "cover"), _p("S002", "section"), _p("S003", "quote"), _p("S004", "timeline")],
+    )
+
+    # 1) Mismatched slide count in deck_ops.json
+    d_mismatch = tmp_path / "mismatch"
+    d_mismatch.mkdir()
+    write_contract(design, d_mismatch / "page_design.json")
+    write_contract(
+        DeckOps(
+            run_id=RID,
+            page_ids=["S001", "S002"],
+            ops=[
+                {"op_id": "OP0001", "page_id": "S001", "kind": DeckOpKind.add_slide, "params": {"layout_id": "cover"}},
+                {"op_id": "OP0002", "page_id": "S002", "kind": DeckOpKind.add_slide, "params": {"layout_id": "section"}},
+            ],
+        ),
+        d_mismatch / "deck_ops.json",
+    )
+    g_mis = {r.gate: r for r in check_gates(d_mismatch).results}["layout_diversity"]
+    assert g_mis.status == "fail" and "add_slide count" in g_mis.detail
+
+    # 2) Corrupt deck_ops.json
+    d_corrupt = tmp_path / "corrupt"
+    d_corrupt.mkdir()
+    write_contract(design, d_corrupt / "page_design.json")
+    (d_corrupt / "deck_ops.json").write_text("{not valid json", encoding="utf-8")
+    g_cor = {r.gate: r for r in check_gates(d_corrupt).results}["layout_diversity"]
+    assert g_cor.status == "fail" and "deck_ops.json invalid/unreadable" in g_cor.detail
+
+
+def test_r5_3_single_placeholder_compact_corner_badge_styling_and_alignment():
+    """Round-5 R5-3 #6: single placeholder is a compact corner badge (<= 6% content area), dark-themed on cover, and alignment-drift-free."""
+    from pptv01.contracts import SlidePage
+    from pptv01.f_layout.validate import validate_page_geometry
+    from pptv01.h_qa.geometry import GeoBox, find_edge_misalignments
+
+    page = SlidePage(
+        page_id="S001",
+        title="人工智能演进核心特征",
+        goal="展示要点",
+        key_points=["从规则系统迈向数据驱动表示学习", "生成式模型重塑人机协作边界", "评测重点转向可靠性与可追溯性"],
+        content_summary="备注",
+        visual_intent="概念",
+        asset_needs=[],
+        status="provisional",
+    )
+    ph = [SlotItem("placeholder", None, "U001", None, "待补充：核心演进机制示意图（U001）")]
+    content_area = slide_content_area_in2(CANVAS_W_IN, CANVAS_H_IN)
+
+    for lid in ("cover", "section", "quote", "timeline", "comparison", "big-number"):
+        notes: list[str] = []
+        els = build_layout_elements(lid, page, page.key_points, [], ph, [], notes)
+        entry = PageDesignEntry(page_id="S001", layout_id=lid, layout_name=lid, elements=els)
+        assert not validate_page_geometry(entry), f"{lid} failed geometry"
+
+        ph_els = [e for e in els if e.kind is ElementKind.placeholder]
+        assert len(ph_els) == 1
+        box = ph_els[0]
+        assert (box.w_in * box.h_in) / content_area <= 0.06
+        if lid == "cover":
+            assert box.fill_hex == "#172A45"
+
+        geo = [
+            GeoBox(
+                element_id=e.element_id,
+                x_pt=e.x_in * 72.0,
+                y_pt=e.y_in * 72.0,
+                w_pt=e.w_in * 72.0,
+                h_pt=e.h_in * 72.0,
+                is_background=(e.z_index == 0 and e.kind is ElementKind.shape),
+                is_picture=(e.kind is ElementKind.image),
+                has_text=bool(e.text),
+                text_len=len(e.text or ""),
+                role=e.role,
+            )
+            for e in els
+        ]
+        ph_drifts = [m for m in find_edge_misalignments(geo) if "PLACEHOLDER_" in m[0] or "PLACEHOLDER_" in m[1]]
+        assert not ph_drifts, f"{lid} placeholder has edge misalignment: {ph_drifts}"

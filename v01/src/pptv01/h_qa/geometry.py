@@ -219,7 +219,7 @@ def find_oversized_placeholders(
     if not placeholders:
         return []
 
-    non_ph_primary = [
+    fg_non_ph = [
         b
         for b in boxes
         if not b.is_background
@@ -227,7 +227,39 @@ def find_oversized_placeholders(
         and not b.element_id.upper().startswith("PLACEHOLDER_")
         and not b.element_id.lower().startswith(("footer", "cap_"))
     ]
-    max_primary_area = max((b.area for b in non_ph_primary), default=0.0)
+    visual_boxes = [
+        b
+        for b in fg_non_ph
+        if b.is_picture
+        or b.element_id.upper().startswith(("ASSET_", "INPUT_", "CHART_", "TABLE_", "DIAGRAM_", "VIS_", "DIAG_"))
+        or b.role in ("primary_visual", "full_bleed_hero", "data_chart", "data_table", "diagram_json")
+    ]
+    title_roles = {
+        "title",
+        "cover_title",
+        "section_title",
+        "bleed_title",
+        "split_title",
+        "quote_kicker_title",
+        "needs_input_title",
+    }
+    body_boxes = [
+        b
+        for b in fg_non_ph
+        if b not in visual_boxes
+        and b.element_id.lower() != "title"
+        and not b.element_id.lower().startswith("title_")
+        and b.role not in title_roles
+    ]
+    if visual_boxes:
+        max_primary_area = max(b.area for b in visual_boxes)
+        primary_basis = "primary visual slot"
+    elif body_boxes:
+        max_primary_area = max(b.area for b in body_boxes)
+        primary_basis = "primary body slot"
+    else:
+        max_primary_area = max((b.area for b in fg_non_ph), default=0.0)
+        primary_basis = "title slot (no visual/body slot)"
 
     findings: list[tuple[str, str]] = []
     for ph in placeholders:
@@ -236,7 +268,9 @@ def find_oversized_placeholders(
         if ratio > max_content_area_ratio + 1e-6:
             reasons.append(f"area {ratio:.1%} of content area exceeds {max_content_area_ratio:.0%} limit")
         if not allow_largest_slot and max_primary_area > 0 and ph.area >= max_primary_area:
-            reasons.append("occupies the largest content slot on the slide (placeholder must not be hero visual)")
+            reasons.append(
+                f"occupies the largest content slot ({ph.area:.0f} >= {max_primary_area:.0f} sq pt vs {primary_basis})"
+            )
         if reasons:
             findings.append((ph.element_id, f"placeholder {ph.element_id} oversized: {'; '.join(reasons)}"))
     return findings

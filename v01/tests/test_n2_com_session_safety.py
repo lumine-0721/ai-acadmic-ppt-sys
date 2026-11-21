@@ -393,3 +393,79 @@ def test_n2_no_getactiveobject_or_getobject_in_production_source():
         for m in re.finditer(r"\b(?:GetActiveObject|GetObject)\s*\(", text):
             bad_hits.append(f"{py.relative_to(src_root)}:{m.group(0)}")
     assert bad_hits == [], f"forbidden COM attach call(s) found in production code: {bad_hits}"
+
+
+def test_r5_3_unrelated_mid_session_excel_pid_never_killed_on_exit_or_timeout(monkeypatch):
+    """Round-5 R5-3 #1: Excel PID opened by the user mid-session outside add_chart must NEVER be killed."""
+    excel_state = [{44464}]
+    terminated: list[set[int]] = []
+    app = FakePowerPointApp()
+    app.is_preexisting = False  # type: ignore[attr-defined]
+    app.spawned_pids = {77101}  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(com_session, "_wait_pids_exit", lambda pids, timeout_s=8.0, image_name="POWERPNT.EXE": True)
+
+    # 1. Normal exit with unrelated mid-session Excel opened during a non-chart step
+    with open_powerpoint_session(
+        app_factory=lambda: app,
+        timeout_s=5.0,
+        list_excel_pids_fn=lambda: set(excel_state[0]),
+        terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+    ) as sess:
+        with sess.step("build:add_textbox:OP001"):
+            # User opens an unrelated Excel workbook mid-session!
+            excel_state[0].add(99123)
+
+    normal_killed = set().union(*terminated) if terminated else set()
+    assert 99123 not in normal_killed
+    assert 44464 not in normal_killed
+
+    # 2. Timeout during non-chart step also never kills unrelated mid-session Excel
+    terminated.clear()
+    app2 = FakePowerPointApp()
+    app2.is_preexisting = False  # type: ignore[attr-defined]
+    app2.spawned_pids = {77101}  # type: ignore[attr-defined]
+    with pytest.raises(RenderExecutionError, match="timed out"):
+        with open_powerpoint_session(
+            app_factory=lambda: app2,
+            timeout_s=0.10,
+            list_excel_pids_fn=lambda: set(excel_state[0]),
+            terminate_pids_fn=lambda pids: terminated.append(set(pids)),
+        ) as sess:
+            with sess.step("build:add_picture:OP002"):
+                excel_state[0].add(99456)
+                sess._timeout_event.wait(timeout=1.0)
+                time.sleep(0.04)
+
+    killed_union = set().union(*terminated) if terminated else set()
+    assert 99456 not in killed_union
+    assert 44464 not in killed_union
+    assert 77101 in killed_union
+
+
+def test_r5_3_probe_excel_com_always_calls_quit_even_when_pid_enum_fails(monkeypatch):
+    """Round-5 R5-3 #2: probe_excel_com must always call xl.Quit() if DispatchEx created xl, without taskkilling unknown PIDs."""
+    quit_calls = {"n": 0}
+    term_calls: list[set[int]] = []
+
+    class FakeExcel:
+        Version = "16.0"
+        Build = "20625"
+
+        def Quit(self):
+            quit_calls["n"] += 1
+
+    fake_win32 = SimpleNamespace(DispatchEx=lambda progid: FakeExcel())
+    fake_pythoncom = SimpleNamespace(CoInitialize=lambda: None, CoUninitialize=lambda: None)
+
+    monkeypatch.setattr(com_session, "_import_com_modules", lambda: (fake_pythoncom, fake_win32))
+    monkeypatch.setattr(com_session, "_ensure_com_initialized", lambda _pc: None)
+    monkeypatch.setattr(com_session, "_list_pids", lambda _img: (_ for _ in ()).throw(RuntimeError("tasklist unavailable")))
+    monkeypatch.setattr(com_session, "_terminate_pids", lambda pids: term_calls.append(set(pids)))
+
+    ok, ver, bld = com_session.probe_excel_com()
+    assert ok is True
+    assert ver == "16.0"
+    assert bld == "20625"
+    assert quit_calls["n"] == 1
+    assert term_calls == []

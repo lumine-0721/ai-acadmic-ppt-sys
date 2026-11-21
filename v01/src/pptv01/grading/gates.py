@@ -27,8 +27,10 @@ from pptv01.contracts import (
     GateResult,
     PageDesign,
     ProductionPlan,
+    SlideAssetMapping,
     SlidePlan,
     UserInputRequests,
+    UserRequestKind,
     UserRequestStatus,
     load_contract,
 )
@@ -530,13 +532,27 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
         content_area = slide_content_area_in2(page.canvas_width_in, page.canvas_height_in)
         placeholders = [e for e in page.elements if e.kind is ElementKind.placeholder]
         if placeholders:
-            primary_areas = [
+            visual_areas = [
                 e.w_in * e.h_in
                 for e in page.elements
-                if e.kind not in (ElementKind.placeholder, ElementKind.shape, ElementKind.caption, ElementKind.footer)
+                if e.kind in (ElementKind.image, ElementKind.chart, ElementKind.table)
                 or (e.kind is ElementKind.shape and e.role == "diagram_json")
             ]
-            max_primary = max(primary_areas, default=0.0)
+            body_areas = [
+                e.w_in * e.h_in
+                for e in page.elements
+                if e.kind in (ElementKind.body, ElementKind.bullet)
+            ]
+            title_areas = [e.w_in * e.h_in for e in page.elements if e.kind is ElementKind.title]
+            if visual_areas:
+                max_primary = max(visual_areas)
+                primary_basis = "primary visual slot"
+            elif body_areas:
+                max_primary = max(body_areas)
+                primary_basis = "primary body slot"
+            else:
+                max_primary = max(title_areas, default=0.0)
+                primary_basis = "title slot (no visual/body slot)"
             for ph in placeholders:
                 ph_area = ph.w_in * ph.h_in
                 ratio = ph_area / max(content_area, 1e-6)
@@ -546,7 +562,7 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
                     )
                 if lid != "needs-input-list" and max_primary > 0 and ph_area >= max_primary:
                     failures.append(
-                        f"{page.page_id}.{ph.element_id}: placeholder occupies largest content slot ({ph_area:.1f} >= {max_primary:.1f} sq in)"
+                        f"{page.page_id}.{ph.element_id}: placeholder occupies largest content slot ({ph_area:.1f} >= {max_primary:.1f} sq in vs {primary_basis})"
                     )
 
     # 1. Adjacent slides must NOT share the same layout_id
@@ -581,14 +597,18 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
                 for o in ops.ops
                 if o.kind is DeckOpKind.add_slide
             ]
-            if len(compiled_lids) == n:
+            if len(compiled_lids) != n:
+                failures.append(
+                    f"deck_ops.json add_slide count ({len(compiled_lids)}) != page_design slide count ({n})"
+                )
+            else:
                 for page, expected_lid, got_lid in zip(pages, layout_ids, compiled_lids):
                     if got_lid and expected_lid != LEGACY_LAYOUT_ID and got_lid != expected_lid:
                         failures.append(
                             f"{page.page_id}: deck_ops layout_id {got_lid!r} != page_design {expected_lid!r}"
                         )
-        except Exception:
-            pass
+        except Exception as exc:
+            failures.append(f"deck_ops.json invalid/unreadable: {type(exc).__name__}: {str(exc)[:140]}")
 
     if failures:
         return GateResult(
@@ -600,6 +620,105 @@ def _check_layout_diversity_gate(run_dir: Path, design: PageDesign | None) -> Ga
         gate="layout_diversity",
         status="pass",
         detail=f"{len(distinct)} distinct layout(s) across {n} slide(s): {', '.join(layout_ids)}",
+    )
+
+
+def _check_mapped_visuals_placed_gate(
+    mapping: SlideAssetMapping | None,
+    design: PageDesign | None,
+    reg: AssetRegistry | None,
+    uir: UserInputRequests | None,
+) -> GateResult:
+    """Hard gate verifying every accepted visual in Stage E appears in its Stage F page_design slide."""
+    if mapping is None or design is None:
+        return GateResult(
+            gate="mapped_visuals_placed",
+            status="not_run",
+            detail="needs slide_asset_mapping.json and page_design.json",
+        )
+
+    reg_by_id = {a.asset_id: a for a in reg.assets} if reg is not None else {}
+    uir_by_id = {r.request_id: r for r in uir.requests} if uir is not None else {}
+    pages_by_id = {p.page_id: p for p in design.pages}
+
+    _visual_kinds = {
+        UserRequestKind.image,
+        UserRequestKind.icon,
+        UserRequestKind.chart,
+        UserRequestKind.statistic,
+        UserRequestKind.table,
+        UserRequestKind.diagram,
+    }
+    _asset_visual_types = {"image", "icon", "chart_data", "chart", "statistic", "table", "diagram"}
+
+    failures: list[str] = []
+    checked = 0
+    seen_checked: set[tuple[str, str | None, str | None]] = set()
+
+    for m in mapping.mappings:
+        if not m.accepted:
+            continue
+        asset = reg_by_id.get(m.asset_id) if m.asset_id else None
+        req = uir_by_id.get(m.request_id) if m.request_id else None
+
+        is_visual = False
+        if req is not None and req.status is UserRequestStatus.provided and req.provided:
+            if req.kind is UserRequestKind.reference:
+                continue
+            is_visual = req.kind in _visual_kinds
+        elif (
+            asset is not None
+            and asset.status in (AssetStatus.acquired, AssetStatus.drawn, AssetStatus.substituted)
+            and asset.file_path
+        ):
+            kind_str = asset.type.value if asset.type else "image"
+            if kind_str == "reference":
+                continue
+            is_visual = kind_str in _asset_visual_types
+        elif reg is None and uir is None:
+            usage_l = m.usage.lower()
+            if "reference" in usage_l or "文献" in m.usage:
+                continue
+            is_visual = True
+        else:
+            continue
+
+        if not is_visual:
+            continue
+        key = (m.page_id, m.asset_id, m.request_id)
+        if key in seen_checked:
+            continue
+        seen_checked.add(key)
+        checked += 1
+
+        ref_label = m.asset_id or m.request_id or "unknown"
+        page = pages_by_id.get(m.page_id)
+        if page is None:
+            failures.append(f"{m.page_id}: page missing from page_design for mapped visual {ref_label}")
+            continue
+        placed = any(
+            (
+                el.kind in (ElementKind.image, ElementKind.chart, ElementKind.table)
+                or (el.kind is ElementKind.shape and el.role == "diagram_json")
+            )
+            and ((m.asset_id and el.asset_id == m.asset_id) or (m.request_id and el.request_id == m.request_id))
+            for el in page.elements
+        )
+        if not placed:
+            failures.append(
+                f"{m.page_id}: accepted visual {ref_label} missing from page_design ({page.layout_id or page.layout_name})"
+            )
+
+    if failures:
+        return GateResult(
+            gate="mapped_visuals_placed",
+            status="fail",
+            detail="; ".join(failures[:6]),
+        )
+    return GateResult(
+        gate="mapped_visuals_placed",
+        status="pass",
+        detail=f"all {checked} accepted visual mapping(s) placed in page_design",
     )
 
 
@@ -648,8 +767,17 @@ def check_gates(run_dir: Path) -> GateReport:
     else:
         results.append(GateResult(gate="assets_have_source_and_license", status="not_run", detail="no asset_registry yet"))
     uir = loaded.get("user_input_requests")
+    mapping = loaded.get("slide_asset_mapping")
     design = loaded.get("page_design")
     results.append(_check_layout_diversity_gate(run_dir, design if isinstance(design, PageDesign) else None))
+    results.append(
+        _check_mapped_visuals_placed_gate(
+            mapping if isinstance(mapping, SlideAssetMapping) else None,
+            design if isinstance(design, PageDesign) else None,
+            reg if isinstance(reg, AssetRegistry) else None,
+            uir if isinstance(uir, UserInputRequests) else None,
+        )
+    )
     results.extend(
         _check_pptx_visual_gates(
             run_dir,

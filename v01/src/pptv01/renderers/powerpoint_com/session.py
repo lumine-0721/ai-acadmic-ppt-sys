@@ -198,11 +198,10 @@ def probe_excel_com(excel_factory: Callable[[], Any] | None = None) -> tuple[boo
             return False, "", ""
         finally:
             if xl is not None:
-                if spawned:
-                    try:
-                        xl.Quit()
-                    except Exception:
-                        pass
+                try:
+                    xl.Quit()
+                except Exception:
+                    pass
                 xl = None
             gc.collect()
             if spawned:
@@ -261,6 +260,7 @@ class PowerPointSession:
         self._initial_open_count: int = 0
         self._spawned_pids: set[int] = set()
         self._pre_excel_pids: set[int] | None = None
+        self._active_chart_pre_excel_pids: set[int] | None = None
         self._spawned_excel_pids: set[int] = set()
         self._dispatched: bool = False
         self._owns_instance: bool = False
@@ -292,26 +292,36 @@ class PowerPointSession:
     def timed_out(self) -> bool:
         return self._timed_out
 
-    def record_spawned_excel_pids(self) -> set[int]:
-        """Record any Excel PIDs newly spawned after DispatchEx against a verified baseline.
-
-        NEVER guesses or falls back to an empty baseline: if the pre-launch baseline could not
-        be enumerated or we do not own the PowerPoint instance, returns an empty set so we never
-        terminate a user's Excel process.
-        """
+    def snapshot_excel_pids(self) -> set[int] | None:
+        """Capture an explicit Excel PID baseline immediately before an embedded-chart op."""
         if not self._dispatched or not self._owns_instance or self._pre_excel_pids is None:
+            return None
+        try:
+            return set(self._list_excel_pids_fn())
+        except Exception:
+            return None
+
+    def record_spawned_excel_pids(self, before_pids: set[int] | None = None) -> set[int]:
+        """Record Excel PIDs spawned during an explicit chart step against its before_pids snapshot.
+
+        NEVER diffs against the whole-session baseline so an unrelated user Excel opened mid-session
+        outside ``add_chart`` is never treated as spawned by us.
+        """
+        if not self._dispatched or not self._owns_instance or before_pids is None:
             return set()
         try:
             cur = set(self._list_excel_pids_fn())
         except Exception:
             return set()
-        newly_spawned = cur - self._pre_excel_pids
+        newly_spawned = cur - before_pids
         if newly_spawned:
             self._spawned_excel_pids |= newly_spawned
         return set(self._spawned_excel_pids)
 
     def _collect_spawned_excel_pids(self) -> set[int]:
-        return self.record_spawned_excel_pids()
+        if self._active_chart_pre_excel_pids is None:
+            return set()
+        return self.record_spawned_excel_pids(self._active_chart_pre_excel_pids)
 
     def _on_timeout(self, *, kind: str, limit_s: float) -> None:
         with self._lock:
@@ -323,8 +333,9 @@ class PowerPointSession:
                 self._step_started_monotonic if kind == "step" else self._started_monotonic
             )
             owned_ppt = set(self._spawned_pids)
-            owned_xl = self._collect_spawned_excel_pids()
-            self._spawned_excel_pids |= owned_xl
+            if self._active_chart_pre_excel_pids is not None:
+                self._collect_spawned_excel_pids()
+            owned_xl = set(self._spawned_excel_pids)
             to_kill = owned_ppt | owned_xl
             self._timeout_message = (
                 f"PowerPoint COM {kind} timed out during step={step_name!r} "
@@ -366,25 +377,40 @@ class PowerPointSession:
             raise RenderExecutionError(msg)
 
     @contextmanager
-    def step(self, name: str, *, timeout_s: float | None = None) -> Iterator[None]:
+    def step(
+        self,
+        name: str,
+        *,
+        timeout_s: float | None = None,
+        track_excel: bool | None = None,
+    ) -> Iterator[None]:
         """Mark the active COM step and arm a per-call watchdog timer."""
         self.check_timeout(name)
         limit = min(self._timeout_s, self._step_timeout_s if timeout_s is None else max(0.05, float(timeout_s)))
+        should_track_excel = ("add_chart" in name) if track_excel is None else bool(track_excel)
+        before_xl = self.snapshot_excel_pids() if should_track_excel else None
         with self._lock:
             self._current_step = name
             self._step_started_monotonic = time.monotonic()
+            self._active_chart_pre_excel_pids = before_xl
         t = threading.Timer(limit, self._on_timeout, kwargs={"kind": "step", "limit_s": limit})
         t.daemon = True
         self._step_watchdog = t
         t.start()
         try:
             yield
+            if before_xl is not None:
+                self.record_spawned_excel_pids(before_xl)
             self.check_timeout(name)
         except BaseException:
+            if before_xl is not None:
+                self.record_spawned_excel_pids(before_xl)
             if self._timed_out:
                 raise RenderExecutionError(self._timeout_message) from None
             raise
         finally:
+            with self._lock:
+                self._active_chart_pre_excel_pids = None
             self._cancel_step_watchdog()
 
     def track_presentation(self, pres: Any) -> Any:
@@ -603,11 +629,10 @@ class PowerPointSession:
             self.app = None
 
         gc.collect()
-        # Clean up any Excel process spawned exclusively during our session (never touch user Excel!)
-        new_xl = self._collect_spawned_excel_pids()
-        if new_xl and (was_timed_out or interrupted):
-            self._spawned_excel_pids |= new_xl
-            self._terminate_pids_fn(new_xl)
+        # Clean up only Excel PIDs explicitly recorded during add_chart steps (never diff whole-session baseline!)
+        owned_xl_early = set(self._spawned_excel_pids)
+        if owned_xl_early and (was_timed_out or interrupted):
+            self._terminate_pids_fn(owned_xl_early)
 
         if self._pythoncom is not None:
             self._pythoncom = None

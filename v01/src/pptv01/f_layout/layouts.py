@@ -325,7 +325,7 @@ def select_deck_layouts(
             chosen[idx_swap] = new_lid
             improved = True
         if not improved:
-            # Fallback: allow any non-image-requiring unused layout on a duplicated slide
+            # Fallback: allow any non-image-requiring unused layout that can hold all visuals on a duplicated slide
             for i in range(n):
                 if chosen.count(chosen[i]) <= 1:
                     continue
@@ -334,20 +334,25 @@ def select_deck_layouts(
                 for lid in TEXT_CAPABLE_LAYOUTS:
                     if lid == "needs-input-list":
                         continue
-                    if lid not in chosen and lid != prev and lid != nxt:
-                        chosen[i] = lid
-                        improved = True
-                        break
+                    if lid in chosen or lid == prev or lid == nxt:
+                        continue
+                    chosen[i] = lid
+                    improved = True
+                    break
                 if improved:
                     break
         if not improved:
             break
 
-    # Pass 3: final safety check guaranteeing no adjacent duplicates
+    # Pass 3: final safety check guaranteeing no adjacent duplicates and no multi-visual full-bleed
     for i in range(1, n):
         if chosen[i] == chosen[i - 1]:
             nxt = chosen[i + 1] if i + 1 < n else None
             for lid in sorted(score_tables[i], key=lambda k: score_tables[i][k], reverse=True):
+                if lid == "full-bleed" and len(page_real_visuals[i]) != 1:
+                    continue
+                if lid == "needs-input-list" and page_real_visuals[i]:
+                    continue
                 if lid != chosen[i - 1] and lid != nxt:
                     chosen[i] = lid
                     break
@@ -416,9 +421,18 @@ def _fit_rect_aspect(
     return round(nx, 3), round(ny, 3), round(new_w, 3), round(new_h, 3), True
 
 
+def _require_placeholder_request_id(item: SlotItem) -> str:
+    req_id = (item.request_id or "").strip()
+    if not req_id:
+        raise ValueError(
+            f"placeholder SlotItem ({item.label!r}) missing request_id; never fabricate U001/PLACEHOLDER_None"
+        )
+    return req_id
+
+
 def _format_compact_placeholder_text(item: SlotItem, box_w: float, box_h: float, font_pt: float) -> tuple[str, float]:
     """Fit ``待补充：<need>（U###）`` cleanly inside a compact strip without overflowing."""
-    req_id = item.request_id or "U001"
+    req_id = _require_placeholder_request_id(item)
     full = item.label.strip()
     floor = MIN_FONT_PT[ElementKind.placeholder]
     fit = fit_text_to_box(full, box_w, box_h, font_pt, min_font_pt=floor)
@@ -453,30 +467,34 @@ def _place_compact_placeholder_tray(
     max_w: float = GRID_USABLE_W,
     tray_h: float = 0.60,
     page_notes: list[str],
+    dark_theme: bool = False,
 ) -> None:
-    """Place all missing U### requests as compact dashed strips (<= 15% content area total, never hero)."""
+    """Place all missing U### requests as compact dashed corner badges/pills (<= 15% content area total, never hero)."""
     n = len(placeholders)
     if n == 0:
         return
-    # For a single placeholder, keep width compact (9.60in x 0.60in = 5.76 sq in = 8.0% of content area)
-    # so it is strictly smaller than every primary slot on every layout and never drifts near right edge.
     content_area = slide_content_area_in2()
     max_each_area = content_area * 0.125  # safely under the 15% hard cap
+    ph_fill = "#172A45" if dark_theme else C_PH_FILL
+    ph_line = "#F59E0B" if dark_theme else C_PH_LINE
+    ph_text = "#FDE68A" if dark_theme else C_PH_TEXT
 
     if n == 1:
         item = placeholders[0]
-        # Align cleanly to grid left & right margins (12.03 x 0.58 = 6.98 sq in = 9.7% of content area <= 15%)
-        # so the compact strip NEVER drifts 1-3pt against any centered visual or column edge.
-        ph = round(min(tray_h, 0.58), 3)
-        pw = round(min(max_w, max_each_area / max(ph, 0.45)), 3)
+        req_id = _require_placeholder_request_id(item)
+        # Restrained bottom-right corner badge (4.90 x 0.56 = 2.74 sq in ~ 3.8% of content area)
+        # snapped cleanly to right edge (x + max_w = 12.68) so it stays non-dominant and drift-free.
+        ph = round(min(tray_h, 0.56), 3)
+        pw = round(min(max_w, 4.90, max_each_area / max(ph, 0.45)), 3)
+        px = round(x + max_w - pw, 3)
         txt, pt = _format_compact_placeholder_text(item, pw, ph, 11.0)
         if txt != item.label:
-            page_notes.append(f"PLACEHOLDER_{item.request_id}: compact tray label shortened (full need in notes)")
+            page_notes.append(f"PLACEHOLDER_{req_id}: compact tray label shortened (full need in notes)")
         elements.append(
             DesignElement(
-                element_id=f"PLACEHOLDER_{item.request_id}",
+                element_id=f"PLACEHOLDER_{req_id}",
                 kind=ElementKind.placeholder,
-                x_in=round(x, 3),
+                x_in=px,
                 y_in=round(y, 3),
                 w_in=pw,
                 h_in=ph,
@@ -485,12 +503,12 @@ def _place_compact_placeholder_tray(
                 text=txt,
                 font=DEFAULT_FONT,
                 font_size_pt=pt,
-                color_hex=C_PH_TEXT,
-                fill_hex=C_PH_FILL,
-                line_hex=C_PH_LINE,
+                color_hex=ph_text,
+                fill_hex=ph_fill,
+                line_hex=ph_line,
                 role="compact_placeholder",
                 asset_id=item.asset_id,
-                request_id=item.request_id,
+                request_id=req_id,
             )
         )
         return
@@ -502,14 +520,15 @@ def _place_compact_placeholder_tray(
     ph = round(min(tray_h, (content_area * 0.13) / max(max_w, 1.0)), 3)
     ph = max(0.54, ph)
     for i, item in enumerate(placeholders):
+        req_id = _require_placeholder_request_id(item)
         px = round(x + i * (col_w + gap), 3)
         cw = round(x + max_w - px, 3) if i == n - 1 else col_w
         txt, pt = _format_compact_placeholder_text(item, cw, ph, 11.0)
         if txt != item.label:
-            page_notes.append(f"PLACEHOLDER_{item.request_id}: compact tray label shortened (full need in notes)")
+            page_notes.append(f"PLACEHOLDER_{req_id}: compact tray label shortened (full need in notes)")
         elements.append(
             DesignElement(
-                element_id=f"PLACEHOLDER_{item.request_id}",
+                element_id=f"PLACEHOLDER_{req_id}",
                 kind=ElementKind.placeholder,
                 x_in=px,
                 y_in=round(y, 3),
@@ -520,12 +539,12 @@ def _place_compact_placeholder_tray(
                 text=txt,
                 font=DEFAULT_FONT,
                 font_size_pt=pt,
-                color_hex=C_PH_TEXT,
-                fill_hex=C_PH_FILL,
-                line_hex=C_PH_LINE,
+                color_hex=ph_text,
+                fill_hex=ph_fill,
+                line_hex=ph_line,
                 role="compact_placeholder",
                 asset_id=item.asset_id,
-                request_id=item.request_id,
+                request_id=req_id,
             )
         )
 
@@ -556,7 +575,11 @@ def _design_real_visual(
                 cap_h = 0.54
             else:
                 cap_h = 0.36
-        img_h = max(1.2, round(h - cap_h - (0.06 if cap_h else 0.0), 3))
+        if cap_h > 0 and h >= 1.55:
+            cap_h = round(min(cap_h, max(0.32, h - 1.16)), 3)
+        elif cap_h > 0:
+            cap_h = round(min(cap_h, max(0.26, h * 0.28)), 3)
+        img_h = max(0.80, round(h - cap_h - (0.06 if cap_h else 0.0), 3))
         dims = (item.width_px, item.height_px) if (item.width_px and item.height_px) else None
         img_ar = item.aspect_ratio
         if img_ar is not None and (img_ar < CROP_FILL_MIN_AR or img_ar > CROP_FILL_MAX_AR):
@@ -640,6 +663,74 @@ def _design_real_visual(
         )
     )
     return out
+
+
+def _place_real_visuals_group(
+    elements: list[DesignElement],
+    real_visuals: Sequence[SlotItem],
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    page_notes: list[str],
+    *,
+    caption_color: str = C_MUTED,
+    start_idx: int = 1,
+) -> None:
+    """Place ALL real visuals inside ``(x, y, w, h)`` without silently dropping any."""
+    n_vis = len(real_visuals)
+    if n_vis == 0:
+        return
+    if n_vis == 1:
+        elements.extend(
+            _design_real_visual(
+                real_visuals[0], start_idx, x, y, w, h, page_notes, caption_color=caption_color
+            )
+        )
+        return
+    if n_vis <= 3:
+        if w >= h * 1.35:
+            gap = 0.20
+            cw = round((w - gap * (n_vis - 1)) / n_vis, 3)
+            for i, item in enumerate(real_visuals):
+                vx = round(x + i * (cw + gap), 3)
+                vw = round(x + w - vx, 3) if i == n_vis - 1 else cw
+                elements.extend(
+                    _design_real_visual(
+                        item, start_idx + i, vx, y, vw, h, page_notes, caption_color=caption_color
+                    )
+                )
+        else:
+            gap = 0.20
+            ch = round((h - gap * (n_vis - 1)) / n_vis, 3)
+            for i, item in enumerate(real_visuals):
+                vy = round(y + i * (ch + gap), 3)
+                vh = round(y + h - vy, 3) if i == n_vis - 1 else ch
+                elements.extend(
+                    _design_real_visual(
+                        item, start_idx + i, x, vy, w, vh, page_notes, caption_color=caption_color
+                    )
+                )
+        return
+
+    cols = math.ceil(n_vis / 2)
+    rows = 2
+    gap_x = 0.20
+    gap_y = 0.18
+    cw = round((w - gap_x * (cols - 1)) / cols, 3)
+    ch = round((h - gap_y * (rows - 1)) / rows, 3)
+    for i, item in enumerate(real_visuals):
+        r = i // cols
+        c = i % cols
+        vx = round(x + c * (cw + gap_x), 3)
+        vy = round(y + r * (ch + gap_y), 3)
+        vw = round(x + w - vx, 3) if c == cols - 1 else cw
+        vh = round(y + h - vy, 3) if r == rows - 1 else ch
+        elements.extend(
+            _design_real_visual(
+                item, start_idx + i, vx, vy, vw, vh, page_notes, caption_color=caption_color
+            )
+        )
 
 
 def _place_anchored_citation(
@@ -872,10 +963,8 @@ def build_layout_elements(
             vis_x = round(GRID_MARGIN_X + left_w + 0.38, 3)
             vis_w = round(GRID_RIGHT_X - vis_x, 3)
             vis_h = round(content_bottom - 0.65, 3)
-            elements.extend(
-                _design_real_visual(
-                    real_visuals[0], 1, vis_x, 0.65, vis_w, vis_h, notes, caption_color="#CBD5E1"
-                )
+            _place_real_visuals_group(
+                elements, real_visuals, vis_x, 0.65, vis_w, vis_h, notes, caption_color="#CBD5E1"
             )
         else:
             # Full-width dark typographic cover (ideal for sparse decks like T36 slide 1!)
@@ -938,7 +1027,9 @@ def build_layout_elements(
                     page_notes=notes,
                 )
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
+            _place_compact_placeholder_tray(
+                elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, dark_theme=True
+            )
         return elements
 
     # ================================================================ 2) SECTION (dark left column + bright right stage)
@@ -1026,7 +1117,7 @@ def build_layout_elements(
             )
             vis_y = round(0.70 + bh + 0.25, 3)
             vis_h = round(content_bottom - vis_y - (0.45 if citations else 0.0), 3)
-            elements.extend(_design_real_visual(real_visuals[0], 1, rx, vis_y, rw, vis_h, notes))
+            _place_real_visuals_group(elements, real_visuals, rx, vis_y, rw, vis_h, notes)
             if citations:
                 _place_anchored_citation(
                     elements, citations, x=rx, y=round(vis_y + vis_h + 0.08, 3), w=rw, max_bottom=content_bottom, page_notes=notes
@@ -1177,7 +1268,9 @@ def build_layout_elements(
                 page_notes=notes,
             )
         if has_ph:
-            _place_compact_placeholder_tray(elements, placeholders, y=6.62, tray_h=0.58, page_notes=notes)
+            _place_compact_placeholder_tray(
+                elements, placeholders, y=6.62, tray_h=0.58, page_notes=notes, dark_theme=True
+            )
         return elements
 
     # ================================================================ 4) IMAGE-LEFT / IMAGE-RIGHT (clean asymmetric editorial split)
@@ -1262,14 +1355,7 @@ def build_layout_elements(
             )
 
         # Hero visual(s) in the dedicated visual column
-        if len(real_visuals) == 1:
-            elements.extend(_design_real_visual(real_visuals[0], 1, vis_x, top_y, SPLIT_VIS_W, slot_h, notes))
-        else:
-            gap = 0.20
-            sub_h = round((slot_h - gap * (len(real_visuals) - 1)) / len(real_visuals), 3)
-            for i, item in enumerate(real_visuals):
-                vy = round(top_y + i * (sub_h + gap), 3)
-                elements.extend(_design_real_visual(item, i + 1, vis_x, vy, SPLIT_VIS_W, sub_h, notes))
+        _place_real_visuals_group(elements, real_visuals, vis_x, top_y, SPLIT_VIS_W, slot_h, notes)
 
         if has_ph:
             _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes)
@@ -1331,7 +1417,7 @@ def build_layout_elements(
             quote_w = round(SPLIT_TEXT_W - 0.36, 3)
             vis_x = round(GRID_MARGIN_X + SPLIT_TEXT_W + GRID_GUTTER, 3)
             vis_h = round(content_bottom - 1.70, 3)
-            elements.extend(_design_real_visual(real_visuals[0], 1, vis_x, 1.70, SPLIT_VIS_W, vis_h, notes))
+            _place_real_visuals_group(elements, real_visuals, vis_x, 1.70, SPLIT_VIS_W, vis_h, notes)
         else:
             quote_w = round(GRID_RIGHT_X - quote_x, 3)
         quote_h = 2.05 if rest_pts else 3.20
@@ -1490,9 +1576,9 @@ def build_layout_elements(
             )
         )
 
-        # Right column: real chart/visual if available, else supporting key points
+        # Right column: real chart/visual(s) if available, else supporting key points
         if real_visuals:
-            elements.extend(_design_real_visual(real_visuals[0], 1, right_x, panel_y, right_w, panel_h, notes))
+            _place_real_visuals_group(elements, real_visuals, right_x, panel_y, right_w, panel_h, notes)
             if citations:
                 _place_anchored_citation(
                     elements,
@@ -1630,13 +1716,15 @@ def build_layout_elements(
             if n_vis == 2:
                 elements.extend(_design_real_visual(real_visuals[0], 1, left_x, vis_y, col_w, vis_h, notes))
                 elements.extend(_design_real_visual(real_visuals[1], 2, right_x, vis_y, col_w, vis_h, notes))
-            else:
+            elif n_vis == 3:
                 vgap = 0.24
                 vcw = round((GRID_USABLE_W - vgap * (n_vis - 1)) / n_vis, 3)
                 for i, item in enumerate(real_visuals):
                     vx = round(GRID_MARGIN_X + i * (vcw + vgap), 3)
                     cw = round(GRID_RIGHT_X - vx, 3) if i == n_vis - 1 else vcw
                     elements.extend(_design_real_visual(item, i + 1, vx, vis_y, cw, vis_h, notes))
+            else:
+                _place_real_visuals_group(elements, real_visuals, left_x, vis_y, GRID_USABLE_W, vis_h, notes)
             last_y = round(vis_y + vis_h, 3)
             divider_h = 0.0
         elif len(real_visuals) == 1:
@@ -1800,7 +1888,7 @@ def build_layout_elements(
             )
 
         if real_visuals:
-            elements.extend(_design_real_visual(real_visuals[0], 1, GRID_MARGIN_X, vis_y, GRID_USABLE_W, vis_h, notes))
+            _place_real_visuals_group(elements, real_visuals, GRID_MARGIN_X, vis_y, GRID_USABLE_W, vis_h, notes)
             cite_y = round(vis_y + vis_h + 0.10, 3)
         else:
             cite_y = round(step_top + step_h + 0.16, 3)
@@ -1851,6 +1939,7 @@ def build_layout_elements(
         )
         list_y = round(1.50 + bh + 0.24, 3)
         for i, item in enumerate(placeholders):
+            req_id = _require_placeholder_request_id(item)
             row_h = 0.60
             ry = round(list_y + i * (row_h + 0.16), 3)
             if ry + row_h > 7.20:
@@ -1859,7 +1948,7 @@ def build_layout_elements(
             txt, pt = _format_compact_placeholder_text(item, pw, row_h, 11.5)
             elements.append(
                 DesignElement(
-                    element_id=f"PLACEHOLDER_{item.request_id}",
+                    element_id=f"PLACEHOLDER_{req_id}",
                     kind=ElementKind.placeholder,
                     x_in=GRID_MARGIN_X,
                     y_in=ry,
@@ -1875,7 +1964,7 @@ def build_layout_elements(
                     line_hex=C_PH_LINE,
                     role="compact_placeholder",
                     asset_id=item.asset_id,
-                    request_id=item.request_id,
+                    request_id=req_id,
                 )
             )
         if citations:
