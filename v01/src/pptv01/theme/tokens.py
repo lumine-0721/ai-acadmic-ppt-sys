@@ -200,6 +200,11 @@ class ThemeTokens:
     graph_8: str
     graph_9: str
     title_font: str = "Microsoft YaHei"
+    # Structural content-slide skeleton traits (R8-4)
+    bg_motif: str = "none"              # none | top_band | left_rail | split_zone | fine_grid | corner_bracket
+    title_style: str = "left_rule"      # left_rule | filled_header | numbered_title | centered_rule
+    accent_position: str = "under_title"  # under_title | left_bar | corner_badge | none
+    card_style: str = "outlined"        # outlined | filled_soft | accent_top | borderless
 
     @property
     def has_tinted_canvas(self) -> bool:
@@ -334,6 +339,10 @@ def _theme_from_dict(data: dict[str, Any]) -> ThemeTokens:
         graph_7=str(data.get("graph_7") or series[7]),
         graph_8=str(data.get("graph_8") or series[8]),
         graph_9=str(data.get("graph_9") or series[9]),
+        bg_motif=str(data.get("bg_motif") or "none"),
+        title_style=str(data.get("title_style") or "left_rule"),
+        accent_position=str(data.get("accent_position") or "under_title"),
+        card_style=str(data.get("card_style") or "outlined"),
     )
 
 

@@ -24,7 +24,7 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Any, Sequence
 
 from pptv01.contracts import (
     CANVAS_H_IN,
@@ -41,7 +41,7 @@ def display_title(page: SlidePage) -> str:
     """Prefer assertive conclusion-sentence `headline` when present, falling back to `page.title`."""
     hl = (getattr(page, "headline", None) or "").strip()
     return hl or page.title
-from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens
+from pptv01.theme import ACADEMIC_DEFAULT_THEME, DEFAULT_THEME_ID, ThemeTokens
 
 from .capacity import (
     LayoutCapacitySpec,
@@ -1123,14 +1123,439 @@ def _format_points_lines(points: Sequence[str]) -> list[str]:
 
 
 # ------------------------------------------------------------------ Per-layout builders
-def _apply_theme_surface(elements: list[DesignElement], theme: ThemeTokens) -> list[DesignElement]:
-    """Apply `theme.title_font` on titles and prepend tinted `bg_canvas` for non-white themes."""
+def _refit_title_element(el: DesignElement, new_x: float, new_w: float, *, color_hex: str | None = None, align: str | None = None) -> DesignElement:
+    """Refit title font size cleanly whenever a theme skeleton narrows or restyles the title box."""
+    txt = (el.text or "").strip()
+    start_pt = float(el.font_size_pt or 28.0)
+    if txt:
+        fit = fit_text_to_box(txt, new_w, el.h_in, start_pt, min_font_pt=MIN_FONT_PT[ElementKind.title])
+        updates: dict[str, Any] = {"x_in": round(new_x, 3), "w_in": round(new_w, 3), "font_size_pt": fit.font_size_pt}
+    else:
+        updates = {"x_in": round(new_x, 3), "w_in": round(new_w, 3)}
+    if color_hex is not None:
+        updates["color_hex"] = color_hex
+    if align is not None:
+        updates["align"] = align
+    return el.model_copy(update=updates)
+
+
+def _apply_theme_surface(elements: list[DesignElement], theme: ThemeTokens, layout_id: str = "") -> list[DesignElement]:
+    """Apply `theme.title_font`, `bg_canvas`, and R8-4 structural skeleton tokens on content slides.
+
+    Skeleton tokens (`bg_motif`, `title_style`, `accent_position`, `card_style`) leave
+    `academic-default` bit-for-bit identical and skip dark/split hero layouts (`cover`, `full-bleed`, `section`).
+    """
     out = [
         el.model_copy(update={"font": theme.title_font})
         if (el.kind is ElementKind.title and el.font != theme.title_font)
         else el
         for el in elements
     ]
+
+    lid = normalize_layout_id(layout_id) or ""
+    is_default_skeleton = (
+        theme.theme_id == DEFAULT_THEME_ID
+        and theme.bg_motif == "none"
+        and theme.title_style == "left_rule"
+        and theme.accent_position == "under_title"
+        and theme.card_style == "outlined"
+    )
+
+    if is_default_skeleton or lid in ("cover", "full-bleed", "section"):
+        if theme.has_tinted_canvas and not any(el.element_id == "bg_canvas" for el in out):
+            bg = DesignElement(
+                element_id="bg_canvas",
+                kind=ElementKind.shape,
+                x_in=0.0,
+                y_in=0.0,
+                w_in=CANVAS_W_IN,
+                h_in=CANVAS_H_IN,
+                z_index=0,
+                fill_hex=theme.background,
+                line_hex=theme.background,
+                role="canvas_bg",
+            )
+            out = [bg, *out]
+        return out
+
+    # Locate canvas background (insert theme background if non-white), title box, and split-photo side
+    title_idx = next((i for i, el in enumerate(out) if el.kind is ElementKind.title and el.element_id == "title"), None)
+    title_el = out[title_idx] if title_idx is not None else None
+    is_narrow_title = bool(title_el is not None and title_el.w_in < 9.0)
+    has_split_left_vis = any(
+        el.x_in < 5.0 and el.y_in < 1.20
+        for el in out
+        if el.kind in (ElementKind.image, ElementKind.chart, ElementKind.table) or el.role == "diagram_json"
+    )
+    use_dark_header = bool(
+        theme.title_style == "filled_header"
+        and theme.accent_position == "left_bar"
+        and title_el is not None
+        and lid != "quote"
+    )
+
+    # 1. Transform card_style on panel/card container shapes
+    if theme.card_style != "outlined":
+        updated_cards: list[DesignElement] = []
+        for el in out:
+            if el.kind is ElementKind.shape and el.element_id.startswith(
+                ("bg_card_", "bg_panel_", "bg_hero", "bg_support_", "bg_row_", "bg_fact_panel")
+            ):
+                if theme.card_style == "filled_soft":
+                    el = el.model_copy(update={"fill_hex": theme.surface_warm, "line_hex": None})
+                elif theme.card_style == "borderless":
+                    el = el.model_copy(update={"fill_hex": theme.background, "line_hex": None})
+                elif theme.card_style == "accent_top":
+                    el = el.model_copy(update={"fill_hex": theme.surface_light, "line_hex": theme.primary})
+            elif (
+                theme.card_style == "accent_top"
+                and el.kind is ElementKind.shape
+                and el.element_id.startswith(("accent_panel_", "accent_card_"))
+            ):
+                el = el.model_copy(update={"h_in": max(el.h_in, 0.11)})
+            updated_cards.append(el)
+        out = updated_cards
+
+    # 2. Drop full-width title divider when replaced by centered rule, left_bar, corner_badge (swiss), or none
+    drop_divider = (
+        theme.title_style == "centered_rule"
+        or theme.accent_position in ("left_bar", "none")
+        or (theme.accent_position == "corner_badge" and theme.title_style == "numbered_title")
+    )
+    if drop_divider and lid != "quote":
+        out = [
+            el
+            for el in out
+            if not (el.kind is ElementKind.shape and el.element_id == "accent_divider")
+        ]
+
+    # Re-locate title index after divider filtering
+    title_idx = next((i for i, el in enumerate(out) if el.kind is ElementKind.title and el.element_id == "title"), None)
+    title_el = out[title_idx] if title_idx is not None else None
+
+    motif_bg_shapes: list[DesignElement] = []
+    header_accents: list[DesignElement] = []
+
+    # 3. Build bg_motif geometric background layer (z_index=0, strictly after bg_canvas)
+    if theme.bg_motif == "left_rail":
+        motif_bg_shapes.extend([
+            DesignElement(
+                element_id="bg_motif_rail",
+                kind=ElementKind.shape,
+                x_in=0.0,
+                y_in=0.0,
+                w_in=0.34,
+                h_in=CANVAS_H_IN,
+                z_index=0,
+                fill_hex=theme.primary_deep,
+                line_hex=theme.primary_deep,
+                role="bg_motif_rail",
+            ),
+            DesignElement(
+                element_id="bg_motif_rail_edge",
+                kind=ElementKind.shape,
+                x_in=0.34,
+                y_in=0.0,
+                w_in=0.06,
+                h_in=CANVAS_H_IN,
+                z_index=0,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
+                role="bg_motif_rail_edge",
+            ),
+        ])
+    elif theme.bg_motif == "split_zone" and lid != "quote":
+        zone_x = round(CANVAS_W_IN / 2.0, 3) if has_split_left_vis else 0.0
+        zone_w = round(CANVAS_W_IN - zone_x if zone_x > 0 else CANVAS_W_IN / 2.0, 3)
+        motif_bg_shapes.append(
+            DesignElement(
+                element_id="bg_motif_split_zone",
+                kind=ElementKind.shape,
+                x_in=zone_x,
+                y_in=0.0,
+                w_in=zone_w,
+                h_in=CANVAS_H_IN,
+                z_index=0,
+                fill_hex=theme.surface_warm,
+                line_hex=theme.stroke,
+                role="bg_motif_split_zone",
+            )
+        )
+    elif theme.bg_motif == "corner_bracket":
+        motif_bg_shapes.extend([
+            DesignElement(
+                element_id="bg_motif_tl_h",
+                kind=ElementKind.shape,
+                x_in=0.20,
+                y_in=0.18,
+                w_in=1.50,
+                h_in=0.09,
+                z_index=0,
+                fill_hex=theme.primary,
+                line_hex=theme.primary,
+                role="bg_motif_bracket",
+            ),
+            DesignElement(
+                element_id="bg_motif_tl_v",
+                kind=ElementKind.shape,
+                x_in=0.20,
+                y_in=0.18,
+                w_in=0.09,
+                h_in=1.05,
+                z_index=0,
+                fill_hex=theme.primary,
+                line_hex=theme.primary,
+                role="bg_motif_bracket",
+            ),
+            DesignElement(
+                element_id="bg_motif_br_h",
+                kind=ElementKind.shape,
+                x_in=round(CANVAS_W_IN - 1.70, 3),
+                y_in=round(CANVAS_H_IN - 0.27, 3),
+                w_in=1.50,
+                h_in=0.09,
+                z_index=0,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
+                role="bg_motif_bracket",
+            ),
+            DesignElement(
+                element_id="bg_motif_br_v",
+                kind=ElementKind.shape,
+                x_in=round(CANVAS_W_IN - 0.29, 3),
+                y_in=round(CANVAS_H_IN - 1.23, 3),
+                w_in=0.09,
+                h_in=1.05,
+                z_index=0,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
+                role="bg_motif_bracket",
+            ),
+        ])
+    elif theme.bg_motif == "top_band":
+        if lid != "quote":
+            if use_dark_header:
+                hdr_x = round(max(0.0, title_el.x_in - 0.20), 3) if is_narrow_title else 0.0
+                hdr_w = round(min(CANVAS_W_IN - hdr_x, title_el.w_in + 0.40), 3) if is_narrow_title else CANVAS_W_IN
+                hdr_y = round(max(0.0, title_el.y_in - 0.14), 3) if is_narrow_title else 0.0
+                hdr_h = round(title_el.h_in + 0.24, 3) if is_narrow_title else 1.42
+                motif_bg_shapes.append(
+                    DesignElement(
+                        element_id="bg_motif_header",
+                        kind=ElementKind.shape,
+                        x_in=hdr_x,
+                        y_in=hdr_y,
+                        w_in=hdr_w,
+                        h_in=hdr_h,
+                        z_index=0,
+                        fill_hex=theme.primary,
+                        line_hex=theme.primary,
+                        role="bg_motif_header",
+                    )
+                )
+            elif theme.title_style == "numbered_title":
+                # Pure modular Swiss top rule without header box fill -> keeps unboxed open canvas distinct from filled headers
+                motif_bg_shapes.append(
+                    DesignElement(
+                        element_id="bg_motif_top_bar",
+                        kind=ElementKind.shape,
+                        x_in=0.0,
+                        y_in=0.0,
+                        w_in=CANVAS_W_IN,
+                        h_in=0.20,
+                        z_index=0,
+                        fill_hex=theme.primary_deep,
+                        line_hex=theme.primary_deep,
+                        role="bg_motif_top_bar",
+                    )
+                )
+            elif is_narrow_title and title_el is not None:
+                motif_bg_shapes.extend([
+                    DesignElement(
+                        element_id="bg_motif_header",
+                        kind=ElementKind.shape,
+                        x_in=round(max(0.0, title_el.x_in - 0.18), 3),
+                        y_in=round(max(0.0, title_el.y_in - 0.14), 3),
+                        w_in=round(min(CANVAS_W_IN, title_el.w_in + 0.36), 3),
+                        h_in=round(title_el.h_in + 0.22, 3),
+                        z_index=0,
+                        fill_hex=theme.surface_warm,
+                        line_hex=theme.stroke,
+                        role="bg_motif_header",
+                    ),
+                    DesignElement(
+                        element_id="bg_motif_top_bar",
+                        kind=ElementKind.shape,
+                        x_in=0.0,
+                        y_in=0.0,
+                        w_in=CANVAS_W_IN,
+                        h_in=0.14,
+                        z_index=0,
+                        fill_hex=theme.primary_deep,
+                        line_hex=theme.primary_deep,
+                        role="bg_motif_top_bar",
+                    ),
+                ])
+            else:
+                motif_bg_shapes.extend([
+                    DesignElement(
+                        element_id="bg_motif_header",
+                        kind=ElementKind.shape,
+                        x_in=0.0,
+                        y_in=0.14,
+                        w_in=CANVAS_W_IN,
+                        h_in=1.28,
+                        z_index=0,
+                        fill_hex=theme.surface_warm,
+                        line_hex=theme.stroke,
+                        role="bg_motif_header",
+                    ),
+                    DesignElement(
+                        element_id="bg_motif_top_bar",
+                        kind=ElementKind.shape,
+                        x_in=0.0,
+                        y_in=0.0,
+                        w_in=CANVAS_W_IN,
+                        h_in=0.14,
+                        z_index=0,
+                        fill_hex=theme.primary_deep,
+                        line_hex=theme.primary_deep,
+                        role="bg_motif_top_bar",
+                    ),
+                ])
+    elif theme.bg_motif == "fine_grid" and lid != "quote":
+        motif_bg_shapes.append(
+            DesignElement(
+                element_id="bg_motif_top_bar",
+                kind=ElementKind.shape,
+                x_in=0.0,
+                y_in=0.0,
+                w_in=CANVAS_W_IN,
+                h_in=0.10,
+                z_index=0,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
+                role="bg_motif_top_bar",
+            )
+        )
+        if not is_narrow_title:
+            motif_bg_shapes.append(
+                DesignElement(
+                    element_id="bg_motif_header",
+                    kind=ElementKind.shape,
+                    x_in=0.0,
+                    y_in=0.10,
+                    w_in=CANVAS_W_IN,
+                    h_in=1.32,
+                    z_index=0,
+                    fill_hex=theme.surface_warm,
+                    line_hex=theme.stroke,
+                    role="bg_motif_header",
+                )
+            )
+        motif_bg_shapes.extend([
+            DesignElement(
+                element_id="bg_motif_grid_v",
+                kind=ElementKind.shape,
+                x_in=round(GRID_MARGIN_X + GRID_USABLE_W / 2.0 - 0.015, 3),
+                y_in=1.42,
+                w_in=0.03,
+                h_in=5.66,
+                z_index=0,
+                fill_hex=theme.stroke,
+                line_hex=theme.stroke,
+                role="bg_motif_grid",
+            ),
+            DesignElement(
+                element_id="bg_motif_grid_h",
+                kind=ElementKind.shape,
+                x_in=GRID_MARGIN_X,
+                y_in=7.08,
+                w_in=GRID_USABLE_W,
+                h_in=0.03,
+                z_index=0,
+                fill_hex=theme.stroke,
+                line_hex=theme.stroke,
+                role="bg_motif_grid",
+            ),
+        ])
+
+    # 4. Restyle title_el & accent_position decorations
+    if title_el is not None and lid != "quote":
+        cur_title = title_el
+        if use_dark_header:
+            cur_title = cur_title.model_copy(update={"color_hex": theme.primary_text})
+        if theme.title_style == "centered_rule" and not is_narrow_title:
+            cur_title = _refit_title_element(cur_title, cur_title.x_in, cur_title.w_in, align="center")
+            header_accents.append(
+                DesignElement(
+                    element_id="accent_center_rule",
+                    kind=ElementKind.shape,
+                    x_in=round((CANVAS_W_IN - 2.40) / 2.0, 3),
+                    y_in=round(min(1.42, cur_title.y_in + cur_title.h_in + 0.04), 3),
+                    w_in=2.40,
+                    h_in=0.06,
+                    z_index=1,
+                    fill_hex=theme.accent,
+                    line_hex=theme.accent,
+                    role="centered_rule",
+                )
+            )
+        elif theme.title_style == "numbered_title":
+            mark_x = cur_title.x_in
+            header_accents.append(
+                DesignElement(
+                    element_id="accent_title_marker",
+                    kind=ElementKind.shape,
+                    x_in=mark_x,
+                    y_in=round(cur_title.y_in + 0.08, 3),
+                    w_in=0.20,
+                    h_in=round(max(0.44, cur_title.h_in - 0.22), 3),
+                    z_index=1,
+                    fill_hex=theme.accent,
+                    line_hex=theme.accent,
+                    role="title_index_block",
+                )
+            )
+            cur_title = _refit_title_element(cur_title, mark_x + 0.32, cur_title.w_in - 0.32)
+
+        if theme.accent_position == "left_bar":
+            bar_x = cur_title.x_in
+            bar_color = theme.accent_light if use_dark_header else theme.accent
+            header_accents.append(
+                DesignElement(
+                    element_id="accent_title_bar",
+                    kind=ElementKind.shape,
+                    x_in=bar_x,
+                    y_in=round(cur_title.y_in + 0.06, 3),
+                    w_in=0.09,
+                    h_in=round(max(0.46, cur_title.h_in - 0.16), 3),
+                    z_index=1,
+                    fill_hex=bar_color,
+                    line_hex=bar_color,
+                    role="title_left_bar",
+                )
+            )
+            cur_title = _refit_title_element(cur_title, bar_x + 0.20, cur_title.w_in - 0.20)
+        out[title_idx] = cur_title
+
+    if theme.accent_position == "corner_badge":
+        header_accents.append(
+            DesignElement(
+                element_id="accent_corner_badge",
+                kind=ElementKind.shape,
+                x_in=round(CANVAS_W_IN - 1.15, 3),
+                y_in=0.0,
+                w_in=1.15,
+                h_in=0.24,
+                z_index=1,
+                fill_hex=theme.accent,
+                line_hex=theme.accent,
+                role="corner_badge",
+            )
+        )
+
+    # Assemble deterministic z-order list: bg_canvas (if tinted) -> bg_motif_* -> rest of slide -> header_accents
     if theme.has_tinted_canvas and not any(el.element_id == "bg_canvas" for el in out):
         bg = DesignElement(
             element_id="bg_canvas",
@@ -1144,7 +1569,11 @@ def _apply_theme_surface(elements: list[DesignElement], theme: ThemeTokens) -> l
             line_hex=theme.background,
             role="canvas_bg",
         )
-        out = [bg, *out]
+        out = [bg, *motif_bg_shapes, *out, *header_accents]
+    elif out and out[0].element_id == "bg_canvas":
+        out = [out[0], *motif_bg_shapes, *out[1:], *header_accents]
+    else:
+        out = [*motif_bg_shapes, *out, *header_accents]
     return out
 
 
@@ -1179,7 +1608,7 @@ def build_layout_elements(
         theme=theme,
         allow_sparse=allow_sparse,
     )
-    return _apply_theme_surface(elements, theme)
+    return _apply_theme_surface(elements, theme, layout_id=layout_id)
 
 
 def _build_layout_elements_core(

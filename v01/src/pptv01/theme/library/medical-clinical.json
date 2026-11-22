@@ -31,5 +31,9 @@
   "diagram_line": "#155E75",
   "title_fallback": "#155E75",
   "body_fallback": "#082F49",
-  "graph_seeds": ["#155E75", "#0284C7", "#0F766E", "#0369A1"]
+  "graph_seeds": ["#155E75", "#0284C7", "#0F766E", "#0369A1"],
+  "bg_motif": "top_band",
+  "title_style": "filled_header",
+  "accent_position": "left_bar",
+  "card_style": "outlined"
 }

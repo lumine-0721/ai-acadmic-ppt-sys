@@ -73,8 +73,8 @@ def render_schematic_preview(page: PageDesignEntry, run_dir: Path, out_rel: str)
 
         if el.kind is ElementKind.shape:
             fill = _hex_rgb(el.fill_hex, (241, 245, 249))
-            outline = _hex_rgb(el.line_hex, (203, 213, 225))
-            draw.rectangle([x1, y1, x2, y2], fill=fill, outline=outline, width=1)
+            outline = _hex_rgb(el.line_hex, (203, 213, 225)) if el.line_hex else None
+            draw.rectangle([x1, y1, x2, y2], fill=fill, outline=outline, width=1 if outline else 0)
             continue
 
         if el.kind is ElementKind.placeholder:
