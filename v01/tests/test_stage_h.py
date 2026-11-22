@@ -29,7 +29,7 @@ from pptv01.h_qa import (
     run_stage_h,
 )
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient
 
 RID = "20260101-000000-abcd"
@@ -83,7 +83,7 @@ def test_missing_render_tools_fail_loudly_and_never_pretend_success(tmp_path, mo
         assert "RENDER FAILED" in qa.summary
 
         report, _ = run_pipeline(
-            "帮我做一个城市热岛效应的 PPT。", tmp_path / "run_out", FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="h-fail"
+            "帮我做一个城市热岛效应的 PPT。", tmp_path / "run_out", FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="h-fail"
         )
         assert report.overall.value == "failed"
         assert {s.stage: s.status for s in report.stages}["H"] is StageStatus.failed
@@ -180,7 +180,7 @@ def test_end_to_end_a_to_h_enables_gates_and_ppteval_design_scoring(tmp_path):
     report, run_dir = run_pipeline(
         "帮我做一个城市热岛效应的 PPT。",
         tmp_path,
-        FakeClient([GOOD_A, GOOD_B, GOOD_C]),
+        FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]),
         run_id="full-e2h",
         render_fn=_stub_render,
     )

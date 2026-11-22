@@ -30,7 +30,7 @@ from pptv01.f_layout import run_stage_f
 from pptv01.g_pptx import AttributionMissingError, run_stage_g
 from pptv01.grading.gates import check_gates
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient
 
 RID = "20260101-000000-abcd"
@@ -252,7 +252,7 @@ def test_runner_integrates_stage_g_and_marks_placeholders(tmp_path):
     report, run_dir = run_pipeline(
         "帮我做一个城市热岛效应的 PPT。",
         tmp_path,
-        FakeClient([GOOD_A, GOOD_B, GOOD_C]),
+        FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]),
         run_id="t-g",
     )
     st = {s.stage: s for s in report.stages}

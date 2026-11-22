@@ -387,7 +387,7 @@ def test_validate_registry_catches_wrong_ids_missing_files_and_hash_mismatch(tmp
 
 def test_runner_integrates_stage_d_and_reports_missing_assets(tmp_path):
     from pptv01.runner import run_pipeline
-    from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+    from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
     from tests.fakes import FakeClient
     sv = services_from_env(
         {"PPTV01_ASSETS": "auto", "PPTV01_RELEVANCE": "structural", "PPTV01_PIXEL_RULES": "off"},
@@ -395,7 +395,7 @@ def test_runner_integrates_stage_d_and_reports_missing_assets(tmp_path):
         openalex_fetch=lambda q, n: rp("openalex_uhi.json")[:n],
     )
     U = "帮我做一个城市热岛效应的 PPT。"
-    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-d", assets=sv)
+    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="t-d", assets=sv)
     st = {s.stage: s for s in report.stages}
     assert st["D"].status.value == "done" and "asset_registry.json" in st["D"].output_files
     assert report.missing_assets and report.tool_config["assets"]["summary"]

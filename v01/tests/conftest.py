@@ -93,6 +93,11 @@ GOOD_C = {
     "dropped_needs": [],
 }
 
+GOOD_TH = {
+    "theme_id": "eco-canopy",
+    "rationale": "城市热岛效应属于城市生态与气候科学主题，选用森林生态高对比主题以契合受众与科普风格。",
+}
+
 
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch):

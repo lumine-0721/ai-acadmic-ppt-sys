@@ -329,7 +329,7 @@ def test_n3_repair_loop_preserves_template_path_and_unified_measure_protocol(tmp
 def test_runner_relative_out_dir_handles_resolved_renderer_paths(tmp_path, monkeypatch):
     """Smoke 4 regression: runner must accept relative --out paths when DeckRenderer returns resolved Paths."""
     from pptv01.runner import run_pipeline
-    from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+    from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
     from tests.fakes import FakeClient
 
     monkeypatch.chdir(tmp_path)
@@ -353,7 +353,7 @@ def test_runner_relative_out_dir_handles_resolved_renderer_paths(tmp_path, monke
     rep, run_dir = run_pipeline(
         "帮我做一个城市热岛效应的 PPT。",
         Path("runs/smoke4"),  # relative out_dir just like CLI `--out runs/smoke4`
-        FakeClient([GOOD_A, GOOD_B, GOOD_C]),
+        FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]),
         run_id="rel-test",
         renderer=_ResolvedPathRenderer(),
     )

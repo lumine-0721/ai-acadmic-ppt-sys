@@ -24,7 +24,7 @@ from pptv01.contracts import (
 from pptv01.e_mapping import run_stage_e, vision_client_from_env
 from pptv01.llm import LLMConfigError, LLMOutputError
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient
 from tests.test_stage_d import PARTHENON, Net, rp
 
@@ -266,7 +266,7 @@ def test_runner_integrates_stage_e_with_real_acquired_asset(tmp_path):
     report, run_dir = run_pipeline(
         "帮我做一个城市热岛效应的 PPT。",
         tmp_path,
-        FakeClient([GOOD_A, good_b, good_c, e_resp]),
+        FakeClient([GOOD_A, good_b, good_c, e_resp, GOOD_TH]),
         run_id="t-e",
         assets=sv,
     )

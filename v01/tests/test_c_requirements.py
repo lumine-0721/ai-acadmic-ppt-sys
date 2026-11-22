@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import GOOD_A, GOOD_B, GOOD_C
+from conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from fakes import FakeClient, FakeResearch
 from pptv01.a_plan import build_plan
 from pptv01.b_slide_plan.stage import build_slide_plan
@@ -185,7 +185,7 @@ def _stub_render(pptx_path: Path, out_dir: Path) -> list[Path]:
 
 def test_runner_runs_a_to_d_and_reports_e_to_h_not_implemented(tmp_path):
     report, run_dir = run_pipeline(
-        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-c", render_fn=_stub_render
+        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="t-c", render_fn=_stub_render
     )
     st = {s.stage: s.status for s in report.stages}
     assert [st[x] for x in "ABCDEFGH"] == [StageStatus.done] * 8

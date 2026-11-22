@@ -49,7 +49,7 @@ from pptv01.renderers import (
     RendererUnavailableError,
 )
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient
 
 U = "帮我做一个城市热岛效应的 PPT。"
@@ -455,7 +455,7 @@ def test_runner_compiles_deck_ops_honestly_when_renderer_unavailable(tmp_path):
     rep, run_dir = run_pipeline(
         U,
         tmp_path,
-        FakeClient([GOOD_A, GOOD_B, GOOD_C]),
+        FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]),
         run_id="r1-linux-like",
         renderer=_UnavailableRenderer(),
     )

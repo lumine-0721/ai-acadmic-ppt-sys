@@ -166,15 +166,22 @@ def test_r7_3_doctor_theme_font_probe_detects_missing_and_reports_fallback():
 
 
 def test_r7_3_llm_selector_falls_back_cleanly_on_invalid_output():
-    class _BadLLM:
-        def complete(self, prompt: str) -> str:
-            return '{"theme_id": "nonexistent-theme", "rationale": "x"}'
+    from pptv01.llm import LLMOutputError
+    from tests.fakes import FakeClient
 
     pp = load_contract(ProductionPlan, R6_SNAPSHOT_ROOT / "T12" / "production_plan.json")
     sp = load_contract(SlidePlan, R6_SNAPSHOT_ROOT / "T12" / "slide_plan.json")
-    sel = select_theme(pp, sp, llm=_BadLLM())
-    assert sel.theme_id == "warm-espresso"
-    assert sel.method == "rule"
+    bad_client = FakeClient([
+        {"theme_id": "nonexistent-theme", "rationale": "x"},
+        {"theme_id": "nonexistent-theme", "rationale": "x"},
+    ])
+    with pytest.raises(LLMOutputError):
+        select_theme(pp, sp, client=bad_client)
+
+    fallback = select_theme(pp, sp, client=None)
+    assert fallback.theme_id in THEMES
+    assert fallback.method == "keyword_fallback"
+    assert fallback.rationale.startswith("关键词兜底：")
 
 
 @pytest.mark.parametrize(

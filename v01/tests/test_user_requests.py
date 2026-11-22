@@ -29,7 +29,7 @@ from pptv01.contracts import (
 from pptv01.d_retrieve import run_stage_d
 from pptv01.grading.gates import check_gates
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient
 from tests.test_stage_d import Net, make, req
 
@@ -150,6 +150,7 @@ def test_on_missing_wait_exits_4_then_provide_and_resume(tmp_path, monkeypatch, 
     (io_dir / "A_response_1.json").write_text(json.dumps(GOOD_A, ensure_ascii=False), encoding="utf-8")
     (io_dir / "B_response_1.json").write_text(json.dumps(GOOD_B, ensure_ascii=False), encoding="utf-8")
     (io_dir / "C_response_1.json").write_text(json.dumps(GOOD_C, ensure_ascii=False), encoding="utf-8")
+    (io_dir / "TH_response_1.json").write_text(json.dumps(GOOD_TH, ensure_ascii=False), encoding="utf-8")
 
     runs_root = tmp_path / "runs"
     rc = cli.main(["run", U, "--out", str(runs_root), "--run-id", "w1", "--on-missing", "wait"])

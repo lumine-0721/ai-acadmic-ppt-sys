@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from conftest import GOOD_A, GOOD_B, GOOD_C
+from conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from pptv01 import cli
 from pptv01.contracts import RunReport, StageStatus, load_contract
 from pptv01.llm import AGENT_MODEL_ID, AgentClient, AwaitingAgentResponse, LLMConfigError, client_from_env
@@ -53,7 +53,7 @@ def test_pipeline_with_agent_answers_goes_through_same_checks(tmp_path):
     assert str(e.value).count("A_response_2.json") == 1
     req2 = json.loads((io / "A_request_2.json").read_text(encoding="utf-8"))
     assert "invented page count" in req2["messages"][-1]["content"]      # validation error fed back
-    put(io, "A", 2, GOOD_A); put(io, "B", 1, GOOD_B); put(io, "C", 1, GOOD_C)
+    put(io, "A", 2, GOOD_A); put(io, "B", 1, GOOD_B); put(io, "C", 1, GOOD_C); put(io, "TH", 1, GOOD_TH)
     report, run_dir = run_pipeline(U, tmp_path, AgentClient(io), run_id="ag-1", resume=True)
     assert {s.stage: s.status for s in report.stages}["C"] is StageStatus.done
     rep = load_contract(RunReport, run_dir / "run_report.json")

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import GOOD_A, GOOD_B, GOOD_C
+from conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from fakes import FakeClient
 from pptv01 import cli
 from pptv01.contracts import ProductionPlan, RunReport, SlidePlan, StageStatus, load_contract
@@ -29,7 +29,7 @@ def _test_render(pptx_path: Path, out_dir: Path) -> list[Path]:
 
 def test_runner_writes_files_and_honest_report(tmp_path):
     report, run_dir = run_pipeline(
-        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-001", render_fn=_test_render
+        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="t-001", render_fn=_test_render
     )
     assert run_dir == tmp_path / "t-001"
     for f in ("production_plan.json", "slide_plan.json", "qa_report.json", "deck.pptx", "run_report.json",
@@ -67,9 +67,9 @@ def test_stage_b_failure_keeps_stage_a_output(tmp_path):
 
 
 def test_existing_run_dir_not_overwritten(tmp_path):
-    run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-004")
+    run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="t-004")
     with pytest.raises(FileExistsError):
-        run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-004")
+        run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="t-004")
 
 
 def test_invalid_run_id(tmp_path):
@@ -110,6 +110,6 @@ def test_runner_records_research_outcome_and_fails_honestly(tmp_path):
 
 
 def test_runner_research_disabled_is_recorded(tmp_path):
-    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="t-off")
+    report, run_dir = run_pipeline(U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="t-off")
     assert report.tool_config["research"]["status"] == "disabled"     # env PPTV01_RESEARCH=none from conftest
     assert (run_dir / "research_brief.json").is_file()

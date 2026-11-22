@@ -26,7 +26,7 @@ from pptv01.d_retrieve.sources import openalex_default_fetch
 from pptv01.retrieval import relevance as rel_mod
 from pptv01.retrieval.backends import make_http, sanitize_url
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient, FakeResearch
 
 RID = "20261121-000000-r5d1"
@@ -257,7 +257,7 @@ def test_r5_1_pipeline_continues_to_complete_with_placeholders_after_d_timeout(t
         report, run_dir = run_pipeline(
             "帮我介绍一下城市热岛效应。",
             tmp_path,
-            FakeClient([GOOD_A, GOOD_B, GOOD_C]),
+            FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]),
             run_id="r5-d-timeout-e2e",
             research=FakeResearch(),
             assets=sv,

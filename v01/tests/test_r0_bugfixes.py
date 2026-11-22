@@ -32,7 +32,7 @@ from pptv01.f_layout import run_stage_f
 from pptv01.f_layout.validate import validate_page_design
 from pptv01.g_pptx import run_stage_g
 from pptv01.runner import run_pipeline
-from tests.conftest import GOOD_A, GOOD_B, GOOD_C
+from tests.conftest import GOOD_A, GOOD_B, GOOD_C, GOOD_TH
 from tests.fakes import FakeClient
 from tests.test_stage_d import Net, make, req
 
@@ -57,7 +57,7 @@ def _test_render(pptx_path: Path, out_dir: Path) -> list[Path]:
 def test_b1_provide_then_resume_replaces_placeholder_with_user_input(tmp_path):
     # Initial run completes A->H with placeholders (PPTV01_ASSETS=none from conftest)
     rep1, run_dir = run_pipeline(
-        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="b1-run", render_fn=_test_render
+        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="b1-run", render_fn=_test_render
     )
     assert rep1.overall.value == "complete_with_placeholders"
     uir1 = load_contract(UserInputRequests, run_dir / "user_input_requests.json")
@@ -123,10 +123,10 @@ def test_b1_provide_then_resume_replaces_placeholder_with_user_input(tmp_path):
         ],
         "unused_assets": [],
     }
-    client2 = FakeClient([e_resp])
+    client2 = FakeClient([e_resp, GOOD_TH])
     rep2, _ = run_pipeline(U, tmp_path, client2, run_id="b1-run", resume=True, render_fn=_test_render)
     assert rep2.overall.value in ("complete", "complete_with_placeholders")
-    assert len(client2.calls) == 1  # E actually re-ran
+    assert len(client2.calls) == 2  # E + TH re-ran after provide invalidated E-H
 
     # Deck must now contain the provided diagram element and NOT the old placeholder
     prs2 = Presentation(str(run_dir / "deck.pptx"))
@@ -143,7 +143,7 @@ def test_b1_provide_then_resume_replaces_placeholder_with_user_input(tmp_path):
 
 def test_b1_upstream_file_hash_mismatch_invalidates_downstream(tmp_path):
     rep1, run_dir = run_pipeline(
-        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C]), run_id="b1-hash", render_fn=_test_render
+        U, tmp_path, FakeClient([GOOD_A, GOOD_B, GOOD_C, GOOD_TH]), run_id="b1-hash", render_fn=_test_render
     )
     st1 = {s.stage: s for s in rep1.stages}
     assert "slide_plan.json" in st1["F"].input_hashes
