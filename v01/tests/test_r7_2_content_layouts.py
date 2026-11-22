@@ -12,6 +12,7 @@ from pptv01.contracts import (
     AssetRegistry,
     ElementKind,
     PageDesignEntry,
+    PointGroup,
     ProductionPlan,
     SlideAssetMapping,
     SlidePage,
@@ -148,6 +149,25 @@ def test_r7_2_capacity_contracts_exclude_underfilled_layouts_and_drop_section_qu
             "结合全自动分布偏移漂移监控与定期增量滚动校准重训机制，可在跨季度真实场景统计特性变化时及时阻断累计误差传播并稳固关键接口长期服务可用性 SLA 指标",
             "多组对照消融实验进一步证实残差跨层路由与局部几何语义对齐正则约束均能稳定带来可复现泛化增益，尤其显著改善冷启动稀疏长尾切片样本上的排序一致度",
         ],
+    ).model_copy(
+        update={
+            "groups": [
+                PointGroup(
+                    heading="性能与泛化提升",
+                    points=[
+                        "在多时段大规模开放域真实基准测试集上系统验证不同参数微调策略的样本外迁移稳定性表现，完整统计长尾错误分布边界并生成逐维度误差热力图报告以辅助诊断",
+                        "引入轻量化结构蒸馏与自适应温度校准分支后，系统在高并发线上环境保持预测准确率基本无损同时将显存峰值开销与响应延迟均压缩一半以上且支持热切换",
+                    ],
+                ),
+                PointGroup(
+                    heading="运维稳健与消融证实",
+                    points=[
+                        "结合全自动分布偏移漂移监控与定期增量滚动校准重训机制，可在跨季度真实场景统计特性变化时及时阻断累计误差传播并稳固关键接口长期服务可用性 SLA 指标",
+                        "多组对照消融实验进一步证实残差跨层路由与局部几何语义对齐正则约束均能稳定带来可复现泛化增益，尤其显著改善冷启动稀疏长尾切片样本上的排序一致度",
+                    ],
+                ),
+            ]
+        }
     )
     assert "two-content" in eligible_layouts_for_page(p_2rich, 1, 5, [], [])
 

@@ -75,6 +75,7 @@ def _make_slide_plan(page_ids=("S001",)) -> SlidePlan:
                     "goal": "说明核心观点",
                     "key_points": ["要点一", "要点二"],
                     "content_summary": f"规划提示：{pid} 应突出核心数据",
+                    "speaker_notes": f"本页 {pid} 面向听众讲清核心发现与对比背景，并在口头讲解中展开支撑证据。",
                     "visual_intent": "图示",
                     "asset_needs": [],
                     "status": "provisional",
@@ -302,7 +303,8 @@ def test_compile_deck_ops_deterministic_golden_all_element_types(tmp_path):
     assert pic_op.params["crop_mode"] == "crop_fill"
     assert pic_op.params["shape_name"] == "ASSET_A001__vis_img"
     notes_s1 = next(o for o in loaded.ops if o.page_id == "S001" and o.kind is DeckOpKind.set_notes)
-    assert "Speaker/planning summary:" in notes_s1.params["text"]
+    assert sp.pages[0].speaker_notes in notes_s1.params["text"]
+    assert "Speaker/planning summary:" not in notes_s1.params["text"]
     assert "Jane Doe" in notes_s1.params["text"]
 
 

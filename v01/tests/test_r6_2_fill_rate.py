@@ -46,8 +46,9 @@ def test_r6_2_fill_rate_smoke5_exact_flags_and_exemptions(tid: str, tmp_path: Pa
 
     for r in occ.pages:
         if r.layout_id == "cover":
-            assert r.exempt is True
-            assert r.exempt_reason
+            # Smoke 5 cover slides contain 2+ bullets, so R8-3 classifies them as content (not exempt) and they pass fill_rate.
+            assert r.exempt is False
+            assert r.page_role == "content"
             assert r.passed is True
         else:
             # Smoke 5 non-cover pages all have bullets or multiple body blocks -> role=content (never exempt)

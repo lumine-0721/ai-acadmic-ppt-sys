@@ -148,19 +148,21 @@ def test_b1_upstream_file_hash_mismatch_invalidates_downstream(tmp_path):
     st1 = {s.stage: s for s in rep1.stages}
     assert "slide_plan.json" in st1["F"].input_hashes
 
-    # Modify page_design.json notes directly -> G and H must re-run on resume
+    # Modify page_design.json directly -> G and H must re-run on resume
     design = load_contract(PageDesign, run_dir / "page_design.json")
+    title_el = next(e for e in design.pages[0].elements if e.kind is ElementKind.title)
+    title_el.text = (title_el.text or "") + "（手动修订）"
     design.pages[0].notes = (design.pages[0].notes + "; manual tweak").strip("; ")
     (run_dir / "page_design.json").write_text(design.model_dump_json(indent=2) + "\n", encoding="utf-8")
 
     old_deck_mtime = (run_dir / "deck.pptx").stat().st_mtime_ns
-    # Ensure G rewrites deck.pptx and note text reflects the edit
+    # Ensure G rewrites deck.pptx and rendered slide text reflects the edit
     client2 = FakeClient([])
     rep2, _ = run_pipeline(U, tmp_path, client2, run_id="b1-hash", resume=True, render_fn=_test_render)
     assert len(client2.calls) == 0
     prs = Presentation(str(run_dir / "deck.pptx"))
-    notes0 = prs.slides[0].notes_slide.notes_text_frame.text
-    assert "manual tweak" in notes0
+    slide0_text = "\n".join(sh.text_frame.text for sh in prs.slides[0].shapes if sh.has_text_frame)
+    assert "（手动修订）" in slide0_text
     assert rep2.stages[6].input_hashes["page_design.json"] != st1["G"].input_hashes["page_design.json"]
     assert (run_dir / "deck.pptx").stat().st_mtime_ns >= old_deck_mtime
 
@@ -178,9 +180,12 @@ def test_b2_content_summary_never_rendered_on_slide_only_in_notes(tmp_path):
                 {
                     "page_id": "S001",
                     "title": "什么是城市热岛效应",
+                    "page_role": "content",
+                    "headline": "城区气温长期高于周边郊区，是城市热岛效应的核心特征。",
                     "goal": "给出核心定义",
                     "key_points": ["城区气温高于周边郊区", "地表与人类活动共同作用"],
                     "content_summary": director_prompt_1,
+                    "speaker_notes": "本页我们先给出城市热岛的基本判断。与临时性的天气热浪不同，这种城郊温差由地表特征与人工排放长期造成。",
                     "visual_intent": "对比图",
                     "asset_needs": [],
                     "status": "provisional",
@@ -188,9 +193,12 @@ def test_b2_content_summary_never_rendered_on_slide_only_in_notes(tmp_path):
                 {
                     "page_id": "S002",
                     "title": "观看建筑的几个角度",
+                    "page_role": "content",
+                    "headline": "材料构建与空间光影决定了人类使用与感知建筑的基本方式。",
                     "goal": "介绍分析框架",
                     "key_points": ["空间结构与材料", "光影与使用方式"],
                     "content_summary": director_prompt_2,
+                    "speaker_notes": "从热环境进一步延伸到建筑观察维度时，建议结合物质材料与实际使用体验两条主线来看待问题。",
                     "visual_intent": "架构图",
                     "asset_needs": [],
                     "status": "provisional",
@@ -209,6 +217,8 @@ def test_b2_content_summary_never_rendered_on_slide_only_in_notes(tmp_path):
 
     for sp_page, d_page, slide in zip(sp.pages, design.pages, prs.slides):
         allowed_lines = {sp_page.title.strip()} | {kp.strip() for kp in sp_page.key_points}
+        if getattr(sp_page, "headline", None):
+            allowed_lines.add(sp_page.headline.strip())
         visible_texts = [
             el.text.strip()
             for el in d_page.elements
@@ -221,7 +231,7 @@ def test_b2_content_summary_never_rendered_on_slide_only_in_notes(tmp_path):
                 clean = line.lstrip("•").strip()
                 if not clean:
                     continue
-                # Every visible line must come from title, key_points, or attribution/source footer/caption
+                # Every visible line must come from title/headline, key_points, or attribution/source footer/caption
                 is_attr = clean.startswith(("图源：", "数据来源：", "[A", "[U", "来源"))
                 assert clean in allowed_lines or is_attr, f"unexpected visible text on {d_page.page_id}: {clean!r}"
 
@@ -229,9 +239,10 @@ def test_b2_content_summary_never_rendered_on_slide_only_in_notes(tmp_path):
         slide_text = "\n".join(sh.text_frame.text for sh in slide.shapes if sh.has_text_frame)
         assert sp_page.content_summary not in slide_text
 
-        # content_summary is preserved in notes (design notes and/or speaker notes)
+        # PPTX notes preserve spoken speaker_notes, NOT planning content_summary
         speaker_notes = slide.notes_slide.notes_text_frame.text
-        assert sp_page.content_summary in speaker_notes or sp_page.content_summary in d_page.notes
+        assert sp_page.speaker_notes in speaker_notes
+        assert sp_page.content_summary not in speaker_notes
 
     # Validator must catch content_summary if manually injected as a visible body element
     bad_design = PageDesign.model_validate(design.model_dump())

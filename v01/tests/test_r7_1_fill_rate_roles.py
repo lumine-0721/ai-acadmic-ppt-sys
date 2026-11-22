@@ -16,7 +16,8 @@ SMOKE6_DESIGN_DIR = V01_ROOT / "tests" / "fixtures" / "smoke6_page_design"
 EXPECTED_SMOKE6_FLAGS: dict[str, list[str]] = {
     "T36": ["S003", "S005"],
     "T12": ["S002", "S005", "S007"],
-    "T26": [],
+    # T26 S001 is a bullet-bearing cover with 2.24in void; R8-3 enforces content occupancy on bullet-bearing covers
+    "T26": ["S001"],
 }
 
 

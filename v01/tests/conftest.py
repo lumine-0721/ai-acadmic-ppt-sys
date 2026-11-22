@@ -68,10 +68,30 @@ GOOD_A = {
 GOOD_B = {
     "narrative": "先建立概念，再讲成因与影响，最后讨论应对。",
     "pages": [
-        {"title": "什么是城市热岛", "goal": "区分热岛与热浪", "key_points": ["城区相对周边更热"],
-         "content_summary": "定义与对比。", "visual_intent": "对比示意图", "asset_needs": [{"type": "image", "description": "并排展示城区与郊区的温度分布", "targets": [{"name": "某城市热像图", "entity_type": "dataset", "verification": "to_verify"}]}]},
-        {"title": "热岛从哪里来", "goal": "说出主要成因", "key_points": ["地表材料差异", "人为排热"],
-         "content_summary": "逐个成因讲机制。", "visual_intent": "成因机制图", "asset_needs": [{"type": "diagram", "description": "画出三类成因如何抬高城区气温", "targets": []}]},
+        {
+            "title": "什么是城市热岛",
+            "page_role": "content",
+            "headline": "城市热岛体现为城区气温长期高于周边郊区，与短期热浪存在本质区别。",
+            "goal": "区分热岛与热浪",
+            "key_points": ["城区相对周边更热"],
+            "groups": [],
+            "content_summary": "定义与对比。",
+            "speaker_notes": "首先我们明确城市热岛的基本定义，它描述城区与郊区之间稳定的空间温度差异。请大家留意它与短期高温热浪在时间尺度上的差别。",
+            "visual_intent": "对比示意图",
+            "asset_needs": [{"type": "image", "description": "并排展示城区与郊区的温度分布", "targets": [{"name": "某城市热像图", "entity_type": "dataset", "verification": "to_verify"}]}],
+        },
+        {
+            "title": "热岛从哪里来",
+            "page_role": "content",
+            "headline": "地表材料吸热、人为排热及城市通风变化共同塑造了热岛效应。",
+            "goal": "说出主要成因",
+            "key_points": ["地表材料差异", "人为排热"],
+            "groups": [],
+            "content_summary": "逐个成因讲机制。",
+            "speaker_notes": "接下来看热岛形成的几条关键物理原因。城市下垫面材质改变了热量吸收与释放节奏，同时空调和交通持续向街区排放热量。",
+            "visual_intent": "成因机制图",
+            "asset_needs": [{"type": "diagram", "description": "画出三类成因如何抬高城区气温", "targets": []}],
+        },
     ],
 }
 

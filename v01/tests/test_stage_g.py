@@ -154,7 +154,7 @@ def test_stage_g_builds_native_pptx_with_images_charts_tables_placeholders_and_n
 
     # Slide 1 has native textboxes + bound picture + CC BY attribution in notes
     s1 = prs.slides[0]
-    assert any(sh.has_text_frame and "什么是城市热岛" in sh.text_frame.text for sh in s1.shapes)
+    assert any(sh.has_text_frame and "城市热岛" in sh.text_frame.text for sh in s1.shapes)
     pics = [sh for sh in s1.shapes if sh.shape_type is MSO_SHAPE_TYPE.PICTURE]
     assert len(pics) == 1 and pics[0].name.startswith("ASSET_A001__")
     s1_notes = s1.notes_slide.notes_text_frame.text
