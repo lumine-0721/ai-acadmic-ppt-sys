@@ -1,0 +1,18 @@
+pptv01 doctor — Windows Office COM environment check
+
+  [OK]   windows_os           (required) Windows 11 (10.0.26200)
+  [OK]   python               (required) Python 3.13.6 (F:\ggagy\ai-acadmic-ppt-sys\v01\.venv\Scripts\python.exe)
+  [OK]   pywin32              (required) pywin32 312
+  [OK]   powerpoint_not_running (required) no running POWERPNT.EXE process detected
+  [OK]   powerpoint_com       (required) Microsoft PowerPoint 16.0 (Build 20625) | 产品类型：Office 2021·LTSC | ProductReleaseIds=OneNoteFreeRetail,HomeStudent2021Retail | VersionToReport=16.0.20625.20108 | Platform=x64 | UpdateChannel=http://officecdn.microsoft.com/pr/492350f6-3a01-4f97-b9c0-c7c6ddf67d60
+  [OK]   excel_com            (required) Microsoft Excel 16.0 (Build 20625.0)
+  [OK]   cjk_fonts            (required) found CJK fonts: Microsoft YaHei, DengXian, SimHei, SimSun (12 total indexed)
+  [OK]   theme_fonts          (optional) all 8 theme fonts installed (DengXian, Microsoft YaHei, SimHei, SimSun)
+  [OK]   python_pptx_verify   (optional) python-pptx 1.0.2 (read-only verifier)
+  [OK]   proxy_env            (optional) detected proxy/endpoint env (credentials stripped): HTTP_PROXY=http://127.0.0.1:7890, HTTPS_PROXY=http://127.0.0.1:7890, ALL_PROXY=http://127.0.0.1:7890, NO_PROXY=localhost,127.0.0.1,::1
+  [OPT]  soffice              (optional) not installed (optional — only needed for --cross-render)
+         -> Optional: install soffice if you want `--cross-render`.
+  [OPT]  pdftoppm             (optional) not installed (optional — only needed for --cross-render)
+         -> Optional: install pdftoppm if you want `--cross-render`.
+
+overall: READY

@@ -1,0 +1,22 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.00s
+[pptv01] stage B (provisional_slide_plan) start
+[pptv01] stage B (provisional_slide_plan) failed elapsed=2.66s
+run_dir: runs\smoke8\T12
+overall: failed   model: agent:宝特 (manual, not an API model)   commit: 5bf33537c453ad9934d6ef63dc59b53dcc26c2ca
+  A production_plan          done
+  B provisional_slide_plan   failed
+  C asset_requirements       skipped
+  D asset_retrieval          skipped
+  E slide_asset_mapping      skipped
+  F page_layout_design       skipped
+  G pptx_generation          skipped
+  H render_qa_repair         skipped
+failure: stage B failed: LLMOutputError: model output invalid after one repair retry: 21 validation errors for DraftSlidePlan
+pages.0.page_role
+  Field required [type=missing, input_value={'title': '为什么现...refs': ['R001', 'R009']}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.14/v/missing
+pages.0.headline
+  Field required [type=missing, input_value={'title': '为什么现...refs': ['R001', 'R009']}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.14/v/missing
+pages.0.speaker_

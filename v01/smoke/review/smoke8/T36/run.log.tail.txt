@@ -1,0 +1,4 @@
+[pptv01] stage A (production_plan) start
+[pptv01] stage A (production_plan) done elapsed=0.01s
+[pptv01] stage B (provisional_slide_plan) start
+awaiting agent response: read runs\smoke8\io_T36\B_request_2.json and write the answer to runs\smoke8\io_T36\B_response_2.json, then re-run with --resume
