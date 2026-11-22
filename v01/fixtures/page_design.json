@@ -1,6 +1,9 @@
 {
   "schema_version": "0.1",
   "run_id": "uhi-20261120-001",
+  "theme_id": "academic-default",
+  "theme_method": "keyword_fallback",
+  "theme_rationale": "关键词兜底：默认学术主题。",
   "pages": [
     {
       "page_id": "S001",

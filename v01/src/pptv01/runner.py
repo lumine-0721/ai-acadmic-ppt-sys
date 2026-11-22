@@ -448,15 +448,17 @@ def run_pipeline(
         else:
             invalidated = True
             try:
-                design = run_stage_f(plan, slide_plan, reg, uir, mapping, run_dir)
+                design = run_stage_f(plan, slide_plan, reg, uir, mapping, run_dir, client=client)
                 f_files = [F_FILE] + sorted(
                     p.relative_to(run_dir).as_posix()
                     for p in (run_dir / "previews").glob("*.png") if p.is_file()
                 )
                 record("F", StageStatus.done, t0, f_files, input_hashes=f_inputs)
-            except ValueError as e:
+            except (LLMError, LLMConfigError, ValueError) as e:
+                trace = getattr(e, "attempts", None)
+                f_files = [_write_trace(run_dir, "TH", trace, client.model_id)] if trace else []
                 failure = f"stage F failed: {type(e).__name__}: {str(e)[:500]}"
-                record("F", StageStatus.failed, t0, [], failure, input_hashes=f_inputs)
+                record("F", StageStatus.failed, t0, f_files, failure, input_hashes=f_inputs)
     else:
         records["F"] = StageRecord(
             stage="F", name=STAGE_NAMES["F"], status=StageStatus.skipped,

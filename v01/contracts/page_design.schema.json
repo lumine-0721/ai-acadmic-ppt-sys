@@ -286,6 +286,17 @@
       "title": "Theme Id",
       "type": "string"
     },
+    "theme_method": {
+      "default": "keyword_fallback",
+      "enum": [
+        "agent",
+        "llm",
+        "keyword_fallback",
+        "explicit"
+      ],
+      "title": "Theme Method",
+      "type": "string"
+    },
     "theme_rationale": {
       "default": "",
       "title": "Theme Rationale",

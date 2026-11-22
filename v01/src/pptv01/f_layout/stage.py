@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 from PIL import Image
 
@@ -356,14 +357,17 @@ def run_stage_f(
     run_dir: Path,
     *,
     theme_id: str | None = None,
+    client: Any | None = None,
 ) -> PageDesign:
     run_dir = Path(run_dir)
     if theme_id and theme_id.strip():
         theme = get_theme(theme_id)
+        theme_method = "explicit"
         theme_rationale = f"显式指定主题 `{theme.theme_id}`。"
     else:
-        selection = select_theme(production, slide_plan)
+        selection = select_theme(production, slide_plan, client=client)
         theme = get_theme(selection.theme_id)
+        theme_method = selection.method
         theme_rationale = selection.rationale
     reg_by_id = {a.asset_id: a for a in reg.assets}
     uir_by_id = {r.request_id: r for r in uir.requests} if uir else {}
@@ -405,6 +409,7 @@ def run_stage_f(
         schema_version=SCHEMA_VERSION,
         run_id=production.run_id,
         theme_id=theme.theme_id,
+        theme_method=theme_method,
         theme_rationale=theme_rationale,
         pages=pages,
     )

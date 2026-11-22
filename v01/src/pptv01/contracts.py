@@ -681,6 +681,7 @@ class PageDesignEntry(_Contract):
 
 class PageDesign(_RunFile):
     theme_id: NonEmptyStr = "academic-default"
+    theme_method: Literal["agent", "llm", "keyword_fallback", "explicit"] = "keyword_fallback"
     theme_rationale: str = ""
     pages: list[PageDesignEntry] = Field(min_length=1)
 

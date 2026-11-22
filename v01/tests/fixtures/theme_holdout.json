@@ -1,0 +1,113 @@
+{
+  "description": "R8-2 non-smoke holdout benchmark for Stage TH theme selection & keyword fallback.",
+  "cases": [
+    {
+      "id": "H01",
+      "topic": "中医养生讲座",
+      "purpose": "public_lecture",
+      "audience": "general",
+      "style": "calm_educational",
+      "expected_themes": ["medical-clinical", "academic-default", "eco-canopy"],
+      "forbidden_themes": ["warm-espresso", "tech-indigo"]
+    },
+    {
+      "id": "H02",
+      "topic": "新能源汽车市场分析",
+      "purpose": "market_briefing",
+      "audience": "analysts",
+      "style": "analytical_data",
+      "expected_themes": ["data-journalism", "tech-indigo", "academic-default"],
+      "forbidden_themes": ["warm-espresso"]
+    },
+    {
+      "id": "H03",
+      "topic": "糖尿病的饮食管理",
+      "purpose": "patient_education",
+      "audience": "patients",
+      "style": "clinical_clear",
+      "expected_themes": ["medical-clinical"],
+      "forbidden_themes": ["warm-espresso", "tech-indigo"]
+    },
+    {
+      "id": "H04",
+      "topic": "量子计算入门",
+      "purpose": "course_lecture",
+      "audience": "undergraduates",
+      "style": "modern_technical",
+      "expected_themes": ["tech-indigo", "academic-default"],
+      "forbidden_themes": ["warm-espresso", "architectural-stone"]
+    },
+    {
+      "id": "H05",
+      "topic": "文艺复兴绘画",
+      "purpose": "humanities_seminar",
+      "audience": "university_students",
+      "style": "museum_reflective",
+      "expected_themes": ["architectural-stone", "swiss-minimal", "academic-default"],
+      "forbidden_themes": ["tech-indigo", "warm-espresso"]
+    },
+    {
+      "id": "H06",
+      "topic": "城市交通拥堵治理",
+      "purpose": "policy_briefing",
+      "audience": "city_planners",
+      "style": "empirical_policy",
+      "expected_themes": ["data-journalism", "eco-canopy", "academic-default"],
+      "forbidden_themes": ["warm-espresso"]
+    },
+    {
+      "id": "H07",
+      "topic": "儿童绘本推荐",
+      "purpose": "reading_guide",
+      "audience": "parents",
+      "style": "clean_visual",
+      "expected_themes": ["swiss-minimal", "architectural-stone", "academic-default"],
+      "forbidden_themes": ["warm-espresso", "medical-clinical"]
+    },
+    {
+      "id": "H08",
+      "topic": "区块链技术原理",
+      "purpose": "technical_overview",
+      "audience": "engineers",
+      "style": "structured_modern",
+      "expected_themes": ["tech-indigo", "academic-default"],
+      "forbidden_themes": ["warm-espresso", "eco-canopy"]
+    },
+    {
+      "id": "H09",
+      "topic": "湿地保护",
+      "purpose": "science_brief",
+      "audience": "public",
+      "style": "ecological_grounded",
+      "expected_themes": ["eco-canopy"],
+      "forbidden_themes": ["warm-espresso", "tech-indigo"]
+    },
+    {
+      "id": "H10",
+      "topic": "医院门诊流程优化",
+      "purpose": "operations_review",
+      "audience": "hospital_staff",
+      "style": "clinical_precise",
+      "expected_themes": ["medical-clinical", "swiss-minimal", "academic-default"],
+      "forbidden_themes": ["warm-espresso"]
+    },
+    {
+      "id": "H11",
+      "topic": "B2B SaaS 创业融资路演",
+      "purpose": "investor_overview",
+      "audience": "investors",
+      "style": "concise_modular",
+      "expected_themes": ["swiss-minimal", "data-journalism", "tech-indigo", "academic-default"],
+      "forbidden_themes": ["warm-espresso"]
+    },
+    {
+      "id": "H12",
+      "topic": "精品手冲咖啡门店风味与烘焙工艺",
+      "purpose": "brand_craft",
+      "audience": "coffee_lovers",
+      "style": "warm_artisanal",
+      "expected_themes": ["warm-espresso"],
+      "forbidden_themes": ["medical-clinical", "tech-indigo"]
+    }
+  ]
+}
