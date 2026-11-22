@@ -24,7 +24,7 @@ from pptv01.f_layout import (
     run_stage_f,
     validate_page_geometry,
 )
-from pptv01.f_layout.capacity import classify_density, get_layout_capacity
+from pptv01.f_layout.capacity import classify_density, get_layout_capacity, wrap_mixed_text
 from pptv01.f_layout.layouts import (
     SlotItem,
     build_layout_elements,
@@ -65,14 +65,14 @@ def _page(
 
 
 def _sim_com_measurements(entry: PageDesignEntry) -> dict[str, TextMeasurement]:
-    """Simulate strict PowerPoint COM TextFrame2.BoundHeight shrinking each text block by its actual line count."""
+    """Simulate PowerPoint COM TextFrame2.BoundHeight using wrapped line count per text block."""
     out: dict[str, TextMeasurement] = {}
     for idx, el in enumerate(entry.elements, 1):
         if el.kind not in (ElementKind.title, ElementKind.body, ElementKind.bullet, ElementKind.caption, ElementKind.footer):
             continue
-        lines = [ln for ln in (el.text or "").splitlines() if ln.strip()] or ["x"]
         pt = float(el.font_size_pt or 18.0)
-        bound_h_pt = max(pt * 1.15, len(lines) * pt * 1.18)
+        lines = wrap_mixed_text(el.text or "", el.w_in, pt) or ["x"]
+        bound_h_pt = max(pt * 1.15, len(lines) * pt * 1.20 + 7.2)
         out[el.element_id] = TextMeasurement(
             slide_index=1,
             page_id=entry.page_id,
@@ -127,6 +127,7 @@ def test_r7_2_comparison_eligibility_rejects_flat_lists_and_accepts_grouped_side
 
 
 def test_r7_2_capacity_contracts_exclude_underfilled_layouts_and_drop_section_quote_on_bullets():
+    # Ultra-short 2-point text swaps out of horizontal multi-column cards to vertical hero-statement / single-column
     p_2pts = _page("S002", "双要点核心原则", ["模型先学习局部边缘特征", "深层网络逐步组合全局语义"])
     elig_2 = eligible_layouts_for_page(p_2pts, 1, 5, [], [])
     assert "three-card" not in elig_2
@@ -134,8 +135,21 @@ def test_r7_2_capacity_contracts_exclude_underfilled_layouts_and_drop_section_qu
     assert "comparison" not in elig_2
     assert "section" not in elig_2
     assert "quote" not in elig_2
-    assert "two-content" in elig_2
+    assert "two-content" not in elig_2
     assert "hero-statement" in elig_2
+    assert "single-column" in elig_2
+
+    p_2rich = _page(
+        "S002",
+        "双栏详细实验对比总结",
+        [
+            "在多时段大规模开放域真实基准测试集上系统验证不同参数微调策略的样本外迁移稳定性表现，完整统计长尾错误分布边界并生成逐维度误差热力图报告以辅助诊断",
+            "引入轻量化结构蒸馏与自适应温度校准分支后，系统在高并发线上环境保持预测准确率基本无损同时将显存峰值开销与响应延迟均压缩一半以上且支持热切换",
+            "结合全自动分布偏移漂移监控与定期增量滚动校准重训机制，可在跨季度真实场景统计特性变化时及时阻断累计误差传播并稳固关键接口长期服务可用性 SLA 指标",
+            "多组对照消融实验进一步证实残差跨层路由与局部几何语义对齐正则约束均能稳定带来可复现泛化增益，尤其显著改善冷启动稀疏长尾切片样本上的排序一致度",
+        ],
+    )
+    assert "two-content" in eligible_layouts_for_page(p_2rich, 1, 5, [], [])
 
     p_1pt = _page("S002", "第二章 方法总览", ["下一部分将介绍实验设计与评估基准"], vi="章节分隔")
     elig_1 = eligible_layouts_for_page(p_1pt, 1, 5, [], [])
@@ -148,19 +162,71 @@ def test_r7_2_capacity_contracts_exclude_underfilled_layouts_and_drop_section_qu
 @pytest.mark.parametrize(
     ("lid", "density_target", "pts", "with_vis", "with_ph"),
     [
-        ("two-content", "sparse", ["减少冗余停止词并统一编码", "剔除异常缺失值保证样本质量"], False, False),
-        ("two-content", "normal", ["数据采集阶段覆盖多时段样本", "清洗规则过滤缺失与重复记录", "特征工程提取时空维度变量", "验证集按时间窗口严格切分"], False, True),
-        ("two-content", "dense", [f"核心实验观察要点第{i}条：记录完整误差分布与收敛稳定性变化" for i in range(1, 8)], False, False),
+        (
+            "two-content",
+            "sparse",
+            [
+                "通过多阶段正则化停用词过滤、统一字符编码规范、异常极端数值稳健截断归一化处理、跨时段多传感源重采样时间窗口对齐与严格去重签名规则，从源头消除脏样本并显着提升语料建模一致性与跨模态长周期对齐训练收敛稳定性，同步保留完整批次校验审计可追溯记录链",
+                "结合交叉验证分层抽样策略精准筛选高质量代表性样本子集，持续在线追踪长尾稀疏类别的动态分布漂移趋势、校准残差分布特性与置信度边界收敛情况，从而显着降低过拟合风险并稳步改善测试集样本外外推泛化表现，支撑跨场景稳健迁移评估验证基准",
+            ],
+            False,
+            False,
+        ),
+        (
+            "two-content",
+            "normal",
+            [
+                "数据采集阶段覆盖工作日与节假日多时段高频实测运行样本，并同步完整记录环境温度、网关延迟、网络丢包与传感器瞬时工作状态诊断参数元数据",
+                "清洗规则流水线自动识别并过滤传感器断联缺失值、时钟漂移乱序帧与异常重复时间戳记录，全程保留可按批次号回溯追踪的原始脱敏审计检验日志链",
+                "特征工程阶段重点提取跨域时空耦合高阶统计变量与周期平滑残差分量，用于精确刻画系统在极端峰值负载区间内的非线性动态波动轨迹与临界饱和特性",
+                "验证集严格遵循非重叠未来时间窗口切片边界规则进行物理隔离划分，并配合多期滚动前置作业基准全面评估阻断一切潜在未来目标信息泄露渗透通道",
+            ],
+            False,
+            True,
+        ),
+        (
+            "two-content",
+            "dense",
+            [f"核心实验观察要点第{i}条：完整记录全量测试分布、交叉验证标准差与跨环境收敛稳定性变化" for i in range(1, 9)],
+            False,
+            False,
+        ),
         ("two-content", "normal", ["多尺度特征提取保持空间细节", "轻量化分支显著降低推理耗时", "消融实验验证核心模块必要性"], True, False),
-        ("three-card", "sparse", ["采集原始文本语料", "构建词向量与句法索引", "训练分类与检索模型"], False, True),
-        ("three-card", "normal", ["模块一支持实时信号接入", "模块二负责特征对齐归一化", "模块三执行增量在线更新", "模块四提供质量监控告警", "模块五导出标准评估报告"], False, False),
-        ("three-card", "dense", [f"支柱{i}说明：覆盖全流程可追溯规范与跨平台兼容性验证细节" for i in range(1, 7)], False, False),
+        (
+            "three-card",
+            "normal",
+            [
+                "系统采集并语义对齐多来源学术论文、行业白皮书与基准评测集原始语料文本，严格执行统一规范清洗、敏感信息脱敏替换与指纹哈希去重审计入库归档流程",
+                "构建多粒度静态词向量倒排映射索引与跨段落长程句法依存关系树形结构特征库，持续支撑复杂多跳限定条件下的高精密语义召回匹配与候选排序计算任务",
+                "训练领域自适应神经重排序与密集向量文档检索编码双塔模型，并在公开权威评测基准上全面验证长尾跨领域复杂自然语言查询的召回精确度指标上限表现",
+            ],
+            False,
+            True,
+        ),
+        (
+            "three-card",
+            "dense",
+            [f"支柱{i}详细机制说明：全面覆盖多节点跨平台兼容性验证、全链路审计追踪规范与异常降级保障" for i in range(1, 7)],
+            False,
+            False,
+        ),
         ("three-card", "sparse", ["视觉分支编码纹理", "文本分支对齐语义", "融合头输出置信分数"], True, False),
-        ("hero-statement", "sparse", ["大模型能力跃升源于规模法则与高质量反馈对齐的协同驱动", "预训练语料配比直接决定推理泛化上限"], False, False),
+        (
+            "hero-statement",
+            "sparse",
+            [
+                "大语言模型推理能力与复杂任务泛化上限的持续跃升，本质上源于模型参数规模、多模态预训练语料配比与高质量人类反馈对齐策略三者的协同演化",
+                "预训练清洗配比与偏好反馈采样质量直接决定模型在开放域长链路任务上的可靠性上限与可控边界",
+            ],
+            False,
+            False,
+        ),
         ("hero-statement", "sparse", ["机制设计核心在于降低沟通摩擦", "统一接口减少模块耦合", "异步队列提升峰值吞吐"], False, True),
         ("hero-statement", "normal", ["城市绿色基础设施能显著缓解夜间热岛效应", "公园绿地与水体协同产生冷岛扩散", "屋顶绿化降低建筑表面蓄热", "通风廊道改善近地面微气候环流"], False, False),
         ("hero-statement", "dense", ["分层分布式架构兼顾低延迟在线服务与大规模离线批处理一致性", "无状态网关实现水平弹性扩容", "读写分离隔离分析负载干扰", "本地缓存降低热点键穿透压力", "全链路追踪快速定位尾部超时"], False, False),
         ("hero-statement", "normal", ["核心结论依赖实测对照组验证", "长期观测消除季节性偏差"], True, False),
+        ("single-column", "sparse", ["语音与图像识别覆盖高频交互", "检索与推荐系统提升匹配效率", "科研辅助与工业质检落地见效"], False, True),
+        ("single-column", "normal", ["减少人工重复筛选成本", "保持评估口径前后一致", "快速定位长尾异常样本", "保留清晰人类审计复核点"], False, False),
     ],
 )
 def test_r7_2_new_content_layouts_pass_geometry_b2_and_live_com_occupancy(
@@ -275,5 +341,5 @@ def test_r7_2_layout_diversity_gate_warns_honestly_instead_of_passing_when_below
 
     pd = run_stage_f(pp, sp, reg, uir, mp, tmp_path)
     gate = _check_layout_diversity_gate(tmp_path, pd, sp=sp, reg=reg, uir=uir, mapping=mp)
-    assert gate.status == "warn", f"expected warn for 4/5 distinct layouts, got {gate}"
-    assert "target 5" in gate.detail and "realizable eligible: 4" in gate.detail
+    assert gate.status == "warn", f"expected warn for 3/5 distinct layouts, got {gate}"
+    assert "target 5" in gate.detail and "realizable eligible: 3" in gate.detail

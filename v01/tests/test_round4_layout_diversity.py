@@ -243,9 +243,8 @@ def test_round4_5_page_concise_deck_diverse_layouts_and_compact_placeholders(tmp
     lids = [p.layout_id for p in design.pages]
     assert all(lid in CANONICAL_LAYOUT_IDS for lid in lids), lids
     assert all(lids[i] != lids[i - 1] for i in range(1, len(lids))), f"adjacent repeat: {lids}"
-    # R7-2: 5 distinct eligible content layouts (two-content/three-card/hero-statement replace section/quote),
-    # while S003/S004 still never force big-number or comparison without source/2v2 evidence.
-    assert len(set(lids)) == 5, f"expected 5 distinct layouts: {lids}"
+    # R8-1: ungrouped short-bullet slides swap staggered two-content/three-card out to single-column/hero-statement
+    assert len(set(lids)) == 4, f"expected 4 realizable distinct layouts: {lids}"
     assert "section" not in lids and "quote" not in lids, f"multi-bullet content should not use divider/quote: {lids}"
     assert "big-number" not in lids and "comparison" not in lids
     assert LEGACY_LAYOUT_ID not in lids
@@ -272,7 +271,8 @@ def test_round4_5_page_concise_deck_diverse_layouts_and_compact_placeholders(tmp
     # Hard gates & Stage H QA must pass cleanly with zero oversized-placeholder or occlusion issues
     rep = check_gates(tmp_path)
     by_gate = {r.gate: r for r in rep.results}
-    assert by_gate["layout_diversity"].status == "pass", by_gate["layout_diversity"].detail
+    assert by_gate["layout_diversity"].status == "warn", by_gate["layout_diversity"].detail
+    assert "realizable eligible: 4" in by_gate["layout_diversity"].detail
     assert by_gate["placeholders_marked"].status == "pass", by_gate["placeholders_marked"].detail
     assert by_gate["no_fabricated_visuals"].status == "pass", by_gate["no_fabricated_visuals"].detail
 
