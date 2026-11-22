@@ -2,6 +2,7 @@
   "schema_version": "0.1",
   "run_id": "T12",
   "theme_id": "tech-indigo",
+  "theme_method": "explicit",
   "theme_rationale": "显式指定主题 `tech-indigo`。",
   "pages": [
     {
