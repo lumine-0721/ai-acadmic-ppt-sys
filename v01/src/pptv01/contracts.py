@@ -301,12 +301,34 @@ class AssetNeed(_Contract):
         return self
 
 
+class PageRole(str, Enum):
+    """Semantic role of a slide declared by Stage B (verified alongside content checks in QA)."""
+
+    cover = "cover"
+    section_divider = "section_divider"
+    quote_statement = "quote_statement"
+    content = "content"
+    summary = "summary"
+    appendix = "appendix"
+
+
+class PointGroup(_Contract):
+    """Semantic grouping of slide points (e.g. 2 groups -> two-content, 3 groups -> three-card)."""
+
+    heading: NonEmptyStr
+    points: list[NonEmptyStr] = Field(min_length=1)
+
+
 class SlidePage(_Contract):
     page_id: PageId
     title: NonEmptyStr
+    page_role: PageRole | None = None
+    headline: str | None = None
     goal: NonEmptyStr
     key_points: list[NonEmptyStr] = Field(min_length=1)
+    groups: list[PointGroup] = Field(default_factory=list)
     content_summary: NonEmptyStr
+    speaker_notes: str = ""
     visual_intent: NonEmptyStr
     asset_needs: list[AssetNeed] = Field(default_factory=list)
     source_refs: list[SourceRef] = Field(default_factory=list)   # research notes this page relies on

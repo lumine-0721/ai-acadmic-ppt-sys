@@ -11,6 +11,11 @@ You are the editor-in-chief. Stage B: write a PROVISIONAL slide plan from the pr
 - 每页写 goal（听众听完应当能做到什么）、content_summary（一两句，说明这页怎么讲，不写幻灯片正文）、visual_intent（这页的视觉应当起什么作用，不是装饰）、asset_needs（这页需要什么素材来支撑，见下面“asset_needs 的写法”）。
 - 页数由内容决定；如果制作计划的 constraints 里有用户明确说的页数/时长限制，必须遵守。若没有，不要在 narrative 或任何字段里写“共N页”“约N页”或时长。
 - 不要写页码、page_id、status——这些由程序分配。
+- 每页必须输出四个结构化设计字段（R8-3）：
+  1. `page_role`：只能取 `"cover"` / `"section_divider"` / `"quote_statement"` / `"content"` / `"summary"` / `"appendix"` 之一。只有纯封面页用 `"cover"`，纯过渡分隔页用 `"section_divider"`，纯单句结论页用 `"quote_statement"`，常规讲解页用 `"content"`，结尾总结用 `"summary"`，附录清单用 `"appendix"`。
+  2. `headline`：结论句标题——用完整一句话写出这一页要得出的判断或回答（例如「城市热岛表现为城区夜间气温相对郊区持续偏高」），**不能**用「背景介绍」「系统概述」「目录」「简介」这类类别名词短语；把整套文稿所有页的 `headline` 连读应当成一段连贯论证，且互不重复。
+  3. `groups`：要点分组数组（`[{"heading": "组标题", "points": ["要点1", ...]}]`）。若该页需要明显分成两组（适合两栏对比/并列）或三组（适合三张卡片），请显式给出 2 组或 3 组；不需要分组的常规页面写 `[]`。
+  4. `speaker_notes`：真正给演讲者在台上口播的讲者备注（2–5 句完整陈述句），用于补充过渡语、举例说明或阐释脉络；**不得**照抄或等同于 `content_summary` 规划说明，**不得**只是把 `key_points` 用标点拼接成一句，也不能出现未检索的数字结论。
 - 研究简报：下面如果列出了带编号的检索条目 [R001] [R002]…，它们是真实检索到的来源摘录（百科条目或文献记录，文献记录只证明“这篇文献存在”，不证明它的结论）。
   只有条目里字面出现的数字/事实才可以写进页面，并且该页必须在 source_refs 里列出所引用的条目编号。没有条目支撑的东西一律只写成“要讲清的点”，不带数字。
   条目是检索到的候选资料，可能相关度不高；不相关就不要用，不要为了用条目而硬凑。没有简报时不要假装做过研究，source_refs 留空。
@@ -31,9 +36,13 @@ You are the editor-in-chief. Stage B: write a PROVISIONAL slide plan from the pr
   "pages": [
     {
       "title": "string",
+      "page_role": "cover|section_divider|quote_statement|content|summary|appendix",
+      "headline": "一句完整的结论句标题，能与前后页连成论证",
       "goal": "string",
       "key_points": ["要讲清的点", "..."],
-      "content_summary": "string",
+      "groups": [{"heading": "分组标题", "points": ["该组要点"]}],
+      "content_summary": "一两句规划说明，仅给制作链路内部使用",
+      "speaker_notes": "2到5句完整讲稿，直接供演讲者台上口述展开本页逻辑。",
       "visual_intent": "string",
       "source_refs": ["R001"],
       "asset_needs": [

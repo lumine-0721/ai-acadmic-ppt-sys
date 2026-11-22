@@ -7,6 +7,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from pptv01.contracts import (
     AssetNeed,
+    PageRole,
+    PointGroup,
     ResearchNote,
     ResearchRecord,
     ResearchStatus,
@@ -33,9 +35,13 @@ RESEARCH_ARTIFACT = "research_brief.json"
 class DraftPage(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: NonEmptyStr
+    page_role: PageRole
+    headline: NonEmptyStr
     goal: NonEmptyStr
     key_points: list[NonEmptyStr] = Field(min_length=1)
+    groups: list[PointGroup] = Field(default_factory=list)
     content_summary: NonEmptyStr
+    speaker_notes: NonEmptyStr
     visual_intent: NonEmptyStr
     asset_needs: list[AssetNeed] = Field(default_factory=list)
     source_refs: list[SourceRef] = Field(default_factory=list)

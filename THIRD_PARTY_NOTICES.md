@@ -95,7 +95,14 @@ SOFTWARE.
 
 ---
 
-## 5. Earlier V0.1 Notices (carried from `v01/NOTICE.md`)
+## 5. allweonedev/presentation-ai & Gabberflast/academic-pptx-skill (R8-3)
+
+- **allweonedev/presentation-ai**: <https://github.com/allweonedev/presentation-ai> (MIT License) — concept-level structural layout-role taxonomy and slide-group vocabulary (`src/lib/presentation/layout-catalog.ts`) adapted cleanly into `PageRole` / `PointGroup` and Stage F group routing in `v01/src/pptv01/contracts.py`, `v01/src/pptv01/b_slide_plan/validate.py`, and `v01/src/pptv01/f_layout/layouts.py`.
+- **Gabberflast/academic-pptx-skill**: <https://github.com/Gabberflast/academic-pptx-skill> (MIT License) — concept-level assertion-evidence conclusion-headline rule and ghost-deck readability validation adapted independently in `validate_ghost_deck()` (`v01/src/pptv01/b_slide_plan/validate.py`) without copying proprietary skill text.
+
+---
+
+## 6. Earlier V0.1 Notices (carried from `v01/NOTICE.md`)
 
 - **slidevjs/slidev** (MIT License, Copyright (c) 2021-present Anthony Fu & Slidev contributors, <https://github.com/slidevjs/slidev>): canonical layout taxonomy adapted in `v01/src/pptv01/f_layout/layouts.py`.
 - **gitbrent/PptxGenJS** (MIT License, Copyright (c) 2015-present Brent Ely, <https://github.com/gitbrent/PptxGenJS>): structural layout hierarchy patterns referenced in `v01/src/pptv01/f_layout/layouts.py`.

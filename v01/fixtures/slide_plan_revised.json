@@ -7,11 +7,15 @@
     {
       "page_id": "S001",
       "title": "什么是城市热岛",
+      "page_role": "content",
+      "headline": "城市热岛反映的是城区相对郊区的长期空间温差，不同于短期热浪。",
       "goal": "区分城市热岛与一般热浪",
       "key_points": [
         "城区相对周边更热"
       ],
+      "groups": [],
       "content_summary": "定义与对比。",
+      "speaker_notes": "首先说明城市热岛的核心概念。在同样的大气条件下，城区由于下垫面特征往往显著高于周边郊区气温。",
       "visual_intent": "对比示意",
       "asset_needs": [],
       "status": "revised"

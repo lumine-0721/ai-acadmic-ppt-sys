@@ -466,10 +466,8 @@ def compile_deck_ops(
 
         note_lines: list[str] = [f"Page {page.page_id}"]
         sp_page = sp_by_id.get(page.page_id)
-        if sp_page and sp_page.content_summary.strip():
-            note_lines.append(f"Speaker/planning summary: {sp_page.content_summary.strip()}")
-        if page.notes:
-            note_lines.append(f"Layout notes: {page.notes}")
+        if sp_page and (sp_page.speaker_notes or "").strip():
+            note_lines.append(sp_page.speaker_notes.strip())
 
         page_sources: list[str] = []
         page_texts = "\n".join(el.text or "" for el in page.elements)

@@ -127,11 +127,15 @@ def validate_page_design(
         problems.extend(validate_page_geometry(page))
         sp_page = sp_by_id.get(page.page_id)
         summary_txt = sp_page.content_summary.strip() if sp_page else ""
-        allowed_verbatim = (
-            {sp_page.title.strip()} | {kp.strip() for kp in sp_page.key_points}
-            if sp_page
-            else set()
-        )
+        if sp_page:
+            allowed_verbatim = {sp_page.title.strip()} | {kp.strip() for kp in sp_page.key_points}
+            if getattr(sp_page, "headline", None):
+                allowed_verbatim.add(sp_page.headline.strip())
+            for grp in getattr(sp_page, "groups", ()) or ():
+                allowed_verbatim.add(grp.heading.strip())
+                allowed_verbatim.update(pt.strip() for pt in grp.points)
+        else:
+            allowed_verbatim = set()
         for e in page.elements:
             if (
                 summary_txt

@@ -31,9 +31,16 @@ from pptv01.contracts import (
     CANVAS_W_IN,
     DesignElement,
     ElementKind,
+    PageRole,
     ProductionPlan,
     SlidePage,
 )
+
+
+def display_title(page: SlidePage) -> str:
+    """Prefer assertive conclusion-sentence `headline` when present, falling back to `page.title`."""
+    hl = (getattr(page, "headline", None) or "").strip()
+    return hl or page.title
 from pptv01.theme import ACADEMIC_DEFAULT_THEME, ThemeTokens
 
 from .capacity import (
@@ -254,6 +261,10 @@ _HERO_TEXT_RE = re.compile(r"原理|为什么|本质|核心观点|核心判断|�
 
 def partition_comparison_sides(page: SlidePage) -> tuple[list[str], list[str]] | None:
     """Identify two distinct sides with >= 2 points each for comparison eligibility."""
+    groups = list(getattr(page, "groups", None) or [])
+    if len(groups) == 2 and len(groups[0].points) >= 2 and len(groups[1].points) >= 2:
+        return _format_points_lines(groups[0].points), _format_points_lines(groups[1].points)
+
     pts = _format_points_lines(page.key_points)
     if len(pts) < 4:
         return None
@@ -347,7 +358,10 @@ def _score_layouts_for_page(
     """Score every CAPACITY-ELIGIBLE and CONTENT-ELIGIBLE layout for a slide."""
     pts = _format_points_lines(page.key_points)
     n_pts = len(pts) if pts else (1 if page.goal.strip() else 0)
-    text_blob = f"{page.title} {page.goal} {' '.join(page.key_points)} {page.visual_intent}"
+    title_str = display_title(page)
+    text_blob = f"{page.title} {title_str} {page.goal} {' '.join(page.key_points)} {page.visual_intent}"
+    groups = list(getattr(page, "groups", None) or [])
+    role = getattr(page, "page_role", None)
     n_vis = len(real_visuals)
     has_img = any(v.slot_type == "image" for v in real_visuals)
     first_img = next((v for v in real_visuals if v.slot_type == "image"), None)
@@ -361,12 +375,14 @@ def _score_layouts_for_page(
 
     candidates: dict[str, float] = {}
 
-    # 1. Anchor cover on slide 1 (multi-page deck >= 3 slides or text opener)
-    if idx == 0 and (n_pages >= 3 or n_vis == 0):
-        candidates["cover"] = (10.0 if n_pages >= 3 else 8.5) + (1.0 if wide_landscape_img else 0.0)
+    # 1. Anchor cover on slide 1 (or explicit PageRole.cover)
+    if (idx == 0 and (n_pages >= 3 or n_vis == 0)) or role is PageRole.cover:
+        candidates["cover"] = (10.2 if role is PageRole.cover else (10.0 if n_pages >= 3 else 8.5)) + (
+            1.0 if wide_landscape_img else 0.0
+        )
 
     # 2. Dedicated appendix / needs-input-list
-    if _NEEDS_INPUT_RE.search(page.title) and n_vis == 0 and placeholders:
+    if (_NEEDS_INPUT_RE.search(page.title) or role is PageRole.appendix) and n_vis == 0 and placeholders:
         candidates["needs-input-list"] = 11.0
 
     # 3. Real-visual-driven layouts
@@ -390,37 +406,34 @@ def _score_layouts_for_page(
             candidates["image-right"] = 7.0
             candidates["image-left"] = 7.0
 
-    # 4. Content layouts for text slides (plus optional divider/statement ONLY when n_pts <= 1)
+    # 4. Content layouts for text slides (two-content / three-card require explicit 2/3 groups from Stage B)
     if n_vis == 0:
-        if n_pts >= 2:
+        if n_pts >= 2 or len(groups) in (2, 3):
             eff_bottom = 6.56 if placeholders else 7.00
             avail_h = round(eff_bottom - 1.44, 3)
             cite_res = 0.46 if citations else 0.0
 
-            # Only propose aligned horizontal multi-column cards when wrapped text naturally fills enough height;
-            # otherwise swap to vertical single-column / hero-statement instead of stretching or shifting cards.
-            mid = max(1, math.ceil(len(pts) / 2))
-            two_texts = [
-                "\n".join(f"• {p}" for p in pts[:mid]) if len(pts[:mid]) > 1 else pts[0],
-                "\n".join(f"• {p}" for p in pts[mid:]) if len(pts[mid:]) > 1 else (pts[mid:][0] if pts[mid:] else ""),
-            ]
-            two_w = round((GRID_USABLE_W - 0.53) / 2.0 - 0.44, 3)
-            if not _column_cluster_underflows(two_texts, two_w, 19.0 if concise else 20.0, avail_h, cite_res=cite_res):
-                candidates["two-content"] = 6.4 + (1.4 if _TWO_COL_RE.search(text_blob) or n_pts >= 4 else 0.0)
+            if len(groups) == 2:
+                two_texts = [
+                    f"{g.heading}\n" + "\n".join(f"• {p}" for p in g.points)
+                    for g in groups
+                ]
+                two_w = round((GRID_USABLE_W - 0.53) / 2.0 - 0.44, 3)
+                if not _column_cluster_underflows(two_texts, two_w, 19.0 if concise else 20.0, avail_h, cite_res=cite_res):
+                    candidates["two-content"] = 8.4 + (0.6 if _TWO_COL_RE.search(text_blob) else 0.0)
 
-            buckets: list[list[str]] = [[], [], []]
-            for idx_p, pt in enumerate(pts):
-                buckets[min(idx_p, 2) if len(pts) <= 3 else (idx_p % 3)].append(pt)
-            three_texts = [
-                "\n".join(f"• {p}" for p in b) if len(b) > 1 else (b[0] if b else "")
-                for b in buckets
-            ]
-            three_w = round((GRID_USABLE_W - 2 * 0.315) / 3.0 - 0.36, 3)
-            if n_pts >= 3 and not _column_cluster_underflows(three_texts, three_w, 19.0 if concise else 20.0, avail_h, cite_res=cite_res):
-                candidates["three-card"] = 6.5 + (1.6 if _THREE_CARD_RE.search(text_blob) or n_pts in (3, 6) else 0.0)
+            if len(groups) == 3:
+                three_texts = [
+                    f"{g.heading}\n" + "\n".join(f"• {p}" for p in g.points)
+                    for g in groups
+                ]
+                three_w = round((GRID_USABLE_W - 2 * 0.315) / 3.0 - 0.36, 3)
+                if not _column_cluster_underflows(three_texts, three_w, 19.0 if concise else 20.0, avail_h, cite_res=cite_res):
+                    candidates["three-card"] = 8.5 + (0.6 if _THREE_CARD_RE.search(text_blob) else 0.0)
 
-            candidates["hero-statement"] = 6.3 + (1.5 if _HERO_TEXT_RE.search(text_blob) or idx == n_pages - 1 else 0.0)
-            candidates["single-column"] = 5.7 if n_pts == 2 else 6.6
+            if n_pts >= 2:
+                candidates["hero-statement"] = 6.3 + (1.5 if _HERO_TEXT_RE.search(text_blob) or idx == n_pages - 1 or role is PageRole.summary else 0.0)
+                candidates["single-column"] = 5.7 if n_pts == 2 else 6.6
             if allow_timeline:
                 candidates["timeline"] = 7.4 + (1.8 if _TIMELINE_RE.search(text_blob) else 0.0)
             if allow_comparison:
@@ -429,21 +442,23 @@ def _score_layouts_for_page(
                 candidates["big-number"] = 7.6 + (1.8 if _FACT_RE.search(text_blob) else 0.0)
         else:
             # True single-statement / divider slides only (exempt breathing roles)
-            candidates["section"] = 7.0 + (1.5 if _SECTION_RE.search(text_blob) else 0.0)
-            candidates["quote"] = 6.8 + (1.8 if _QUOTE_RE.search(text_blob) else 0.0)
+            candidates["section"] = 7.0 + (1.5 if (_SECTION_RE.search(text_blob) or role is PageRole.section_divider) else 0.0)
+            candidates["quote"] = 6.8 + (1.8 if (_QUOTE_RE.search(text_blob) or role is PageRole.quote_statement) else 0.0)
     elif n_vis == 1 and has_img and not portrait_img:
-        candidates.setdefault("section", 4.6 + (1.4 if _SECTION_RE.search(text_blob) else 0.0))
+        candidates.setdefault("section", 4.6 + (1.4 if (_SECTION_RE.search(text_blob) or role is PageRole.section_divider) else 0.0))
 
     # 5. Enforce declarative capacity contracts (min/ideal/max points & visuals) from LAYOUT_CAPACITY_SPECS
     eligible: dict[str, float] = {}
     for lid, base in candidates.items():
         spec: LayoutCapacitySpec = get_layout_capacity(lid)
+        grouped_pts = sum(len(g.points) for g in groups) if ((lid == "two-content" and n_vis == 0 and len(groups) == 2) or (lid == "three-card" and n_vis == 0 and len(groups) == 3)) else 0
+        eff_pts = max(n_pts, grouped_pts)
         effective_min_pts = 1 if (lid == "comparison" and n_vis >= 2) else spec.min_points
-        if n_pts < effective_min_pts:
+        if eff_pts < effective_min_pts:
             continue
         if n_vis < spec.min_visuals or n_vis > spec.max_visuals:
             continue
-        if n_pts > spec.max_points:
+        if eff_pts > spec.max_points:
             continue
         if spec.requires_sourced_number and not allow_big_number:
             continue
@@ -451,7 +466,7 @@ def _score_layouts_for_page(
             continue
         if spec.requires_ordered_steps > 0 and not allow_timeline:
             continue
-        dist = abs(n_pts - spec.ideal_points)
+        dist = abs(eff_pts - spec.ideal_points)
         fit_bonus = max(-1.2, 1.4 - 0.50 * dist)
         if concise and lid in ("hero-statement", "quote"):
             fit_bonus += 0.4
@@ -1041,6 +1056,8 @@ def _place_content_fitted_bullets(
     notes: list[str],
     *,
     element_id: str = "bullets",
+    element_kind: ElementKind = ElementKind.bullet,
+    element_role: str = "key_points",
     color_hex: str | None = None,
     rail_color: str | None = None,
     with_accent_rail: bool = True,
@@ -1083,7 +1100,7 @@ def _place_content_fitted_bullets(
     elements.append(
         DesignElement(
             element_id=element_id,
-            kind=ElementKind.bullet,
+            kind=element_kind,
             x_in=txt_x,
             y_in=round(y, 3),
             w_in=txt_w,
@@ -1095,7 +1112,7 @@ def _place_content_fitted_bullets(
             font_size_pt=fit.font_size_pt,
             bold=False,
             color_hex=txt_color,
-            role="key_points",
+            role=element_role,
         )
     )
     return box_h
@@ -1145,9 +1162,14 @@ def build_layout_elements(
     allow_sparse: bool = True,
 ) -> list[DesignElement]:
     """Build all DesignElements for the requested canonical `layout_id`."""
+    render_page = (
+        page.model_copy(update={"title": display_title(page)})
+        if (getattr(page, "headline", None) or "").strip()
+        else page
+    )
     elements = _build_layout_elements_core(
         layout_id,
-        page,
+        render_page,
         bullet_points,
         real_visuals,
         placeholders,
@@ -1263,6 +1285,9 @@ def _build_layout_elements_core(
                 bullet_text,
                 base_pt,
                 notes,
+                element_id="subtitle" if len(pts) <= 1 else "bullets",
+                element_kind=ElementKind.body if len(pts) <= 1 else ElementKind.bullet,
+                element_role="cover_subtitle" if len(pts) <= 1 else "key_points",
                 color_hex=theme.text_on_dark_soft,
                 rail_color=theme.accent_light,
                 with_accent_rail=False,
@@ -1296,15 +1321,35 @@ def _build_layout_elements_core(
                 theme=theme,
             )
         else:
-            # Full-width dark typographic cover (ideal for sparse decks like T36 slide 1!)
+            # Full-width dark typographic cover (clustered vertically when bullet-bearing so occupancy < 1.60in)
+            cov_bul_pt = 22.0 if concise else 20.0
+            t_fit = fit_text_to_box(page.title, GRID_USABLE_W, 1.60, 42.0, min_font_pt=24.0)
+            t_nat_h = round(max(0.76, estimate_text_height_in(t_fit.lines, t_fit.font_size_pt) + 0.16), 3)
+            b_fit = fit_text_to_box(bullet_text, GRID_USABLE_W, 3.20, cov_bul_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if bullet_text else None
+            b_nat_h = round(max(0.75, estimate_text_height_in(b_fit.lines, b_fit.font_size_pt) + 0.18), 3) if b_fit else 0.0
+            eff_cov_bot = 6.52 if (has_ph and citations) else (6.56 if has_ph else (6.52 if citations else 7.00))
+            cite_cov_h = 0.44 if citations else 0.0
+            rem_cov = max(0.0, (eff_cov_bot - 1.25) - (t_nat_h + b_nat_h + cite_cov_h))
+            if len(pts) >= 2 and rem_cov > 1.20:
+                gap_each = min(1.36, round(rem_cov / 3.0, 3))
+                title_y = round(max(1.25, 1.25 + gap_each), 3)
+                mid_gap = max(0.54, round(gap_each, 3))
+                title_h = round(min(1.60, t_nat_h + 0.12), 3)
+                div_y = round(title_y + t_nat_h + max(0.14, (mid_gap - 0.08) * 0.45), 3)
+                bul_y = round(title_y + t_nat_h + mid_gap, 3)
+            else:
+                title_y = 1.15
+                title_h = 1.60
+                div_y = 2.92
+                bul_y = 3.26
             elements.append(
                 _make_fitted_text(
                     "title",
                     ElementKind.title,
                     GRID_MARGIN_X,
-                    1.15,
+                    title_y,
                     GRID_USABLE_W,
-                    1.60,
+                    title_h,
                     page.title,
                     42.0,
                     z_index=2,
@@ -1320,7 +1365,7 @@ def _build_layout_elements_core(
                     element_id="accent_divider",
                     kind=ElementKind.shape,
                     x_in=GRID_MARGIN_X,
-                    y_in=2.92,
+                    y_in=div_y,
                     w_in=2.20,
                     h_in=0.08,
                     z_index=1,
@@ -1329,7 +1374,6 @@ def _build_layout_elements_core(
                     role="cover_divider",
                 )
             )
-            bul_y = 3.26
             bul_max_h = round(content_bottom - bul_y - (0.50 if citations else 0.0), 3)
             bh = _place_content_fitted_bullets(
                 elements,
@@ -1338,12 +1382,15 @@ def _build_layout_elements_core(
                 GRID_USABLE_W,
                 bul_max_h,
                 bullet_text,
-                22.0 if concise else 20.0,
+                cov_bul_pt,
                 notes,
+                element_id="subtitle" if len(pts) <= 1 else "bullets",
+                element_kind=ElementKind.body if len(pts) <= 1 else ElementKind.bullet,
+                element_role="cover_subtitle" if len(pts) <= 1 else "key_points",
                 color_hex=theme.text_on_dark_soft,
                 rail_color=theme.accent_light,
                 with_accent_rail=False,
-                min_box_h=1.50,
+                min_box_h=min(bul_max_h, max(0.90, b_nat_h)) if len(pts) >= 2 else 1.50,
                 theme=theme,
             )
             if citations:
@@ -2510,27 +2557,47 @@ def _build_layout_elements_core(
             )
             last_y = round(max(1.76 + bh, vis_bottom - 0.18), 3)
         else:
-            mid = max(1, math.ceil(len(pts) / 2))
-            left_pts = pts[:mid]
-            right_pts = pts[mid:]
+            groups = list(getattr(page, "groups", None) or [])
+            use_groups = len(groups) == 2
+            if use_groups:
+                left_head = groups[0].heading.strip()
+                right_head = groups[1].heading.strip()
+                left_pts = _format_points_lines(groups[0].points)
+                right_pts = _format_points_lines(groups[1].points)
+            else:
+                left_head = ""
+                right_head = ""
+                mid = max(1, math.ceil(len(pts) / 2))
+                left_pts = pts[:mid]
+                right_pts = pts[mid:]
             spec = get_layout_capacity("two-content")
-            density = classify_density(len(pts), spec, total_chars=sum(len(p) for p in pts))
+            total_tc_pts = len(left_pts) + len(right_pts)
+            total_tc_chars = sum(len(p) for p in [*left_pts, *right_pts])
+            density = classify_density(total_tc_pts, spec, total_chars=total_tc_chars)
             left_txt = "\n".join(f"• {p}" for p in left_pts) if len(left_pts) > 1 else (left_pts[0] if left_pts else "")
             right_txt = "\n".join(f"• {p}" for p in right_pts) if len(right_pts) > 1 else (right_pts[0] if right_pts else "")
             panel_pt = 20.0 if density == "sparse" else (19.0 if concise else 20.0)
+            head_pt = 19.0 if concise else 18.0
 
             eff_bottom = 6.04 if (has_ph and citations) else (6.52 if (has_ph or citations) else 7.00)
             inner_w = round(col_w - 0.44, 3)
-            l_fit = fit_text_to_box(left_txt, inner_w, 4.20, panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if left_txt else None
-            r_fit = fit_text_to_box(right_txt, inner_w, 4.20, panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if right_txt else None
+            head_band_h = 0.0
+            if use_groups:
+                lh_fit = fit_text_to_box(left_head, inner_w, 0.72, head_pt, min_font_pt=14.0)
+                rh_fit = fit_text_to_box(right_head, inner_w, 0.72, head_pt, min_font_pt=14.0)
+                lh_h = round(max(0.36, estimate_text_height_in(lh_fit.lines, lh_fit.font_size_pt) + 0.08), 3)
+                rh_h = round(max(0.36, estimate_text_height_in(rh_fit.lines, rh_fit.font_size_pt) + 0.08), 3)
+                head_band_h = round(max(lh_h, rh_h) + 0.06, 3)
+            l_fit = fit_text_to_box(left_txt, inner_w, max(1.20, 4.20 - head_band_h), panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if left_txt else None
+            r_fit = fit_text_to_box(right_txt, inner_w, max(1.20, 4.20 - head_band_h), panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if right_txt else None
             l_nat_h = (estimate_text_height_in(l_fit.lines, l_fit.font_size_pt) + 0.24) if l_fit else 0.70
             r_nat_h = (estimate_text_height_in(r_fit.lines, r_fit.font_size_pt) + 0.24) if r_fit else 0.70
 
             max_col_h = round(content_bottom - 1.76 - (0.48 if citations else 0.0), 3)
-            panel_h = round(min(max_col_h, max(1.10, l_nat_h + 0.40, r_nat_h + 0.40)), 3)
+            panel_h = round(min(max_col_h, max(1.10, l_nat_h + head_band_h + 0.40, r_nat_h + head_band_h + 0.40)), 3)
             avail_h = round(eff_bottom - band_top, 3)
             cite_res = 0.50 if citations else 0.0
-            shorter_nat = min(l_nat_h, r_nat_h) if right_txt else l_nat_h
+            shorter_nat = min(l_nat_h, r_nat_h) + head_band_h if right_txt else (l_nat_h + head_band_h)
             # Center so content band has balanced top & bottom whitespace around shorter column
             text_span = max(0.75, shorter_nat - 0.10) + cite_res
             max_top = round(content_bottom - panel_h - (0.48 if citations else 0.0), 3)
@@ -2541,9 +2608,9 @@ def _build_layout_elements_core(
             else:
                 col_top = min(1.76, max_top)
 
-            for pid, px, btext, aid, role_card in (
-                ("left", left_x, left_txt, theme.primary, "panel_left"),
-                ("right", right_x, right_txt or left_txt, theme.accent, "panel_right"),
+            for pid, px, htext, btext, aid, role_card in (
+                ("left", left_x, left_head, left_txt, theme.primary, "panel_left"),
+                ("right", right_x, right_head, right_txt or left_txt, theme.accent, "panel_right"),
             ):
                 elements.append(
                     DesignElement(
@@ -2573,11 +2640,31 @@ def _build_layout_elements_core(
                         role=f"accent_{role_card}",
                     )
                 )
-            text_box_h = round(max(0.75, panel_h - 0.34), 3)
+                if use_groups and htext:
+                    elements.append(
+                        _make_fitted_text(
+                            f"heading_panel_{pid}",
+                            ElementKind.body,
+                            round(px + 0.20, 3),
+                            round(col_top + 0.16, 3),
+                            round(col_w - 0.36, 3),
+                            round(max(0.32, head_band_h - 0.04), 3),
+                            htext,
+                            head_pt,
+                            z_index=2,
+                            bold=True,
+                            color_hex=theme.primary_deep,
+                            font=theme.font_family,
+                            role=f"heading_{role_card}",
+                            page_notes=notes,
+                        )
+                    )
+            bul_start_y = round(col_top + (0.16 + head_band_h if use_groups else 0.20), 3)
+            text_box_h = round(max(0.65, panel_h - (0.30 + head_band_h if use_groups else 0.34)), 3)
             _place_content_fitted_bullets(
                 elements,
                 round(left_x + 0.20, 3),
-                round(col_top + 0.20, 3),
+                bul_start_y,
                 round(col_w - 0.36, 3),
                 text_box_h,
                 left_txt,
@@ -2592,7 +2679,7 @@ def _build_layout_elements_core(
                 _place_content_fitted_bullets(
                     elements,
                     round(right_x + 0.20, 3),
-                    round(col_top + 0.20, 3),
+                    bul_start_y,
                     round(col_w - 0.36, 3),
                     text_box_h,
                     right_txt,
@@ -2657,19 +2744,28 @@ def _build_layout_elements_core(
             )
         )
 
-        # Distribute points across 3 cards verbatim without adding headings/labels
-        buckets: list[list[str]] = [[], [], []]
-        for idx_p, pt in enumerate(pts):
-            if len(pts) <= 3:
-                buckets[min(idx_p, 2)].append(pt)
-            else:
-                buckets[idx_p % 3].append(pt)
+        # Distribute points across 3 cards from explicit Stage B `groups` (or fallback buckets when directly invoked)
+        groups = list(getattr(page, "groups", None) or [])
+        use_groups3 = len(groups) == 3
+        if use_groups3:
+            card_heads = [g.heading.strip() for g in groups]
+            buckets = [_format_points_lines(g.points) for g in groups]
+        else:
+            card_heads = ["", "", ""]
+            buckets = [[], [], []]
+            for idx_p, pt in enumerate(pts):
+                if len(pts) <= 3:
+                    buckets[min(idx_p, 2)].append(pt)
+                else:
+                    buckets[idx_p % 3].append(pt)
         card_texts = [
             "\n".join(f"• {p}" for p in b) if len(b) > 1 else (b[0] if b else "")
             for b in buckets
         ]
         spec = get_layout_capacity("three-card")
-        density = classify_density(len(pts), spec, total_chars=sum(len(p) for p in pts))
+        c3_pts = sum(len(b) for b in buckets)
+        c3_chars = sum(len(p) for b in buckets for p in b)
+        density = classify_density(c3_pts or len(pts), spec, total_chars=c3_chars or sum(len(p) for p in pts))
         band_top = round(title_y + title_h, 3)  # 1.38 in
         eff_bottom = 6.04 if (has_ph and citations) else (6.52 if (has_ph or citations) else 7.00)
         card_accents = [theme.primary, theme.accent, theme.teal]
@@ -2748,8 +2844,13 @@ def _build_layout_elements_core(
             col_w = round((GRID_USABLE_W - 2 * col_gap) / 3.0, 3)  # 3.80 in
             inner_w = round(col_w - 0.36, 3)
             card_pt = 20.0 if density == "sparse" else (19.0 if concise else 20.0)
+            head_pt3 = 18.5 if concise else 17.5
+            head_band_h3 = 0.0
+            if use_groups3:
+                h_fits3 = [fit_text_to_box(h, inner_w, 0.72, head_pt3, min_font_pt=13.5) for h in card_heads]
+                head_band_h3 = round(max(0.36, *(estimate_text_height_in(hf.lines, hf.font_size_pt) + 0.08 for hf in h_fits3)) + 0.06, 3)
             fits = [
-                fit_text_to_box(t, inner_w, 4.20, card_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if t else None
+                fit_text_to_box(t, inner_w, max(1.20, 4.20 - head_band_h3), card_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if t else None
                 for t in card_texts
             ]
             nat_hs = [
@@ -2757,12 +2858,12 @@ def _build_layout_elements_core(
                 for f in fits
             ]
             max_card_h = round(content_bottom - 1.72 - (0.48 if citations else 0.0), 3)
-            card_h = round(min(max_card_h, max(1.10, max(nat_hs) + 0.44)), 3)
+            card_h = round(min(max_card_h, max(1.10, max(nat_hs) + head_band_h3 + 0.44)), 3)
             avail_h = round(eff_bottom - band_top, 3)
             cite_res = 0.50 if citations else 0.0
             max_top = round(content_bottom - card_h - (0.48 if citations else 0.0), 3)
             if allow_sparse and card_h + cite_res < avail_h * 0.78:
-                text_span = max(0.75, min(nat_hs) - 0.10) + cite_res
+                text_span = max(0.75, min(nat_hs) + head_band_h3 - 0.10) + cite_res
                 rem_c3 = max(0.0, avail_h - text_span)
                 card_top = min(max_top, round(band_top + max(0.10, rem_c3 * 0.495 - 0.22), 3))
                 notes.append("three-card: aligned upper-middle cluster")
@@ -2799,12 +2900,32 @@ def _build_layout_elements_core(
                         role=f"card_accent_{idx_c}",
                     )
                 )
+                if use_groups3 and card_heads[idx_c]:
+                    elements.append(
+                        _make_fitted_text(
+                            f"card_heading_{idx_c}",
+                            ElementKind.body,
+                            round(cx + 0.18, 3),
+                            round(card_top + 0.16, 3),
+                            inner_w,
+                            round(max(0.32, head_band_h3 - 0.04), 3),
+                            card_heads[idx_c],
+                            head_pt3,
+                            z_index=2,
+                            bold=True,
+                            color_hex=theme.primary_deep,
+                            font=theme.font_family,
+                            role=f"card_heading_{idx_c}",
+                            page_notes=notes,
+                        )
+                    )
                 if card_texts[idx_c]:
-                    text_box_h = round(max(0.75, card_h - 0.34), 3)
+                    bul_y3 = round(card_top + (0.16 + head_band_h3 if use_groups3 else 0.22), 3)
+                    text_box_h = round(max(0.65, card_h - (0.30 + head_band_h3 if use_groups3 else 0.34)), 3)
                     _place_content_fitted_bullets(
                         elements,
                         round(cx + 0.18, 3),
-                        round(card_top + 0.22, 3),
+                        bul_y3,
                         inner_w,
                         text_box_h,
                         card_texts[idx_c],

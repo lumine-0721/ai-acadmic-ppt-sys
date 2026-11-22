@@ -63,7 +63,9 @@ def infer_page_role(page: PageDesignEntry) -> tuple[str, bool, str]:
     )
 
     if lid == "cover":
-        return "cover", True, ROLE_EXEMPT_REASONS["cover"]
+        if not bullet_els and body_point_lines <= 1 and not has_real_visual:
+            return "cover", True, ROLE_EXEMPT_REASONS["cover"]
+        return "content", False, ""
     if lid == "section" and not bullet_els and body_point_lines <= 1 and not has_real_visual:
         return "section_divider", True, ROLE_EXEMPT_REASONS["section_divider"]
     if lid == "quote" and not bullet_els and body_point_lines <= 1 and not has_real_visual:

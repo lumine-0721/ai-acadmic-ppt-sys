@@ -74,6 +74,45 @@
       "title": "AssetType",
       "type": "string"
     },
+    "PageRole": {
+      "description": "Semantic role of a slide declared by Stage B (verified alongside content checks in QA).",
+      "enum": [
+        "cover",
+        "section_divider",
+        "quote_statement",
+        "content",
+        "summary",
+        "appendix"
+      ],
+      "title": "PageRole",
+      "type": "string"
+    },
+    "PointGroup": {
+      "additionalProperties": false,
+      "description": "Semantic grouping of slide points (e.g. 2 groups -> two-content, 3 groups -> three-card).",
+      "properties": {
+        "heading": {
+          "minLength": 1,
+          "title": "Heading",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "heading",
+        "points"
+      ],
+      "title": "PointGroup",
+      "type": "object"
+    },
     "RevisionEntry": {
       "additionalProperties": false,
       "description": "One edit of the slide plan after real assets came back.",
@@ -142,6 +181,25 @@
           "title": "Goal",
           "type": "string"
         },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/PointGroup"
+          },
+          "title": "Groups",
+          "type": "array"
+        },
+        "headline": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Headline"
+        },
         "key_points": {
           "items": {
             "minLength": 1,
@@ -156,6 +214,17 @@
           "title": "Page Id",
           "type": "string"
         },
+        "page_role": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PageRole"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "source_refs": {
           "items": {
             "pattern": "^R\\d{3,}$",
@@ -163,6 +232,11 @@
           },
           "title": "Source Refs",
           "type": "array"
+        },
+        "speaker_notes": {
+          "default": "",
+          "title": "Speaker Notes",
+          "type": "string"
         },
         "status": {
           "$ref": "#/$defs/SlideStatus",
