@@ -61,6 +61,7 @@ CANONICAL_LAYOUT_IDS: tuple[str, ...] = (
     "two-content",
     "three-card",
     "hero-statement",
+    "single-column",
     "needs-input-list",
 )
 
@@ -92,6 +93,7 @@ TEXT_CAPABLE_LAYOUTS: tuple[str, ...] = (
     "two-content",
     "three-card",
     "hero-statement",
+    "single-column",
     "needs-input-list",
 )
 
@@ -128,6 +130,9 @@ CROP_FILL_MIN_AR = 0.75
 CROP_FILL_MAX_AR = 2.40
 
 MAX_PLACEHOLDER_AREA_RATIO = 0.15
+# Minimum vertical band occupancy required before horizontal multi-column cards stay side-by-side;
+# ultra-sparse text that would leave half the canvas vertical band blank swaps to a vertical layout.
+MIN_HORIZONTAL_CLUSTER_FILL_RATIO = 0.52
 
 
 def normalize_layout_id(raw: str | None) -> str:
@@ -300,6 +305,34 @@ def is_timeline_eligible(page: SlidePage, real_visuals: Sequence[SlotItem] = ())
     return bool(_TIMELINE_RE.search(content_head))
 
 
+def _upper_middle_start(band_top: float, avail_h: float, natural_h: float, *, min_pad: float = 0.24) -> float:
+    """Compute an optical upper-middle start y for a compact cluster inside `[band_top, band_top + avail_h]`."""
+    rem = max(0.0, avail_h - natural_h)
+    offset = min(rem, max(min_pad, rem * 0.44)) if rem > min_pad else rem * 0.44
+    return round(band_top + offset, 3)
+
+
+def _column_cluster_underflows(
+    col_texts: Sequence[str],
+    inner_w: float,
+    font_pt: float,
+    avail_h: float,
+    *,
+    cite_res: float = 0.0,
+) -> bool:
+    """Return True when aligned horizontal columns would leave most of the content band blank without inflating boxes."""
+    if avail_h <= 0.0:
+        return False
+    col_hs: list[float] = []
+    for txt in col_texts:
+        if not txt.strip():
+            continue
+        fit = fit_text_to_box(txt, inner_w, 3.80, font_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+        col_hs.append(estimate_text_height_in(fit.lines, fit.font_size_pt) + 0.42)
+    cluster_h = max(col_hs, default=0.80) + cite_res
+    return cluster_h < avail_h * MIN_HORIZONTAL_CLUSTER_FILL_RATIO
+
+
 def _score_layouts_for_page(
     page: SlidePage,
     idx: int,
@@ -360,9 +393,34 @@ def _score_layouts_for_page(
     # 4. Content layouts for text slides (plus optional divider/statement ONLY when n_pts <= 1)
     if n_vis == 0:
         if n_pts >= 2:
-            candidates["two-content"] = 6.4 + (1.4 if _TWO_COL_RE.search(text_blob) or n_pts >= 4 else 0.0)
-            candidates["three-card"] = 6.5 + (1.6 if _THREE_CARD_RE.search(text_blob) or n_pts in (3, 6) else 0.0)
+            eff_bottom = 6.56 if placeholders else 7.00
+            avail_h = round(eff_bottom - 1.44, 3)
+            cite_res = 0.46 if citations else 0.0
+
+            # Only propose aligned horizontal multi-column cards when wrapped text naturally fills enough height;
+            # otherwise swap to vertical single-column / hero-statement instead of stretching or shifting cards.
+            mid = max(1, math.ceil(len(pts) / 2))
+            two_texts = [
+                "\n".join(f"• {p}" for p in pts[:mid]) if len(pts[:mid]) > 1 else pts[0],
+                "\n".join(f"• {p}" for p in pts[mid:]) if len(pts[mid:]) > 1 else (pts[mid:][0] if pts[mid:] else ""),
+            ]
+            two_w = round((GRID_USABLE_W - 0.53) / 2.0 - 0.44, 3)
+            if not _column_cluster_underflows(two_texts, two_w, 19.0 if concise else 20.0, avail_h, cite_res=cite_res):
+                candidates["two-content"] = 6.4 + (1.4 if _TWO_COL_RE.search(text_blob) or n_pts >= 4 else 0.0)
+
+            buckets: list[list[str]] = [[], [], []]
+            for idx_p, pt in enumerate(pts):
+                buckets[min(idx_p, 2) if len(pts) <= 3 else (idx_p % 3)].append(pt)
+            three_texts = [
+                "\n".join(f"• {p}" for p in b) if len(b) > 1 else (b[0] if b else "")
+                for b in buckets
+            ]
+            three_w = round((GRID_USABLE_W - 2 * 0.315) / 3.0 - 0.36, 3)
+            if n_pts >= 3 and not _column_cluster_underflows(three_texts, three_w, 19.0 if concise else 20.0, avail_h, cite_res=cite_res):
+                candidates["three-card"] = 6.5 + (1.6 if _THREE_CARD_RE.search(text_blob) or n_pts in (3, 6) else 0.0)
+
             candidates["hero-statement"] = 6.3 + (1.5 if _HERO_TEXT_RE.search(text_blob) or idx == n_pages - 1 else 0.0)
+            candidates["single-column"] = 5.7 if n_pts == 2 else 6.6
             if allow_timeline:
                 candidates["timeline"] = 7.4 + (1.8 if _TIMELINE_RE.search(text_blob) else 0.0)
             if allow_comparison:
@@ -404,7 +462,7 @@ def _score_layouts_for_page(
         if n_vis >= 1:
             eligible = {"image-right": 7.5, "image-left": 7.4}
         elif n_pts >= 2:
-            eligible = {"two-content": 5.5, "hero-statement": 5.2}
+            eligible = {"single-column": 5.5, "hero-statement": 5.2}
         else:
             eligible = {"section": 5.2, "quote": 4.8}
     return eligible
@@ -1866,13 +1924,9 @@ def _build_layout_elements_core(
                 if other_pts
                 else 0.0
             )
-            natural_h = round(max(fact_box_h, other_est_h + cite_reserve, fact_box_h + (cite_reserve if not other_pts else 0.0)), 3)
-            if avail_h - natural_h > 2.75:
-                cluster_h = round(max(natural_h, avail_h - 2.75), 3)
-                offset = round((avail_h - cluster_h) * 0.45, 3)
-                panel_y = round(band_top + max(0.28, offset), 3)
-                fact_box_h = round(min(content_bottom - panel_y - cite_reserve, max(fact_box_h, cluster_h - cite_reserve)), 3)
-                bullet_min_h = round(max(1.80, fact_box_h - 0.34), 3)
+            natural_h = round(max(fact_box_h, other_est_h) + cite_reserve, 3)
+            if natural_h < avail_h * 0.72:
+                panel_y = _upper_middle_start(band_top, avail_h, natural_h, min_pad=0.28)
                 panel_h = round(content_bottom - panel_y - (0.50 if citations and not other_pts else 0.0), 3)
                 notes.append("big-number: sparse centered-cluster variant")
 
@@ -1954,12 +2008,15 @@ def _build_layout_elements_core(
                     theme=theme,
                 )
                 if citations:
+                    cite_x = GRID_MARGIN_X if allow_sparse else right_x
+                    cite_w = GRID_USABLE_W if allow_sparse else right_w
+                    cite_y = round(max(panel_y + fact_box_h, panel_y + 0.34 + bh) + 0.16, 3) if allow_sparse else round(panel_y + 0.34 + bh + 0.16, 3)
                     _place_anchored_citation(
                         elements,
                         citations,
-                        x=right_x,
-                        y=round(panel_y + 0.34 + bh + 0.16, 3),
-                        w=right_w,
+                        x=cite_x,
+                        y=cite_y,
+                        w=cite_w,
                         max_bottom=content_bottom,
                         page_notes=notes,
                         theme=theme,
@@ -2043,17 +2100,15 @@ def _build_layout_elements_core(
                 else 0.0
             )
             cite_res = 0.60 if citations else 0.0
-            natural_col_h = round(max(l_est, r_est, 1.60), 3)
+            natural_col_h = round(max(l_est, r_est, 2.05), 3)
             band_top = 1.34
             eff_bottom = tray_y if has_ph else 7.00
             avail_h = round(eff_bottom - band_top, 3)
-            if avail_h - (natural_col_h + cite_res) > 2.75:
-                cluster_total = round(avail_h - 2.70, 3)
-                offset = min(1.18, round((avail_h - cluster_total) * 0.44, 3))
-                col_top = round(band_top + max(0.38, offset), 3)
+            if natural_col_h + cite_res < avail_h * 0.72:
+                col_top = _upper_middle_start(band_top, avail_h, natural_col_h + cite_res, min_pad=0.38)
                 top_bar_y = round(col_top - 0.22, 3)
                 col_h = round(col_bottom - col_top, 3)
-                col_min_h = round(min(col_h, max(1.60, cluster_total - cite_res)), 3)
+                col_min_h = round(min(col_h, natural_col_h), 3)
                 notes.append("comparison: sparse centered-cluster variant")
 
         # Contrasting top accent bars + slim center vertical divider
@@ -2232,12 +2287,12 @@ def _build_layout_elements_core(
                 eff_bottom = tray_y if has_ph else 7.00
                 avail_h = round(eff_bottom - band_top, 3)
                 cite_res = 0.66 if citations else 0.0
-                if avail_h - (nat_h + cite_res) > 2.75:
-                    cluster_total = round(avail_h - 2.70, 3)
-                    offset = min(1.18, round((avail_h - cluster_total) * 0.44, 3))
-                    step_top = round(band_top + max(0.56, offset), 3)
+                if nat_h + cite_res < avail_h * 0.72:
+                    nat_block_h = round(max(1.85, nat_h), 3)
+                    rem_t = max(0.0, avail_h - (nat_block_h + cite_res))
+                    step_top = round(band_top + max(0.32, rem_t * 0.46), 3)
                     track_y = round(step_top - 0.32, 3)
-                    step_h = round(min(3.30, content_bottom - step_top - cite_res, max(nat_h, cluster_total - cite_res)), 3)
+                    step_h = round(min(3.30, content_bottom - step_top - cite_res, nat_block_h), 3)
                     notes.append("timeline: sparse centered-cluster variant")
             vis_y = 0.0
             vis_h = 0.0
@@ -2462,153 +2517,93 @@ def _build_layout_elements_core(
             density = classify_density(len(pts), spec, total_chars=sum(len(p) for p in pts))
             left_txt = "\n".join(f"• {p}" for p in left_pts) if len(left_pts) > 1 else (left_pts[0] if left_pts else "")
             right_txt = "\n".join(f"• {p}" for p in right_pts) if len(right_pts) > 1 else (right_pts[0] if right_pts else "")
-            panel_pt = 25.0 if (density == "sparse" and len(pts) <= 2) else (22.0 if density == "sparse" else (19.0 if concise else 17.5))
+            panel_pt = 20.0 if density == "sparse" else (19.0 if concise else 20.0)
 
             eff_bottom = 6.04 if (has_ph and citations) else (6.52 if (has_ph or citations) else 7.00)
             inner_w = round(col_w - 0.44, 3)
-            l_fit = fit_text_to_box(left_txt, inner_w, 3.80, panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if left_txt else None
-            r_fit = fit_text_to_box(right_txt, inner_w, 3.80, panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if right_txt else None
+            l_fit = fit_text_to_box(left_txt, inner_w, 4.20, panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if left_txt else None
+            r_fit = fit_text_to_box(right_txt, inner_w, 4.20, panel_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if right_txt else None
             l_nat_h = (estimate_text_height_in(l_fit.lines, l_fit.font_size_pt) + 0.24) if l_fit else 0.70
             r_nat_h = (estimate_text_height_in(r_fit.lines, r_fit.font_size_pt) + 0.24) if r_fit else 0.70
-            # Conservative single-line COM minimum bound height by line count
-            l_com_h = max(0.60 if panel_pt >= 24.0 else 0.48, (len(l_fit.lines) * (l_fit.font_size_pt / 72.0 * 1.25) + 0.24) if l_fit else 0.56)
-            r_com_h = max(0.60 if panel_pt >= 24.0 else 0.48, (len(r_fit.lines) * (r_fit.font_size_pt / 72.0 * 1.25) + 0.24) if r_fit else 0.56)
 
-            use_stagger = allow_sparse and right_pts and (
-                density == "sparse" or (eff_bottom - (1.82 + max(l_com_h, r_com_h)) > 1.48)
-            )
-            if use_stagger:
-                span = eff_bottom - band_top
-                total_gap = max(0.90, span - (l_com_h + r_com_h))
-                g = min(1.44, total_gap / 3.0)
-                left_txt_y = round(max(1.72, band_top + g), 3)
-                left_box_h = round(max(1.05, min(2.40, l_nat_h + 0.16)), 3)
-                max_right_txt_y = round(eff_bottom - max(0.75, r_nat_h + 0.16) - 0.18, 3)
-                ideal_right_txt_y = round(left_txt_y + l_com_h + g, 3)
-                right_txt_y = round(min(max_right_txt_y, max(round(left_txt_y + 0.52, 3), ideal_right_txt_y)), 3)
-                right_box_h = round(max(1.05, min(round(eff_bottom - right_txt_y, 3), max(l_nat_h * 0.0, r_nat_h + 0.16))), 3)
-
-                for pid, px, py, ph, btext, aid, role_card in (
-                    ("left", left_x, left_txt_y, left_box_h, left_txt, theme.primary, "panel_left"),
-                    ("right", right_x, right_txt_y, right_box_h, right_txt, theme.accent, "panel_right"),
-                ):
-                    card_y = round(py - 0.16, 3)
-                    card_h = round(min(round(eff_bottom - card_y + 0.16, 3), max(1.18, ph + 0.28)), 3)
-                    elements.append(
-                        DesignElement(
-                            element_id=f"bg_panel_{pid}",
-                            kind=ElementKind.shape,
-                            x_in=px,
-                            y_in=card_y,
-                            w_in=col_w,
-                            h_in=card_h,
-                            z_index=0,
-                            fill_hex=theme.surface_light,
-                            line_hex=theme.stroke,
-                            role=role_card,
-                        )
-                    )
-                    elements.append(
-                        DesignElement(
-                            element_id=f"accent_panel_{pid}",
-                            kind=ElementKind.shape,
-                            x_in=px,
-                            y_in=card_y,
-                            w_in=0.10,
-                            h_in=card_h,
-                            z_index=1,
-                            fill_hex=aid,
-                            line_hex=aid,
-                            role=f"accent_{role_card}",
-                        )
-                    )
-                    elements.append(
-                        _make_fitted_text(
-                            f"bullets_{pid}",
-                            ElementKind.bullet,
-                            round(px + 0.24, 3),
-                            py,
-                            inner_w,
-                            ph,
-                            btext,
-                            panel_pt,
-                            z_index=2,
-                            bold=(density == "sparse" and len(pts) <= 2),
-                            color_hex=theme.background_text,
-                            font=theme.font_family,
-                            role=f"content_{pid}",
-                            page_notes=notes,
-                        )
-                    )
-                last_y = round(max(left_txt_y + left_box_h, right_txt_y + right_box_h), 3)
-                notes.append("two-content: staggered editorial dual-panel variant")
+            max_col_h = round(content_bottom - 1.76 - (0.48 if citations else 0.0), 3)
+            panel_h = round(min(max_col_h, max(1.10, l_nat_h + 0.40, r_nat_h + 0.40)), 3)
+            avail_h = round(eff_bottom - band_top, 3)
+            cite_res = 0.50 if citations else 0.0
+            shorter_nat = min(l_nat_h, r_nat_h) if right_txt else l_nat_h
+            # Center by actual text glyph span (excluding card outer/inner margins) so COM-shrunk columns stay balanced
+            text_span = max(0.75, shorter_nat - 0.16) + cite_res
+            max_top = round(content_bottom - panel_h - (0.48 if citations else 0.0), 3)
+            if allow_sparse and panel_h + cite_res < avail_h * 0.78:
+                rem_p = max(0.0, avail_h - text_span)
+                col_top = min(max_top, round(band_top + max(0.08, rem_p * 0.50 - 0.20), 3))
+                notes.append("two-content: aligned upper-middle dual-panel cluster")
             else:
-                col_top = 1.76
-                max_col_h = round(content_bottom - col_top - (0.48 if citations else 0.0), 3)
-                panel_h = round(min(max_col_h, max(2.20, l_nat_h + 0.42, r_nat_h + 0.42)), 3)
-                for pid, px, btext, aid, role_card in (
-                    ("left", left_x, left_txt, theme.primary, "panel_left"),
-                    ("right", right_x, right_txt or left_txt, theme.accent, "panel_right"),
-                ):
-                    elements.append(
-                        DesignElement(
-                            element_id=f"bg_panel_{pid}",
-                            kind=ElementKind.shape,
-                            x_in=px,
-                            y_in=col_top,
-                            w_in=col_w,
-                            h_in=panel_h,
-                            z_index=0,
-                            fill_hex=theme.surface_light,
-                            line_hex=theme.stroke,
-                            role=role_card,
-                        )
+                col_top = min(1.76, max_top)
+
+            for pid, px, btext, aid, role_card in (
+                ("left", left_x, left_txt, theme.primary, "panel_left"),
+                ("right", right_x, right_txt or left_txt, theme.accent, "panel_right"),
+            ):
+                elements.append(
+                    DesignElement(
+                        element_id=f"bg_panel_{pid}",
+                        kind=ElementKind.shape,
+                        x_in=px,
+                        y_in=col_top,
+                        w_in=col_w,
+                        h_in=panel_h,
+                        z_index=0,
+                        fill_hex=theme.surface_light,
+                        line_hex=theme.stroke,
+                        role=role_card,
                     )
-                    elements.append(
-                        DesignElement(
-                            element_id=f"accent_panel_{pid}",
-                            kind=ElementKind.shape,
-                            x_in=px,
-                            y_in=col_top,
-                            w_in=col_w,
-                            h_in=0.07,
-                            z_index=1,
-                            fill_hex=aid,
-                            line_hex=aid,
-                            role=f"accent_{role_card}",
-                        )
+                )
+                elements.append(
+                    DesignElement(
+                        element_id=f"accent_panel_{pid}",
+                        kind=ElementKind.shape,
+                        x_in=px,
+                        y_in=col_top,
+                        w_in=col_w,
+                        h_in=0.07,
+                        z_index=1,
+                        fill_hex=aid,
+                        line_hex=aid,
+                        role=f"accent_{role_card}",
                     )
-                bh_l = _place_content_fitted_bullets(
+                )
+            text_box_h = round(max(0.75, panel_h - 0.34), 3)
+            _place_content_fitted_bullets(
+                elements,
+                round(left_x + 0.20, 3),
+                round(col_top + 0.20, 3),
+                round(col_w - 0.36, 3),
+                text_box_h,
+                left_txt,
+                panel_pt,
+                notes,
+                element_id="bullets_left",
+                with_accent_rail=False,
+                min_box_h=min(text_box_h, round(l_nat_h, 3)),
+                theme=theme,
+            )
+            if right_txt:
+                _place_content_fitted_bullets(
                     elements,
-                    round(left_x + 0.20, 3),
+                    round(right_x + 0.20, 3),
                     round(col_top + 0.20, 3),
                     round(col_w - 0.36, 3),
-                    round(max_col_h - 0.24, 3),
-                    left_txt,
+                    text_box_h,
+                    right_txt,
                     panel_pt,
                     notes,
-                    element_id="bullets_left",
+                    element_id="bullets_right",
                     with_accent_rail=False,
-                    min_box_h=1.40,
+                    min_box_h=min(text_box_h, round(r_nat_h, 3)),
                     theme=theme,
                 )
-                bh_r = 0.0
-                if right_txt:
-                    bh_r = _place_content_fitted_bullets(
-                        elements,
-                        round(right_x + 0.20, 3),
-                        round(col_top + 0.20, 3),
-                        round(col_w - 0.36, 3),
-                        round(max_col_h - 0.24, 3),
-                        right_txt,
-                        panel_pt,
-                        notes,
-                        element_id="bullets_right",
-                        with_accent_rail=False,
-                        min_box_h=1.40,
-                        theme=theme,
-                    )
-                last_y = round(col_top + max(bh_l + 0.20, bh_r + 0.20), 3)
+            last_y = round(col_top + panel_h, 3)
 
         if citations:
             _place_anchored_citation(
@@ -2752,141 +2747,75 @@ def _build_layout_elements_core(
             col_gap = 0.315
             col_w = round((GRID_USABLE_W - 2 * col_gap) / 3.0, 3)  # 3.80 in
             inner_w = round(col_w - 0.36, 3)
-            card_pt = 19.0 if density == "sparse" else (17.5 if concise else 16.0)
+            card_pt = 20.0 if density == "sparse" else (19.0 if concise else 20.0)
             fits = [
-                fit_text_to_box(t, inner_w, 3.60, card_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if t else None
+                fit_text_to_box(t, inner_w, 4.20, card_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet]) if t else None
                 for t in card_texts
             ]
             nat_hs = [
                 round(max(0.82, estimate_text_height_in(f.lines, f.font_size_pt) + 0.22), 3) if f else 0.82
                 for f in fits
             ]
-            com_hs = [
-                round(max(0.46, len(f.lines) * (f.font_size_pt / 72.0 * 1.20) + 0.22), 3) if f else 0.46
-                for f in fits
-            ]
-            use_staircase = allow_sparse and (
-                density == "sparse" or (eff_bottom - (1.82 + max(com_hs)) > 1.48)
-            )
-            if use_staircase:
-                min_card_txt_h = 1.16 if has_ph else 0.85
-                span = eff_bottom - band_top
-                sum_com = sum(com_hs)
-                gap_v = min(1.20, max(0.32, (span - sum_com) / 4.0))
-                txt_y0 = round(max(1.74, band_top + gap_v), 3)
-                txt_y1 = round(txt_y0 + com_hs[0] + gap_v, 3)
-                max_y2 = round(eff_bottom - max(min_card_txt_h, nat_hs[2]) - 0.14, 3)
-                txt_y2 = round(min(max_y2, max(round(txt_y1 + 0.65, 3), txt_y1 + com_hs[1] + gap_v)), 3)
-                # Ensure monotonic non-shrunk center step if compressed at bottom
-                if txt_y2 - txt_y1 < 0.72:
-                    txt_y1 = round((txt_y0 + txt_y2) / 2.0, 3)
-                txt_ys = [txt_y0, txt_y1, txt_y2]
-
-                for idx_c in range(3):
-                    cx = round(GRID_MARGIN_X + idx_c * (col_w + col_gap), 3)
-                    ty = txt_ys[idx_c]
-                    max_avail_box = round(max(0.80, eff_bottom - ty), 3)
-                    th = round(min(max_avail_box, max(min_card_txt_h, nat_hs[idx_c])), 3)
-                    card_y = round(ty - 0.18, 3)
-                    card_h = round(min(round(eff_bottom - card_y + 0.16, 3), max(1.16, th + 0.28)), 3)
-                    elements.append(
-                        DesignElement(
-                            element_id=f"bg_card_{idx_c}",
-                            kind=ElementKind.shape,
-                            x_in=cx,
-                            y_in=card_y,
-                            w_in=col_w,
-                            h_in=card_h,
-                            z_index=0,
-                            fill_hex=theme.surface_light,
-                            line_hex=theme.stroke,
-                            role=f"card_panel_{idx_c}",
-                        )
-                    )
-                    elements.append(
-                        DesignElement(
-                            element_id=f"accent_card_{idx_c}",
-                            kind=ElementKind.shape,
-                            x_in=cx,
-                            y_in=card_y,
-                            w_in=col_w,
-                            h_in=0.07,
-                            z_index=1,
-                            fill_hex=card_accents[idx_c],
-                            line_hex=card_accents[idx_c],
-                            role=f"card_accent_{idx_c}",
-                        )
-                    )
-                    if card_texts[idx_c]:
-                        elements.append(
-                            _make_fitted_text(
-                                f"card_text_{idx_c}",
-                                ElementKind.bullet,
-                                round(cx + 0.18, 3),
-                                ty,
-                                inner_w,
-                                th,
-                                card_texts[idx_c],
-                                card_pt,
-                                z_index=2,
-                                color_hex=theme.background_text,
-                                font=theme.font_family,
-                                role=f"card_text_{idx_c}",
-                                page_notes=notes,
-                            )
-                        )
-                    last_y = max(last_y, round(card_y + card_h, 3))
-                notes.append("three-card: sparse staggered-columns variant")
+            max_card_h = round(content_bottom - 1.72 - (0.48 if citations else 0.0), 3)
+            card_h = round(min(max_card_h, max(1.10, max(nat_hs) + 0.44)), 3)
+            avail_h = round(eff_bottom - band_top, 3)
+            cite_res = 0.50 if citations else 0.0
+            max_top = round(content_bottom - card_h - (0.48 if citations else 0.0), 3)
+            if allow_sparse and card_h + cite_res < avail_h * 0.78:
+                text_span = max(0.75, min(nat_hs) - 0.16) + cite_res
+                rem_c3 = max(0.0, avail_h - text_span)
+                card_top = min(max_top, round(band_top + max(0.10, rem_c3 * 0.496 - 0.22), 3))
+                notes.append("three-card: aligned upper-middle cluster")
             else:
-                card_top = 1.72
-                max_card_h = round(content_bottom - card_top - (0.48 if citations else 0.0), 3)
-                card_h = round(min(max_card_h, max(2.20, max(nat_hs) + 0.50)), 3)
-                for idx_c in range(3):
-                    cx = round(GRID_MARGIN_X + idx_c * (col_w + col_gap), 3)
-                    elements.append(
-                        DesignElement(
-                            element_id=f"bg_card_{idx_c}",
-                            kind=ElementKind.shape,
-                            x_in=cx,
-                            y_in=card_top,
-                            w_in=col_w,
-                            h_in=card_h,
-                            z_index=0,
-                            fill_hex=theme.surface_light,
-                            line_hex=theme.stroke,
-                            role=f"card_panel_{idx_c}",
-                        )
+                card_top = min(1.72, max_top)
+
+            for idx_c in range(3):
+                cx = round(GRID_MARGIN_X + idx_c * (col_w + col_gap), 3)
+                elements.append(
+                    DesignElement(
+                        element_id=f"bg_card_{idx_c}",
+                        kind=ElementKind.shape,
+                        x_in=cx,
+                        y_in=card_top,
+                        w_in=col_w,
+                        h_in=card_h,
+                        z_index=0,
+                        fill_hex=theme.surface_light,
+                        line_hex=theme.stroke,
+                        role=f"card_panel_{idx_c}",
                     )
-                    elements.append(
-                        DesignElement(
-                            element_id=f"accent_card_{idx_c}",
-                            kind=ElementKind.shape,
-                            x_in=cx,
-                            y_in=card_top,
-                            w_in=col_w,
-                            h_in=0.07,
-                            z_index=1,
-                            fill_hex=card_accents[idx_c],
-                            line_hex=card_accents[idx_c],
-                            role=f"card_accent_{idx_c}",
-                        )
+                )
+                elements.append(
+                    DesignElement(
+                        element_id=f"accent_card_{idx_c}",
+                        kind=ElementKind.shape,
+                        x_in=cx,
+                        y_in=card_top,
+                        w_in=col_w,
+                        h_in=0.07,
+                        z_index=1,
+                        fill_hex=card_accents[idx_c],
+                        line_hex=card_accents[idx_c],
+                        role=f"card_accent_{idx_c}",
                     )
-                    if card_texts[idx_c]:
-                        _place_content_fitted_bullets(
-                            elements,
-                            round(cx + 0.18, 3),
-                            round(card_top + 0.22, 3),
-                            inner_w,
-                            round(card_h - 0.36, 3),
-                            card_texts[idx_c],
-                            card_pt,
-                            notes,
-                            element_id=f"card_text_{idx_c}",
-                            with_accent_rail=False,
-                            min_box_h=1.40,
-                            theme=theme,
-                        )
-                last_y = round(card_top + card_h, 3)
+                )
+                if card_texts[idx_c]:
+                    text_box_h = round(max(0.75, card_h - 0.34), 3)
+                    _place_content_fitted_bullets(
+                        elements,
+                        round(cx + 0.18, 3),
+                        round(card_top + 0.22, 3),
+                        inner_w,
+                        text_box_h,
+                        card_texts[idx_c],
+                        card_pt,
+                        notes,
+                        element_id=f"card_text_{idx_c}",
+                        with_accent_rail=False,
+                        min_box_h=min(text_box_h, nat_hs[idx_c]),
+                        theme=theme,
+                    )
+            last_y = round(card_top + card_h, 3)
 
         if citations:
             _place_anchored_citation(
@@ -3032,28 +2961,36 @@ def _build_layout_elements_core(
         else:
             hero_txt_x = round(GRID_MARGIN_X + 0.34, 3)
             hero_txt_w = round(GRID_USABLE_W - 0.54, 3)
-            hero_start_pt = 28.0 if len(rest_pts) <= 2 else 25.0
+            hero_start_pt = 30.0 if len(rest_pts) <= 1 else 26.0
             hero_fit = fit_text_to_box(lead_pt, hero_txt_w, 2.00, hero_start_pt, min_font_pt=MIN_FONT_PT[ElementKind.body])
-            hero_nat_h = round(max(0.92, estimate_text_height_in(hero_fit.lines, hero_fit.font_size_pt) + 0.24), 3)
-            hero_com_h = round(max(0.62 if hero_start_pt >= 28.0 else 0.56, len(hero_fit.lines) * (hero_fit.font_size_pt / 72.0 * 1.25) + 0.24), 3)
+            hero_nat_h = round(max(0.76, estimate_text_height_in(hero_fit.lines, hero_fit.font_size_pt) + 0.18), 3)
+            hero_card_h = round(min(2.20, max(1.06, hero_nat_h + 0.30)), 3)
+            avail_h = round(eff_bottom - band_top, 3)
+            cite_res = 0.48 if citations else 0.0
 
             if len(rest_pts) <= 1:
-                sup_txt = rest_pts[0] if rest_pts else lead_pt
-                sup_pt = 23.0
-                sup_w = round(GRID_USABLE_W - 0.54, 3)
-                sup_fit = fit_text_to_box(sup_txt, sup_w, 1.80, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-                sup_nat_h = round(max(0.88, estimate_text_height_in(sup_fit.lines, sup_fit.font_size_pt) + 0.22), 3)
-                sup_com_h = round(max(0.55, len(sup_fit.lines) * (sup_fit.font_size_pt / 72.0 * 1.22) + 0.22), 3)
+                sup_txt = rest_pts[0] if rest_pts else ""
+                sup_pt = 21.0
+                sup_w = hero_txt_w
+                if sup_txt:
+                    sup_fit = fit_text_to_box(sup_txt, sup_w, 1.80, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+                    sup_nat_h = round(max(0.72, estimate_text_height_in(sup_fit.lines, sup_fit.font_size_pt) + 0.16), 3)
+                    sup_card_h = round(min(2.10, max(0.96, sup_nat_h + 0.28)), 3)
+                    cluster_gap = 0.36
+                    cluster_h = hero_card_h + cluster_gap + sup_card_h
+                else:
+                    sup_nat_h = 0.0
+                    sup_card_h = 0.0
+                    cluster_gap = 0.0
+                    cluster_h = hero_card_h
 
-                span = eff_bottom - band_top
-                total_gap = max(0.80, span - (hero_com_h + sup_com_h))
-                g = min(1.46, total_gap / 3.0)
-                hero_txt_y = round(max(1.76, band_top + g), 3)
-                max_sup_y = round(eff_bottom - sup_nat_h - 0.14, 3)
-                sup_txt_y = round(min(max_sup_y, max(round(hero_txt_y + hero_nat_h + 0.36, 3), hero_txt_y + hero_com_h + g)), 3)
-
-                hero_card_y = round(hero_txt_y - 0.18, 3)
-                hero_card_h = round(min(round(sup_txt_y - hero_card_y - 0.24, 3), max(1.18, hero_nat_h + 0.30)), 3)
+                hero_top_pad = round(max(0.16, (hero_card_h - hero_nat_h) / 2.0), 3)
+                sup_bot_pad = round(max(0.14, (sup_card_h - sup_nat_h) / 2.0), 3) if sup_txt else hero_top_pad
+                text_span_h = (cluster_h - hero_top_pad - sup_bot_pad) + cite_res
+                rem_hero = max(0.0, avail_h - text_span_h)
+                max_hero_y = round(eff_bottom - cluster_h - cite_res, 3)
+                hero_card_y = min(max_hero_y, round(band_top + max(0.14, rem_hero * 0.50 - hero_top_pad), 3))
+                hero_txt_y = round(hero_card_y + hero_top_pad, 3)
                 elements.extend([
                     DesignElement(
                         element_id="bg_hero",
@@ -3097,9 +3034,9 @@ def _build_layout_elements_core(
                     ),
                 ])
 
-                if rest_pts:
-                    sup_card_y = round(sup_txt_y - 0.16, 3)
-                    sup_card_h = round(min(round(eff_bottom - sup_card_y + 0.16, 3), max(1.10, sup_nat_h + 0.26)), 3)
+                if sup_txt:
+                    sup_card_y = round(hero_card_y + hero_card_h + cluster_gap, 3)
+                    sup_txt_y = round(sup_card_y + max(0.16, (sup_card_h - sup_nat_h) / 2.0), 3)
                     elements.extend([
                         DesignElement(
                             element_id="bg_support_0",
@@ -3144,12 +3081,27 @@ def _build_layout_elements_core(
                     last_y = round(sup_card_y + sup_card_h, 3)
                 else:
                     last_y = round(hero_card_y + hero_card_h, 3)
-                notes.append("hero-statement: sparse two-band variant")
-            else:
-                # Place hero_main at top and split supporting points into 2 staggered bands or dual columns
-                hero_card_y = 1.72
-                hero_txt_y = 1.88
-                hero_card_h = round(min(1.95, max(1.14, hero_nat_h + 0.28)), 3)
+                notes.append("hero-statement: clustered two-band variant")
+            elif len(rest_pts) <= 3:
+                # Upper-middle cluster: bold hero claim band followed by two compact stacked support bands
+                half = max(1, math.ceil(len(rest_pts) / 2))
+                g1_pts = rest_pts[:half]
+                g2_pts = rest_pts[half:]
+                g1_txt = "\n".join(f"• {p}" for p in g1_pts) if len(g1_pts) > 1 else g1_pts[0]
+                g2_txt = "\n".join(f"• {p}" for p in g2_pts) if len(g2_pts) > 1 else g2_pts[0]
+                sup_pt = 19.0 if len(rest_pts) == 2 else (17.5 if concise else 16.5)
+                s_w = round(GRID_USABLE_W - 0.54, 3)
+                f1 = fit_text_to_box(g1_txt, s_w, 1.80, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+                f2 = fit_text_to_box(g2_txt, s_w, 1.80, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+                n1 = round(max(0.68, estimate_text_height_in(f1.lines, f1.font_size_pt) + 0.14), 3)
+                n2 = round(max(0.68, estimate_text_height_in(f2.lines, f2.font_size_pt) + 0.14), 3)
+                ch1 = round(max(0.86, n1 + 0.24), 3)
+                ch2 = round(max(0.86, n2 + 0.24), 3)
+                band_gap = 0.28
+                cluster_h = hero_card_h + band_gap + ch1 + band_gap + ch2
+                hero_card_y = _upper_middle_start(band_top, avail_h, cluster_h + cite_res, min_pad=0.30)
+                hero_txt_y = round(hero_card_y + max(0.16, (hero_card_h - hero_nat_h) / 2.0), 3)
+
                 elements.extend([
                     DesignElement(
                         element_id="bg_hero",
@@ -3181,7 +3133,7 @@ def _build_layout_elements_core(
                         hero_txt_x,
                         hero_txt_y,
                         hero_txt_w,
-                        round(hero_card_h - 0.28, 3),
+                        hero_nat_h,
                         lead_pt,
                         hero_start_pt,
                         z_index=2,
@@ -3193,148 +3145,317 @@ def _build_layout_elements_core(
                     ),
                 ])
 
-                sup_band_top = round(hero_txt_y + hero_com_h, 3)
+                cy = round(hero_card_y + hero_card_h + band_gap, 3)
+                for s_idx, (ch, sh, stxt, sid_accent) in enumerate(
+                    ((ch1, n1, g1_txt, theme.primary), (ch2, n2, g2_txt, theme.teal))
+                ):
+                    sy = round(cy + max(0.12, (ch - sh) / 2.0), 3)
+                    elements.extend([
+                        DesignElement(
+                            element_id=f"bg_support_{s_idx}",
+                            kind=ElementKind.shape,
+                            x_in=GRID_MARGIN_X,
+                            y_in=cy,
+                            w_in=GRID_USABLE_W,
+                            h_in=ch,
+                            z_index=0,
+                            fill_hex=theme.surface_light,
+                            line_hex=theme.stroke,
+                            role=f"support_panel_{s_idx}",
+                        ),
+                        DesignElement(
+                            element_id=f"accent_support_{s_idx}",
+                            kind=ElementKind.shape,
+                            x_in=GRID_MARGIN_X,
+                            y_in=cy,
+                            w_in=0.10,
+                            h_in=ch,
+                            z_index=1,
+                            fill_hex=sid_accent,
+                            line_hex=sid_accent,
+                            role=f"support_accent_{s_idx}",
+                        ),
+                        _make_fitted_text(
+                            f"support_{s_idx}",
+                            ElementKind.bullet,
+                            hero_txt_x,
+                            sy,
+                            s_w,
+                            sh,
+                            stxt,
+                            sup_pt,
+                            z_index=2,
+                            color_hex=theme.background_text,
+                            font=theme.font_family,
+                            role=f"support_point_{s_idx}",
+                            page_notes=notes,
+                        ),
+                    ])
+                    last_y = round(cy + ch, 3)
+                    cy = round(last_y + band_gap, 3)
+                notes.append("hero-statement: clustered stacked-bands variant")
+            else:
+                # Dual aligned equal-top lower support columns beneath bold hero claim band
                 half = max(1, math.ceil(len(rest_pts) / 2))
-                g1_pts = rest_pts[:half]
-                g2_pts = rest_pts[half:]
-                g1_txt = "\n".join(f"• {p}" for p in g1_pts) if len(g1_pts) > 1 else g1_pts[0]
-                g2_txt = "\n".join(f"• {p}" for p in g2_pts) if len(g2_pts) > 1 else g2_pts[0]
-                sup_pt = 19.0 if len(rest_pts) <= 2 else (17.5 if concise else 16.5)
+                g1_txt = "\n".join(f"• {p}" for p in rest_pts[:half])
+                g2_txt = "\n".join(f"• {p}" for p in rest_pts[half:])
+                sup_pt = 18.5 if concise else 19.0
+                col_gap = 0.53
+                col_w = round((GRID_USABLE_W - col_gap) / 2.0, 3)
+                inner_w = round(col_w - 0.40, 3)
+                avail_col_h = round(eff_bottom - (band_top + hero_card_h + 0.50), 3)
+                f1 = fit_text_to_box(g1_txt, inner_w, max(1.20, avail_col_h), sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+                f2 = fit_text_to_box(g2_txt, inner_w, max(1.20, avail_col_h), sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+                n1 = round(max(0.88, estimate_text_height_in(f1.lines, f1.font_size_pt) + 0.18), 3)
+                n2 = round(max(0.88, estimate_text_height_in(f2.lines, f2.font_size_pt) + 0.18), 3)
+                col_card_h = round(min(max(1.20, avail_col_h), max(n1, n2) + 0.30), 3)
+                band_gap = 0.30
+                cluster_h = hero_card_h + band_gap + col_card_h
+                hero_top_pad = round(max(0.16, (hero_card_h - hero_nat_h) / 2.0), 3)
+                # Center symmetrically from hero_main top to support bottom (min(n1, n2))
+                text_cluster_span = (hero_card_h - hero_top_pad) + band_gap + 0.16 + min(n1, n2)
+                rem_c = max(0.0, avail_h - (text_cluster_span + cite_res))
+                max_hero_y = round(eff_bottom - cluster_h - cite_res, 3)
+                hero_card_y = min(max_hero_y, round(band_top + max(0.16, rem_c * 0.50 - hero_top_pad), 3))
+                hero_txt_y = round(hero_card_y + max(0.16, (hero_card_h - hero_nat_h) / 2.0), 3)
 
-                if len(rest_pts) == 2:
-                    # Two full-width stacked support bands spanning down to eff_bottom
-                    s_w = round(GRID_USABLE_W - 0.54, 3)
-                    f1 = fit_text_to_box(g1_txt, s_w, 1.50, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-                    f2 = fit_text_to_box(g2_txt, s_w, 1.50, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-                    n1 = round(max(0.76, estimate_text_height_in(f1.lines, f1.font_size_pt) + 0.18), 3)
-                    n2 = round(max(0.76, estimate_text_height_in(f2.lines, f2.font_size_pt) + 0.18), 3)
-                    c1 = round(max(0.46, len(f1.lines) * (f1.font_size_pt / 72.0 * 1.22) + 0.22), 3)
-                    c2 = round(max(0.46, len(f2.lines) * (f2.font_size_pt / 72.0 * 1.22) + 0.22), 3)
+                elements.extend([
+                    DesignElement(
+                        element_id="bg_hero",
+                        kind=ElementKind.shape,
+                        x_in=GRID_MARGIN_X,
+                        y_in=hero_card_y,
+                        w_in=GRID_USABLE_W,
+                        h_in=hero_card_h,
+                        z_index=0,
+                        fill_hex=theme.surface_fact,
+                        line_hex=theme.stroke,
+                        role="hero_panel",
+                    ),
+                    DesignElement(
+                        element_id="accent_hero_bar",
+                        kind=ElementKind.shape,
+                        x_in=GRID_MARGIN_X,
+                        y_in=hero_card_y,
+                        w_in=0.14,
+                        h_in=hero_card_h,
+                        z_index=1,
+                        fill_hex=theme.accent,
+                        line_hex=theme.accent,
+                        role="hero_accent",
+                    ),
+                    _make_fitted_text(
+                        "hero_main",
+                        ElementKind.body,
+                        hero_txt_x,
+                        hero_txt_y,
+                        hero_txt_w,
+                        hero_nat_h,
+                        lead_pt,
+                        hero_start_pt,
+                        z_index=2,
+                        bold=True,
+                        color_hex=theme.primary_deep,
+                        font=theme.font_family,
+                        role="hero_statement",
+                        page_notes=notes,
+                    ),
+                ])
 
-                    rem_span = max(1.60, eff_bottom - sup_band_top)
-                    g_s = min(1.20, max(0.32, (rem_span - (c1 + c2)) / 3.0))
-                    y1 = round(max(round(hero_card_y + hero_card_h + 0.34, 3), sup_band_top + g_s), 3)
-                    max_y2 = round(eff_bottom - n2 - 0.14, 3)
-                    y2 = round(min(max_y2, max(round(y1 + n1 + 0.30, 3), y1 + c1 + g_s)), 3)
+                col_card_y = round(hero_card_y + hero_card_h + band_gap, 3)
+                col_txt_y = round(col_card_y + 0.16, 3)
+                right_x = round(GRID_RIGHT_X - col_w, 3)
+                for s_idx, (sx, sh, stxt, sid_accent) in enumerate(
+                    ((GRID_MARGIN_X, n1, g1_txt, theme.primary), (right_x, n2, g2_txt, theme.teal))
+                ):
+                    elements.extend([
+                        DesignElement(
+                            element_id=f"bg_support_{s_idx}",
+                            kind=ElementKind.shape,
+                            x_in=sx,
+                            y_in=col_card_y,
+                            w_in=col_w,
+                            h_in=col_card_h,
+                            z_index=0,
+                            fill_hex=theme.surface_light,
+                            line_hex=theme.stroke,
+                            role=f"support_panel_{s_idx}",
+                        ),
+                        DesignElement(
+                            element_id=f"accent_support_{s_idx}",
+                            kind=ElementKind.shape,
+                            x_in=sx,
+                            y_in=col_card_y,
+                            w_in=col_w,
+                            h_in=0.06,
+                            z_index=1,
+                            fill_hex=sid_accent,
+                            line_hex=sid_accent,
+                            role=f"support_accent_{s_idx}",
+                        ),
+                        _make_fitted_text(
+                            f"support_{s_idx}",
+                            ElementKind.bullet,
+                            round(sx + 0.20, 3),
+                            col_txt_y,
+                            inner_w,
+                            sh,
+                            stxt,
+                            sup_pt,
+                            z_index=2,
+                            color_hex=theme.background_text,
+                            font=theme.font_family,
+                            role=f"support_point_{s_idx}",
+                            page_notes=notes,
+                        ),
+                    ])
+                last_y = round(col_card_y + col_card_h, 3)
+                notes.append("hero-statement: aligned dual-support cluster")
 
-                    for s_idx, (sy, sh, stxt, sid_accent) in enumerate(
-                        ((y1, n1, g1_txt, theme.primary), (y2, n2, g2_txt, theme.teal))
-                    ):
-                        cy = round(sy - 0.14, 3)
-                        ch = round(min(round(eff_bottom - cy + 0.14, 3), max(0.98, sh + 0.24)), 3)
-                        elements.extend([
-                            DesignElement(
-                                element_id=f"bg_support_{s_idx}",
-                                kind=ElementKind.shape,
-                                x_in=GRID_MARGIN_X,
-                                y_in=cy,
-                                w_in=GRID_USABLE_W,
-                                h_in=ch,
-                                z_index=0,
-                                fill_hex=theme.surface_light,
-                                line_hex=theme.stroke,
-                                role=f"support_panel_{s_idx}",
-                            ),
-                            DesignElement(
-                                element_id=f"accent_support_{s_idx}",
-                                kind=ElementKind.shape,
-                                x_in=GRID_MARGIN_X,
-                                y_in=cy,
-                                w_in=0.10,
-                                h_in=ch,
-                                z_index=1,
-                                fill_hex=sid_accent,
-                                line_hex=sid_accent,
-                                role=f"support_accent_{s_idx}",
-                            ),
-                            _make_fitted_text(
-                                f"support_{s_idx}",
-                                ElementKind.bullet,
-                                hero_txt_x,
-                                sy,
-                                s_w,
-                                sh,
-                                stxt,
-                                sup_pt,
-                                z_index=2,
-                                color_hex=theme.background_text,
-                                font=theme.font_family,
-                                role=f"support_point_{s_idx}",
-                                page_notes=notes,
-                            ),
-                        ])
-                        last_y = round(cy + ch, 3)
-                    notes.append("hero-statement: sparse stacked-bands variant")
-                else:
-                    # Dual lower support columns (staggered when vertical headroom would leave > 1.48 in void)
-                    col_gap = 0.53
-                    col_w = round((GRID_USABLE_W - col_gap) / 2.0, 3)
-                    inner_w = round(col_w - 0.40, 3)
-                    avail_col_h = round(eff_bottom - (hero_card_y + hero_card_h + 0.28), 3)
-                    f1 = fit_text_to_box(g1_txt, inner_w, avail_col_h, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-                    f2 = fit_text_to_box(g2_txt, inner_w, avail_col_h, sup_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
-                    n1 = round(max(0.88, estimate_text_height_in(f1.lines, f1.font_size_pt) + 0.22), 3)
-                    n2 = round(max(0.88, estimate_text_height_in(f2.lines, f2.font_size_pt) + 0.22), 3)
-                    c1 = round(max(0.48, len(f1.lines) * (f1.font_size_pt / 72.0 * 1.22) + 0.22), 3)
-                    c2 = round(max(0.48, len(f2.lines) * (f2.font_size_pt / 72.0 * 1.22) + 0.22), 3)
+        if citations:
+            _place_anchored_citation(
+                elements,
+                citations,
+                x=GRID_MARGIN_X,
+                y=round(last_y + 0.16, 3),
+                w=GRID_USABLE_W,
+                max_bottom=content_bottom,
+                page_notes=notes,
+                theme=theme,
+            )
+        if has_ph:
+            _place_compact_placeholder_tray(elements, placeholders, y=tray_y, tray_h=tray_h, page_notes=notes, theme=theme)
+        return elements
 
-                    base_y1 = round(hero_card_y + hero_card_h + 0.34, 3)
-                    stagger_needed = allow_sparse and (eff_bottom - (base_y1 + max(c1, c2)) > 1.48)
-                    y1 = base_y1
-                    y2 = (
-                        round(max(base_y1, min(eff_bottom - n2 - 0.14, max(round(y1 + 0.45, 3), round(eff_bottom - c2 - 1.20, 3)))), 3)
-                        if stagger_needed
-                        else base_y1
-                    )
+    # ================================================================ 13) SINGLE-COLUMN (vertical clustered list for ungrouped points)
+    if lid == "single-column":
+        title_y = 0.48
+        title_h = 0.94
+        elements.append(
+            _make_fitted_text(
+                "title",
+                ElementKind.title,
+                GRID_MARGIN_X,
+                title_y,
+                GRID_USABLE_W,
+                title_h,
+                page.title,
+                29.0,
+                z_index=2,
+                bold=True,
+                color_hex=theme.primary_deep,
+                font=theme.font_family,
+                role="single_col_title",
+                page_notes=notes,
+            )
+        )
+        elements.append(
+            DesignElement(
+                element_id="accent_divider",
+                kind=ElementKind.shape,
+                x_in=GRID_MARGIN_X,
+                y_in=1.46,
+                w_in=GRID_USABLE_W,
+                h_in=0.03,
+                z_index=1,
+                fill_hex=theme.stroke,
+                line_hex=theme.stroke,
+                role="title_divider",
+            )
+        )
 
-                    right_x = round(GRID_RIGHT_X - col_w, 3)
-                    for s_idx, (sx, sy, sh, stxt, sid_accent) in enumerate(
-                        ((GRID_MARGIN_X, y1, n1, g1_txt, theme.primary), (right_x, y2, n2, g2_txt, theme.teal))
-                    ):
-                        cy = round(sy - 0.14, 3)
-                        ch = round(min(round(eff_bottom - cy + 0.14, 3), max(1.08, sh + 0.26)), 3)
-                        elements.extend([
-                            DesignElement(
-                                element_id=f"bg_support_{s_idx}",
-                                kind=ElementKind.shape,
-                                x_in=sx,
-                                y_in=cy,
-                                w_in=col_w,
-                                h_in=ch,
-                                z_index=0,
-                                fill_hex=theme.surface_light,
-                                line_hex=theme.stroke,
-                                role=f"support_panel_{s_idx}",
-                            ),
-                            DesignElement(
-                                element_id=f"accent_support_{s_idx}",
-                                kind=ElementKind.shape,
-                                x_in=sx,
-                                y_in=cy,
-                                w_in=col_w,
-                                h_in=0.06,
-                                z_index=1,
-                                fill_hex=sid_accent,
-                                line_hex=sid_accent,
-                                role=f"support_accent_{s_idx}",
-                            ),
-                            _make_fitted_text(
-                                f"support_{s_idx}",
-                                ElementKind.bullet,
-                                round(sx + 0.20, 3),
-                                sy,
-                                inner_w,
-                                sh,
-                                stxt,
-                                sup_pt,
-                                z_index=2,
-                                color_hex=theme.background_text,
-                                font=theme.font_family,
-                                role=f"support_point_{s_idx}",
-                                page_notes=notes,
-                            ),
-                        ])
-                        last_y = max(last_y, round(cy + ch, 3))
+        band_top = round(title_y + title_h, 3)  # 1.42 in
+        eff_bottom = 6.04 if (has_ph and citations) else (6.52 if (has_ph or citations) else 7.00)
+        avail_h = round(eff_bottom - band_top, 3)
+        cite_res = 0.48 if citations else 0.0
+        row_pt = 23.0 if len(pts) <= 2 else (21.0 if len(pts) <= 3 else (18.5 if len(pts) <= 4 else 16.5))
+        inner_w = round(GRID_USABLE_W - 0.54, 3)
+        inner_x = round(GRID_MARGIN_X + 0.32, 3)
+        row_accents = [theme.primary, theme.accent, theme.teal]
+
+        if len(pts) <= 5:
+            row_fits = [
+                fit_text_to_box(p, inner_w, 1.80, row_pt, min_font_pt=MIN_FONT_PT[ElementKind.bullet])
+                for p in pts
+            ]
+            row_txt_hs = [
+                round(max(0.68 if len(pts) <= 2 else 0.56, estimate_text_height_in(f.lines, f.font_size_pt) + 0.16), 3)
+                for f in row_fits
+            ]
+            min_row_h = 1.08 if len(pts) <= 2 else 0.86
+            row_card_hs = [round(max(min_row_h, th + 0.30), 3) for th in row_txt_hs]
+            row_gap = 0.34 if len(pts) <= 2 else (0.26 if len(pts) <= 4 else 0.16)
+            total_h = sum(row_card_hs) + row_gap * max(0, len(pts) - 1)
+            # Compress gap proportionally only if a dense 5-row page exceeds available band height
+            max_stack_h = round(avail_h - cite_res - 0.18, 3)
+            if total_h > max_stack_h and len(pts) > 1:
+                row_gap = max(0.10, round((max_stack_h - sum(row_card_hs)) / (len(pts) - 1), 3))
+                total_h = sum(row_card_hs) + row_gap * (len(pts) - 1)
+            rem_s = max(0.0, avail_h - (total_h + cite_res))
+            cur_y = round(band_top + max(0.22, rem_s * 0.48), 3)
+            last_y = band_top
+            for r_idx, (pt_text, th, ch) in enumerate(zip(pts, row_txt_hs, row_card_hs)):
+                r_col = row_accents[r_idx % len(row_accents)]
+                txt_y = round(cur_y + max(0.12, (ch - th) / 2.0), 3)
+                elements.extend([
+                    DesignElement(
+                        element_id=f"bg_row_{r_idx}",
+                        kind=ElementKind.shape,
+                        x_in=GRID_MARGIN_X,
+                        y_in=cur_y,
+                        w_in=GRID_USABLE_W,
+                        h_in=ch,
+                        z_index=0,
+                        fill_hex=theme.surface_light,
+                        line_hex=theme.stroke,
+                        role=f"single_row_panel_{r_idx}",
+                    ),
+                    DesignElement(
+                        element_id=f"accent_row_{r_idx}",
+                        kind=ElementKind.shape,
+                        x_in=GRID_MARGIN_X,
+                        y_in=cur_y,
+                        w_in=0.10,
+                        h_in=ch,
+                        z_index=1,
+                        fill_hex=r_col,
+                        line_hex=r_col,
+                        role=f"single_row_accent_{r_idx}",
+                    ),
+                    _make_fitted_text(
+                        f"row_text_{r_idx}",
+                        ElementKind.bullet,
+                        inner_x,
+                        txt_y,
+                        inner_w,
+                        th,
+                        pt_text,
+                        row_pt,
+                        z_index=2,
+                        color_hex=theme.background_text,
+                        font=theme.font_family,
+                        role=f"single_row_text_{r_idx}",
+                        page_notes=notes,
+                    ),
+                ])
+                last_y = round(cur_y + ch, 3)
+                cur_y = round(last_y + row_gap, 3)
+            notes.append("single-column: stacked upper-middle row cluster")
+        else:
+            bh = _place_content_fitted_bullets(
+                elements,
+                GRID_MARGIN_X,
+                1.76,
+                GRID_USABLE_W,
+                round(content_bottom - 1.76 - (0.48 if citations else 0.0), 3),
+                bullet_text,
+                base_pt,
+                notes,
+                with_accent_rail=True,
+                theme=theme,
+            )
+            last_y = round(1.76 + bh, 3)
+            notes.append("single-column: dense single-column bullet list")
 
         if citations:
             _place_anchored_citation(
@@ -3352,7 +3473,7 @@ def _build_layout_elements_core(
         return elements
 
     # ================================================================ Fallback: never send multi-bullet pages into divider `section`
-    fallback_lid = "image-right" if real_visuals else ("two-content" if len(pts) >= 2 else "section")
+    fallback_lid = "image-right" if real_visuals else ("single-column" if len(pts) >= 2 else "section")
     return _build_layout_elements_core(
         fallback_lid,
         page,

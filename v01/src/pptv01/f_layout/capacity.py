@@ -372,7 +372,18 @@ LAYOUT_CAPACITY_SPECS: dict[str, LayoutCapacitySpec] = {
         min_visuals=0,
         max_visuals=1,
         supports_sparse=True,
-        fallback_layout="two-content",
+        fallback_layout="single-column",
+    ),
+    "single-column": LayoutCapacitySpec(
+        layout_id="single-column",
+        family="single-column",
+        min_points=2,
+        ideal_points=3,
+        max_points=6,
+        min_visuals=0,
+        max_visuals=0,
+        supports_sparse=True,
+        fallback_layout="hero-statement",
     ),
 }
 
