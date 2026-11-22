@@ -80,7 +80,7 @@
         "shape_name": "accent_divider",
         "shape_type": "rectangle",
         "x_in": 0.65,
-        "y_in": 2.92,
+        "y_in": 3.591,
         "w_in": 2.2,
         "h_in": 0.08,
         "fill_hex": "#38BDF8",
@@ -101,9 +101,9 @@
         "shape_name": "bullets",
         "text": "• 让计算机完成通常需要人类智能的任务\n• 不等于科幻里“有意识的机器”",
         "x_in": 0.65,
-        "y_in": 3.26,
+        "y_in": 4.126,
         "w_in": 12.03,
-        "h_in": 1.5,
+        "h_in": 1.107,
         "font": "Microsoft YaHei",
         "font_size_pt": 20.0,
         "bold": false,
@@ -124,7 +124,7 @@
         "shape_name": "footer",
         "text": "[A002] Definition of artificial intelligence and robots (2024) DOI:10.4337/9781035307555.00008",
         "x_in": 0.65,
-        "y_in": 4.92,
+        "y_in": 5.393,
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
@@ -148,9 +148,9 @@
         "shape_name": "title",
         "text": "人工智能是什么",
         "x_in": 0.65,
-        "y_in": 1.15,
+        "y_in": 2.158,
         "w_in": 12.03,
-        "h_in": 1.6,
+        "h_in": 1.18,
         "font": "Microsoft YaHei",
         "font_size_pt": 42.0,
         "bold": true,
@@ -195,7 +195,7 @@
         "https://doi.org/10.4337/9781035307555.00008"
       ],
       "params": {
-        "text": "Page S001\nSpeaker/planning summary: 用一个简洁的图示说明概念，文字只保留最核心的一句。\nLayout notes: planning summary (notes only): 用一个简洁的图示说明概念，文字只保留最核心的一句。; bullets: shrunk text box height to 1.50in (content-fitted, no empty card)\n待补充占位 U001: 待补充：用输入—处理—输出的简图说明人工智能做什么（U001）\n[A002] Crossref: https://doi.org/10.4337/9781035307555.00008 (Crossref metadata (bibliographic record only))"
+        "text": "Page S001\n待补充占位 U001: 待补充：用输入—处理—输出的简图说明人工智能做什么（U001）\n[A002] Crossref: https://doi.org/10.4337/9781035307555.00008 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -379,7 +379,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S002\nSpeaker/planning summary: 用一个流程图展示数据到模型再到预测的过程。\nLayout notes: planning summary (notes only): 用一个流程图展示数据到模型再到预测的过程。\n待补充占位 U002: 待补充：画出数据、训练和预测三步的流程（U002）"
+        "text": "Page S002\n待补充占位 U002: 待补充：画出数据、训练和预测三步的流程（U002）"
       }
     },
     {
@@ -563,7 +563,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S003\nSpeaker/planning summary: 用几个图标配极短标签展示应用。\nLayout notes: planning summary (notes only): 用几个图标配极短标签展示应用。; bullets: shrunk text box height to 1.80in (content-fitted, no empty card)\n待补充占位 U003: 待补充：用图标分别表示语音识别、图像识别、推荐与自动驾驶（U003）"
+        "text": "Page S003\n待补充占位 U003: 待补充：用图标分别表示语音识别、图像识别、推荐与自动驾驶（U003）"
       }
     },
     {
@@ -793,7 +793,7 @@
         "https://doi.org/10.1109/aiiot68874.2026.11569576"
       ],
       "params": {
-        "text": "Page S004\nSpeaker/planning summary: 用对比图或例子说明局限。\nLayout notes: planning summary (notes only): 用对比图或例子说明局限。; col_left: shrunk text box height to 1.60in (content-fitted, no empty card); col_right: shrunk text box height to 1.60in (content-fitted, no empty card)\n待补充占位 U004: 待补充：用左右对比图展示能做到的与做不到的（U004）\n[A006] Crossref: https://doi.org/10.1109/aiiot68874.2026.11569576 (Crossref metadata (bibliographic record only))"
+        "text": "Page S004\n待补充占位 U004: 待补充：用左右对比图展示能做到的与做不到的（U004）\n[A006] Crossref: https://doi.org/10.1109/aiiot68874.2026.11569576 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -977,7 +977,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S005\nSpeaker/planning summary: 收束全篇，留下一个可以带走的提问。\nLayout notes: planning summary (notes only): 收束全篇，留下一个可以带走的提问。; bullets: shrunk text box height to 1.07in (content-fitted, no empty card)\n待补充占位 U005: 待补充：用一张极简图收束全篇并留下一个提问（U005）"
+        "text": "Page S005\n待补充占位 U005: 待补充：用一张极简图收束全篇并留下一个提问（U005）"
       }
     }
   ]

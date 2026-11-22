@@ -82,7 +82,7 @@
         "shape_name": "accent_divider",
         "shape_type": "rectangle",
         "x_in": 0.65,
-        "y_in": 2.92,
+        "y_in": 3.43,
         "w_in": 2.2,
         "h_in": 0.08,
         "fill_hex": "#38BDF8",
@@ -103,9 +103,9 @@
         "shape_name": "bullets",
         "text": "• 城区气温相对周边郊区偏高\n• 它是城区与郊区之间长期的空间差异，不是某几天的高温\n• 夜间的差异往往更明显",
         "x_in": 0.65,
-        "y_in": 3.26,
+        "y_in": 3.904,
         "w_in": 12.03,
-        "h_in": 1.5,
+        "h_in": 1.44,
         "font": "Microsoft YaHei",
         "font_size_pt": 20.0,
         "bold": false,
@@ -126,7 +126,7 @@
         "shape_name": "footer",
         "text": "[A002] Urban heat island (2022) DOI:10.1016/b978-0-323-85539-6.00009-3",
         "x_in": 0.65,
-        "y_in": 4.92,
+        "y_in": 5.504,
         "w_in": 12.03,
         "h_in": 0.46,
         "font": "Microsoft YaHei",
@@ -150,9 +150,9 @@
         "shape_name": "title",
         "text": "什么是城市热岛",
         "x_in": 0.65,
-        "y_in": 1.15,
+        "y_in": 2.047,
         "w_in": 12.03,
-        "h_in": 1.6,
+        "h_in": 1.18,
         "font": "Microsoft YaHei",
         "font_size_pt": 42.0,
         "bold": true,
@@ -197,7 +197,7 @@
         "https://doi.org/10.1016/b978-0-323-85539-6.00009-3"
       ],
       "params": {
-        "text": "Page S001\nSpeaker/planning summary: 用定义加城郊对比说明现象本身，并点出它与热浪的区别。\nLayout notes: planning summary (notes only): 用定义加城郊对比说明现象本身，并点出它与热浪的区别。; bullets: shrunk text box height to 1.50in (content-fitted, no empty card)\n待补充占位 U001: 待补充：并排展示城区与郊区的地表温度分布，说明城区相对周边更热（U001）\n[A002] Crossref: https://doi.org/10.1016/b978-0-323-85539-6.00009-3 (Crossref metadata (bibliographic record only))"
+        "text": "Page S001\n待补充占位 U001: 待补充：并排展示城区与郊区的地表温度分布，说明城区相对周边更热（U001）\n[A002] Crossref: https://doi.org/10.1016/b978-0-323-85539-6.00009-3 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -427,7 +427,7 @@
         "https://doi.org/10.1007/978-981-96-3541-2_2"
       ],
       "params": {
-        "text": "Page S002\nSpeaker/planning summary: 介绍两类常见度量思路及其差异，提醒读图时要分清指标。\nLayout notes: planning summary (notes only): 介绍两类常见度量思路及其差异，提醒读图时要分清指标。; col_left: shrunk text box height to 1.60in (content-fitted, no empty card); col_right: shrunk text box height to 1.60in (content-fitted, no empty card)\n待补充占位 U002: 待补充：并列画出气象站测气温与卫星测地表温度两种方式及其差异（U002）\n[A004] Crossref: https://doi.org/10.1007/978-981-96-3541-2_2 (Crossref metadata (bibliographic record only))"
+        "text": "Page S002\n待补充占位 U002: 待补充：并列画出气象站测气温与卫星测地表温度两种方式及其差异（U002）\n[A004] Crossref: https://doi.org/10.1007/978-981-96-3541-2_2 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -680,7 +680,7 @@
         "https://doi.org/10.1533/9780857096463.1.79"
       ],
       "params": {
-        "text": "Page S003\nSpeaker/planning summary: 逐个讲成因的物理或空间机制，并标出哪些点需要数据佐证。\nLayout notes: planning summary (notes only): 逐个讲成因的物理或空间机制，并标出哪些点需要数据佐证。\n待补充占位 U003: 待补充：画出地表材料、人为排热和通风三类成因如何共同抬高城区气温（U003）\n[A006] Crossref: https://doi.org/10.1533/9780857096463.1.79 (Crossref metadata (bibliographic record only))"
+        "text": "Page S003\n待补充占位 U003: 待补充：画出地表材料、人为排热和通风三类成因如何共同抬高城区气温（U003）\n[A006] Crossref: https://doi.org/10.1533/9780857096463.1.79 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -908,7 +908,7 @@
         "https://doi.org/10.1016/j.eiar.2025.108202"
       ],
       "params": {
-        "text": "Page S004\nSpeaker/planning summary: 把影响分成几类来讲，每类说清机制，不下过度的定量结论。\nLayout notes: planning summary (notes only): 把影响分成几类来讲，每类说清机制，不下过度的定量结论。; bullets: shrunk text box height to 2.00in (content-fitted, no empty card)\n待补充占位 U004: 待补充：画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条（U004）\n[A008] Crossref: https://doi.org/10.1016/j.eiar.2025.108202 (Crossref metadata (bibliographic record only))"
+        "text": "Page S004\n待补充占位 U004: 待补充：画出热岛经由夜间降温变慢、降温用电和健康风险影响居民的链条（U004）\n[A008] Crossref: https://doi.org/10.1016/j.eiar.2025.108202 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -1118,7 +1118,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S005\nSpeaker/planning summary: 用两三个有公开资料的城市做对照，说明差异从何而来。\nLayout notes: planning summary (notes only): 用两三个有公开资料的城市做对照，说明差异从何而来。; bullets: shrunk text box height to 1.80in (content-fitted, no empty card)\n待补充占位 U005: 待补充：并列展示两三座城市的热岛分布图，用来比较差异（U005）\n待补充占位 U006: 待补充：比较多个城市热岛强度的观测数据（U006）"
+        "text": "Page S005\n待补充占位 U005: 待补充：并列展示两三座城市的热岛分布图，用来比较差异（U005）\n待补充占位 U006: 待补充：比较多个城市热岛强度的观测数据（U006）"
       }
     },
     {
@@ -1374,7 +1374,7 @@
         "https://commons.wikimedia.org/wiki/File:Sponge_City.png"
       ],
       "params": {
-        "text": "Page S006\nSpeaker/planning summary: 按措施类型讲机制，并说明哪些措施效果有评估依据、哪些仍在讨论。\nLayout notes: planning summary (notes only): 按措施类型讲机制，并说明哪些措施效果有评估依据、哪些仍在讨论。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1280x1721; vis_2: uniform crop_fill slot 6.00x2.50in for 1280x832\n[A011] Rhododendrites, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg) | 许可: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0) | 来源: https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg\n[A012] Jeb, CC BY 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Sponge_City.png) | 许可: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0) | 来源: https://commons.wikimedia.org/wiki/File:Sponge_City.png"
+        "text": "Page S006\n[A011] Rhododendrites, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg) | 许可: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0) | 来源: https://commons.wikimedia.org/wiki/File:Rooftop_farm_at_the_Essex_(65787p).jpg\n[A012] Jeb, CC BY 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Sponge_City.png) | 许可: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0) | 来源: https://commons.wikimedia.org/wiki/File:Sponge_City.png"
       }
     },
     {
@@ -1558,7 +1558,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S007\nSpeaker/planning summary: 回顾主线，抛出可继续了解的问题，不给口号式结论。\nLayout notes: planning summary (notes only): 回顾主线，抛出可继续了解的问题，不给口号式结论。; bullets: shrunk text box height to 1.07in (content-fitted, no empty card)\n待补充占位 U007: 待补充：用一张主线图回顾“现象—度量—成因—影响—缓解”（U007）"
+        "text": "Page S007\n待补充占位 U007: 待补充：用一张主线图回顾“现象—度量—成因—影响—缓解”（U007）"
       }
     }
   ]

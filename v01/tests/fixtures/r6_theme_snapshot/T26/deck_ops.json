@@ -208,7 +208,7 @@
         "https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg"
       ],
       "params": {
-        "text": "Page S001\nSpeaker/planning summary: 用开场提出观看建筑的几个角度，并交代后面怎么组织。\nLayout notes: planning summary (notes only): 用开场提出观看建筑的几个角度，并交代后面怎么组织。; bullets: shrunk text box height to 1.40in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x5.79in for 1144x804\n[A001] Steve Swayne, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg"
+        "text": "Page S001\n[A001] Steve Swayne, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:The_Parthenon_in_Athens.jpg"
       }
     },
     {
@@ -430,7 +430,7 @@
         "https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg"
       ],
       "params": {
-        "text": "Page S002\nSpeaker/planning summary: 以帕特农神庙为例，讲清它的结构方式和象征意义。\nLayout notes: planning summary (notes only): 以帕特农神庙为例，讲清它的结构方式和象征意义。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1280x1921\n[A002] Thermos, CC BY-SA 2.5, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg) | 许可: CC BY-SA 2.5 (https://creativecommons.org/licenses/by-sa/2.5) | 来源: https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg\n待补充占位 U001: 待补充：示意多立克柱式的构成（U001）"
+        "text": "Page S002\n[A002] Thermos, CC BY-SA 2.5, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg) | 许可: CC BY-SA 2.5 (https://creativecommons.org/licenses/by-sa/2.5) | 来源: https://commons.wikimedia.org/wiki/File:Parthenon_from_south.jpg\n待补充占位 U001: 待补充：示意多立克柱式的构成（U001）"
       }
     },
     {
@@ -650,7 +650,7 @@
         "https://doi.org/10.1525/9780520907874-009"
       ],
       "params": {
-        "text": "Page S003\nSpeaker/planning summary: 以一座哥特式大教堂为例，讲结构和空间感受。\nLayout notes: planning summary (notes only): 以一座哥特式大教堂为例，讲结构和空间感受。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1280x1973\n[A004] 来源: https://commons.wikimedia.org/wiki/File:Westfassade_Chartres.jpg | 许可: Public domain\n[A005] Crossref: https://doi.org/10.1525/9780520907874-009 (Crossref metadata (bibliographic record only))"
+        "text": "Page S003\n[A004] 来源: https://commons.wikimedia.org/wiki/File:Westfassade_Chartres.jpg | 许可: Public domain\n[A005] Crossref: https://doi.org/10.1525/9780520907874-009 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -879,7 +879,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S004\nSpeaker/planning summary: 选一座有代表性的东亚古建筑，讲木构特点和空间观。\nLayout notes: planning summary (notes only): 选一座有代表性的东亚古建筑，讲木构特点和空间观。; bullets: shrunk text box height to 2.00in (content-fitted, no empty card)\n待补充占位 U002: 待补充：展示一座东亚木构古建筑的外观，突出屋檐与斗拱（U002）\n待补充占位 U003: 待补充：示意斗拱的构造与受力方式（U003）"
+        "text": "Page S004\n待补充占位 U002: 待补充：展示一座东亚木构古建筑的外观，突出屋檐与斗拱（U002）\n待补充占位 U003: 待补充：示意斗拱的构造与受力方式（U003）"
       }
     },
     {
@@ -1122,7 +1122,7 @@
         "https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg"
       ],
       "params": {
-        "text": "Page S005\nSpeaker/planning summary: 选一座工业时代的代表作，讲新材料带来的变化。\nLayout notes: planning summary (notes only): 选一座工业时代的代表作，讲新材料带来的变化。; bullets: shrunk text box height to 1.60in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1280x2369\n[A008] 来源: https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg | 许可: Public domain\n待补充占位 U004: 待补充：对比砖石结构与钢框架结构的受力方式（U004）"
+        "text": "Page S005\n[A008] 来源: https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons.jpg | 许可: Public domain\n待补充占位 U004: 待补充：对比砖石结构与钢框架结构的受力方式（U004）"
       }
     },
     {
@@ -1344,7 +1344,7 @@
         "https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg"
       ],
       "params": {
-        "text": "Page S006\nSpeaker/planning summary: 挑一两座现代标志性建筑，讲设计理念和城市意义。\nLayout notes: planning summary (notes only): 挑一两座现代标志性建筑，讲设计理念和城市意义。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1036x3055\n[A011] 来源: https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg | 许可: Public domain\n待补充占位 U005: 待补充：展示现代主义代表作的外观，说明其简洁的形式（U005）"
+        "text": "Page S006\n[A011] 来源: https://commons.wikimedia.org/wiki/File:Chrysler_Building_by_David_Shankbone_Retouched.jpg | 许可: Public domain\n待补充占位 U005: 待补充：展示现代主义代表作的外观，说明其简洁的形式（U005）"
       }
     },
     {
@@ -1566,7 +1566,7 @@
         "https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg"
       ],
       "params": {
-        "text": "Page S007\nSpeaker/planning summary: 选一座当代代表建筑，讲它回应了什么新问题。\nLayout notes: planning summary (notes only): 选一座当代代表建筑，讲它回应了什么新问题。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: adapted image box to aspect ratio 1280x2114\n[A012] Stefan Fussan, CC BY-SA 3.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg) | 许可: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0) | 来源: https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg\n待补充占位 U006: 待补充：示意被动式节能的几种设计手法（U006）"
+        "text": "Page S007\n[A012] Stefan Fussan, CC BY-SA 3.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg) | 许可: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0) | 来源: https://commons.wikimedia.org/wiki/File:Shanghai_-_Shanghai_Tower_-_0001.jpg\n待补充占位 U006: 待补充：示意被动式节能的几种设计手法（U006）"
       }
     },
     {
@@ -1794,7 +1794,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S008\nSpeaker/planning summary: 回顾前面各座建筑的看点，给出一组观察建筑的问题。\nLayout notes: planning summary (notes only): 回顾前面各座建筑的看点，给出一组观察建筑的问题。\n待补充占位 U007: 待补充：画一张把前面几座建筑按时代排开的时间线（U007）"
+        "text": "Page S008\n待补充占位 U007: 待补充：画一张把前面几座建筑按时代排开的时间线（U007）"
       }
     }
   ]

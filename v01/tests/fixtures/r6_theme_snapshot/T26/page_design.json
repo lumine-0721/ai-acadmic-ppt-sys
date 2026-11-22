@@ -2,6 +2,8 @@
   "schema_version": "0.1",
   "run_id": "T26",
   "theme_id": "academic-default",
+  "theme_method": "keyword_fallback",
+  "theme_rationale": "",
   "pages": [
     {
       "page_id": "S001",

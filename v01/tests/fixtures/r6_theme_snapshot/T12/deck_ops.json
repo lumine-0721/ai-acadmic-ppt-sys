@@ -233,7 +233,7 @@
         "https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg"
       ],
       "params": {
-        "text": "Page S001\nSpeaker/planning summary: 用咖啡店的定位和消费趋势说明机会，不夸大市场。\nLayout notes: planning summary (notes only): 用咖啡店的定位和消费趋势说明机会，不夸大市场。; bullets: shrunk text box height to 1.40in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x5.07in for 1024x768\n[A001] 来源: https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg | 许可: Public domain\n待补充占位 U001: 待补充：提供咖啡消费趋势的可核验数据（U001）"
+        "text": "Page S001\n[A001] 来源: https://commons.wikimedia.org/wiki/File:Caf%C3%A9_de_Flore.jpg | 许可: Public domain\n待补充占位 U001: 待补充：提供咖啡消费趋势的可核验数据（U001）"
       }
     },
     {
@@ -487,7 +487,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S002\nSpeaker/planning summary: 描述一到两类客群画像，并说明待验证的假设。\nLayout notes: planning summary (notes only): 描述一到两类客群画像，并说明待验证的假设。\n待补充占位 U002: 待补充：画出一到两类目标客群的画像和到店场景（U002）\n待补充占位 U003: 待补充：提供本地消费人群的公开统计（U003）"
+        "text": "Page S002\n待补充占位 U002: 待补充：画出一到两类目标客群的画像和到店场景（U002）\n待补充占位 U003: 待补充：提供本地消费人群的公开统计（U003）"
       }
     },
     {
@@ -709,7 +709,7 @@
         "https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg"
       ],
       "params": {
-        "text": "Page S003\nSpeaker/planning summary: 讲清定位和产品组合，与常见竞品做对比。\nLayout notes: planning summary (notes only): 讲清定位和产品组合，与常见竞品做对比。; bullets: shrunk text box height to 1.34in (content-fitted, no empty card); vis_1: uniform crop_fill slot 6.00x4.75in for 1280x960\n[A006] Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg\n待补充占位 U004: 待补充：用二维图对比精品、社区和连锁几种定位（U004）"
+        "text": "Page S003\n[A006] Bex Walton from London, England, CC BY 2.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg) | 许可: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0) | 来源: https://commons.wikimedia.org/wiki/File:Pourover_using_a_cupping_brewer_at_NOLA,_Peckham,_London_(50661427221).jpg\n待补充占位 U004: 待补充：用二维图对比精品、社区和连锁几种定位（U004）"
       }
     },
     {
@@ -914,7 +914,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S004\nSpeaker/planning summary: 讲选址判断标准和运营骨架，具体地点作为待确认项。\nLayout notes: planning summary (notes only): 讲选址判断标准和运营骨架，具体地点作为待确认项。; col_left: shrunk text box height to 1.60in (content-fitted, no empty card); col_right: shrunk text box height to 1.60in (content-fitted, no empty card)\n待补充占位 U005: 待补充：画出选址时人流、租金、竞争三类因素的评估框架（U005）"
+        "text": "Page S004\n待补充占位 U005: 待补充：画出选址时人流、租金、竞争三类因素的评估框架（U005）"
       }
     },
     {
@@ -1124,7 +1124,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S005\nSpeaker/planning summary: 讲清算账的结构，具体数字等调研后再填，不先写结论。\nLayout notes: planning summary (notes only): 讲清算账的结构，具体数字等调研后再填，不先写结论。; bullets: shrunk text box height to 1.80in (content-fitted, no empty card)\n待补充占位 U006: 待补充：展示一家小型咖啡店的成本结构（U006）\n待补充占位 U007: 待补充：示意收入、成本与盈亏平衡点的关系（U007）"
+        "text": "Page S005\n待补充占位 U006: 待补充：展示一家小型咖啡店的成本结构（U006）\n待补充占位 U007: 待补充：示意收入、成本与盈亏平衡点的关系（U007）"
       }
     },
     {
@@ -1352,7 +1352,7 @@
         "https://doi.org/10.4135/9781529768466"
       ],
       "params": {
-        "text": "Page S006\nSpeaker/planning summary: 逐条列风险并配上应对思路，诚实说明哪些还不确定。\nLayout notes: planning summary (notes only): 逐条列风险并配上应对思路，诚实说明哪些还不确定。; bullets: shrunk text box height to 2.00in (content-fitted, no empty card)\n待补充占位 U008: 待补充：风险与应对对照表，逐条配预案（U008）\n[A011] Crossref: https://doi.org/10.4135/9781529768466 (Crossref metadata (bibliographic record only))"
+        "text": "Page S006\n待补充占位 U008: 待补充：风险与应对对照表，逐条配预案（U008）\n[A011] Crossref: https://doi.org/10.4135/9781529768466 (Crossref metadata (bibliographic record only))"
       }
     },
     {
@@ -1536,7 +1536,7 @@
       "request_id": null,
       "source_refs": [],
       "params": {
-        "text": "Page S007\nSpeaker/planning summary: 用清单讲下一步，把关键假设和请求说清楚。\nLayout notes: planning summary (notes only): 用清单讲下一步，把关键假设和请求说清楚。; bullets: shrunk text box height to 1.07in (content-fitted, no empty card)\n待补充占位 U009: 待补充：画出近期验证关键假设的路线图（U009）"
+        "text": "Page S007\n待补充占位 U009: 待补充：画出近期验证关键假设的路线图（U009）"
       }
     }
   ]
