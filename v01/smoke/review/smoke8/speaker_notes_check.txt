@@ -1,0 +1,88 @@
+=== T36 ===
+theme_id: tech-indigo
+theme_method: agent
+theme_rationale: 题目是面向普通听众的人工智能介绍，tech-indigo 的技术感靛蓝配色和清爽调性最贴合人工智能这一科技主题；它的中等密度也能配合“尽量少用文字”的极简要求。
+layouts: ['cover', 'hero-statement', 'single-column', 'hero-statement', 'single-column']
+staggered_pages: []
+  S001 (cover): Page S001 今天用几分钟讲清楚人工智能是什么。它指的是让计算机去完成学习、推理、感知这类原本要靠人类智能才能做的事。它不是科幻电影里有自我意识的机器，而是一类方法和软件。 待补充占位 U001...
+  S002 (hero-statement): Page S002 人工智能不是被逐条写好规则，而是先看大量例子，再从中找出规律。打个比方，就像我们看过很多猫的照片之后，下次一眼就能认出猫。所以给它什么数据、让它追求什么目标，直接决定了它最后学得好...
+  S003 (single-column): Page S003 其实大家每天都在用人工智能。手机听懂语音、相册认出人脸，属于识别；搜索引擎和视频推荐，属于信息筛选。再往前一步，它也在帮助科研人员分析问题，并用在自动驾驶这样的场景里。 待补充占位...
+  S004 (hero-statement): Page S004 人工智能并不是万能的。它学到的东西完全来自数据，数据有偏差，结果就会有偏差。更需要警惕的是，它有时会非常流畅地说出完全错误的内容。所以重要的判断，最后都要有人来核对和负责。 待补充...
+  S005 (single-column): Page S005 最后说说我们该怎么看待它。人工智能是一个很强的工具，用好它的关键在于人怎么用。使用时要关注数据、隐私和公平这些问题。这个领域变化很快，保持学习是最好的应对方式。 待补充占位 U00...
+speaker_notes_count: 5/5
+gate_overall: pass
+  gate[fill_rate]: pass | all 5 non-exempt slide(s) pass fill_rate (max_void=1.45in < 1.60in)
+  gate[no_text_only_visuals]: pass | 0 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  gate[layout_diversity]: warn | target 5 distinct layouts, got 3 (realizable eligible: 3; reason: deck only qualifies for 3 eligible families [anchor, hero-text, single-column]): cover, hero-statement, single-column, hero-statement, single-column
+  gate[no_fabricated_visuals]: pass | all visual elements sha256-verified and shapes whitelisted
+  gate[placeholders_marked]: pass | 5 placeholder(s) properly marked
+  gate[attribution_present]: pass | all attribution-required assets credited
+
+=== T12 ===
+theme_id: warm-espresso
+theme_method: agent
+theme_rationale: 这是一份咖啡店创业计划，warm-espresso 的奶油与浓缩咖啡色调、温暖亲和的气质与咖啡店的产品和空间氛围一致，适合向合作方讲述门店故事。
+layouts: ['cover', 'hero-statement', 'image-right', 'single-column', 'hero-statement', 'single-column', 'hero-statement']
+staggered_pages: []
+  S001 (cover): Page S001 大家好，今天介绍的是我们开一家咖啡店的计划。咖啡店不只是卖饮品的地方，它也是人们日常见面和停留的场所。接下来我会讲清楚我们想解决什么空白，以及想把这家店做成什么样子。 [A001]...
+  S002 (hero-statement): Page S002 开店之前，最重要的是想清楚为谁开。我们会先描述核心客群的特征和需求。然后看他们现在去哪里喝咖啡、哪里让他们不满意。最后说明我们的店在什么场景下正好能接住这些需求。 待补充占位 U0...
+  S003 (image-right): Page S003 这一页回答一个问题：我们和别家有什么不一样。首先要定下是做精品路线、社区路线还是别的方向。产品和菜单会围绕这个定位来设计，空间和体验也要服务同一个定位。 [A006] Bex Wa...
+  S004 (single-column): Page S004 选址是咖啡店最关键的决定之一，我们会同时权衡人流、租金和周边竞争。店开起来之后，营业时间和人员安排要匹配客流的节奏。咖啡豆从哪里来、供应是否稳定，也会直接影响出品和成本。 待补充占...
+  S005 (hero-statement): Page S005 这一页讲账怎么算。成本主要是租金、人工、原料和设备这几块。收入则取决于卖什么、卖给谁以及客单价的思路。具体的数字我们会在完成调研之后再填，这里先把推算的方法讲清楚。 待补充占位 U...
+  S006 (single-column): Page S006 任何开店计划都有风险，我们希望把它们提前摆出来。外部风险主要是竞争加剧、客流不如预期，以及成本上涨。内部风险在于日常运营和人员是否稳定。后面我们会针对每一类说明准备怎么应对。 待补...
+  S007 (hero-statement): Page S007 最后说说接下来要做的事。我们会先去验证这份计划里最关键的几个假设。同时也说明需要哪些资源和合作。也非常希望在座各位给我们提出意见和反馈。 待补充占位 U009: 待补充：画出近期验...
+speaker_notes_count: 7/7
+gate_overall: pass
+  gate[fill_rate]: pass | all 7 non-exempt slide(s) pass fill_rate (max_void=1.03in < 1.60in)
+  gate[no_text_only_visuals]: pass | 2 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  gate[layout_diversity]: warn | target 5 distinct layouts, got 4 (realizable eligible: 4; reason: deck only qualifies for 6 eligible families [anchor, breathing, hero-text, single-column, two-column, visual-split]): cover, hero-statement, image-right, single-column, hero-statement, single-column, hero-statement
+  gate[no_fabricated_visuals]: pass | all visual elements sha256-verified and shapes whitelisted
+  gate[placeholders_marked]: pass | 9 placeholder(s) properly marked
+  gate[attribution_present]: pass | all attribution-required assets credited
+
+=== T26 ===
+theme_id: architectural-stone
+theme_method: agent
+theme_rationale: 题目是世界著名建筑，architectural-stone 的石灰岩与陶土配色、庄重的博物馆气质与古代纪念性建筑到现代建筑的图片最协调，不会抢建筑照片的视觉。
+layouts: ['cover', 'image-left', 'image-right', 'hero-statement', 'image-right', 'image-left', 'image-right', 'single-column']
+staggered_pages: []
+  S001 (cover): Page S001 今天我们换一个角度看建筑。建筑能建成什么样，首先取决于当时的材料和结构技术。宗教、权力和日常生活也在塑造建筑的形式。接下来每座建筑我们只抓一个最值得看的点。
+  S002 (image-left): Page S002 我们先从古代说起。古代建造者能用的技术有限，却建成了非常宏大的纪念性建筑。他们依靠的是石材砌筑和严谨的比例秩序。古典柱式的发展也和信仰与权力紧紧联系在一起。 [A001] Stev...
+  S003 (image-right): Page S003 到了宗教建筑这里，关键在于结构上的突破。拱券和肋拱改变了力的传递方式，让墙体可以更高、更薄。于是光线能大量进入室内，营造出升华的空间感受。我们也可以把哥特式和其他宗教建筑风格放在一...
+  S004 (hero-statement): Page S004 把目光转向东方。东方建筑以木构架为主，斗拱是它很有代表性的结构做法。院落和园林的空间组织方式也很独特。背后体现的是对人与自然关系的另一种理解。 [A006] Angus Cepka...
+  S005 (image-right): Page S005 工业时代带来了全新的材料。钢铁、玻璃和混凝土让建筑在高度和跨度上都能突破过去的限制。工程技术本身也开始成为建筑表现的一部分，不再被藏在外墙后面。 [A008] 来源: https:...
+  S006 (image-left): Page S006 现代主义的核心思路是形式追随功能。建筑师大量使用玻璃、钢材和钢筋混凝土，追求简洁的形体。一些标志性建筑也因此成为城市的名片，被很多人一眼认出。 [A011] 来源: https:/...
+  S007 (image-right): Page S007 到了当代，建筑面对的是新的问题。能耗和可持续成为必须考虑的事情。数字设计带来了新的结构可能。建筑和整个城市环境的关系，也越来越受到重视。 [A012] Stefan Fussan,...
+  S008 (single-column): Page S008 最后我们把前面几座建筑串起来看。技术、信仰和社会一直在共同塑造建筑。同样的功能在不同文化里会得到不同的答案。以后再看到一座建筑，不妨问一问它是在什么条件下被建成的。 待补充占位 U...
+speaker_notes_count: 8/8
+gate_overall: pass
+  gate[fill_rate]: pass | all 8 non-exempt slide(s) pass fill_rate (max_void=1.03in < 1.60in)
+  gate[no_text_only_visuals]: pass | 8 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  gate[layout_diversity]: pass | 5 distinct layout(s) across 8 slide(s): cover, image-left, image-right, hero-statement, image-right, image-left, image-right, single-column
+  gate[no_fabricated_visuals]: pass | all visual elements sha256-verified and shapes whitelisted
+  gate[placeholders_marked]: pass | 5 placeholder(s) properly marked
+  gate[attribution_present]: pass | all attribution-required assets credited
+
+=== T02 ===
+theme_id: eco-canopy
+theme_method: agent
+theme_rationale: 城市热岛属于城市气候与环境科学话题，缓解思路落在绿地、水体和屋顶绿化上，eco-canopy 的森林绿配色和偏科学的调性与这些内容最契合。
+layouts: ['cover', 'single-column', 'hero-statement', 'single-column', 'hero-statement', 'comparison', 'hero-statement']
+staggered_pages: []
+  S001 (cover): Page S001 很多人都觉得城市里比郊外更热，这一页先把这种感觉说准确。城市热岛指的是城区气温相对周边郊区偏高的现象。它是城区和郊区之间长期存在的空间差异，而不是某几天的高温。后面会看到，这种差异...
+  S002 (single-column): Page S002 热岛要怎么看出来呢？一种办法是比较城区和郊区气象站测到的气温。另一种是用卫星遥感得到地表温度的分布。需要提醒的是，气温和地表温度是两种不同的指标，读图时不能混为一谈。 待补充占位 ...
+  S003 (hero-statement): Page S003 热岛主要有三类成因。第一是城市的地表材料和郊区的植被、水体不一样。第二是城市里人为排出的热量。第三是城市形态会影响通风和散热，让热量不容易散出去。 待补充占位 U002: 待补充：...
+  S004 (single-column): Page S004 热岛的影响离我们的日常生活很近。夜里降温变慢，会直接影响睡眠和居住的舒适度。降温需求增加，也会和用电负荷联系在一起。在高温天气里，它还可能叠加健康风险。 待补充占位 U003: 待...
+  S005 (hero-statement): Page S005 热岛并不是每座城市都一样。不同城市的气候背景、地形、规模和布局都不同，热岛强弱也会不同。即使在同一座城市里，也会有相对凉快和相对炎热的区域。所以谈热岛一定要结合具体城市来看。 待补...
+  S006 (comparison): Page S006 最后来看怎么缓解。最直接的思路是增加绿地、水体和树荫。在建筑层面，可以采用屋顶绿化等材料和结构措施。在城市层面，还可以改善通风，并更好地利用雨水。 [A011] Emmanuel ...
+  S007 (hero-statement): Page S007 我们把今天的内容串起来：热岛是什么、怎么形成、有什么影响、怎么缓解。每座城市的情况都需要具体的数据来判断。大家回去之后，也可以留意自己所在城市有没有相关的监测信息。 待补充占位 U...
+speaker_notes_count: 7/7
+gate_overall: pass
+  gate[fill_rate]: pass | all 7 non-exempt slide(s) pass fill_rate (max_void=1.03in < 1.60in)
+  gate[no_text_only_visuals]: pass | 3 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  gate[layout_diversity]: warn | target 5 distinct layouts, got 4 (realizable eligible: 4; reason: deck only qualifies for 6 eligible families [anchor, comparison, hero-text, single-column, two-column, visual-split]): cover, single-column, hero-statement, single-column, hero-statement, comparison, hero-statement
+  gate[no_fabricated_visuals]: pass | all visual elements sha256-verified and shapes whitelisted
+  gate[placeholders_marked]: pass | 6 placeholder(s) properly marked
+  gate[attribution_present]: pass | all attribution-required assets credited
+
+DISTINCT_THEMES=['architectural-stone', 'eco-canopy', 'tech-indigo', 'warm-espresso'] (count=4)

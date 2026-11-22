@@ -1,4 +1,63 @@
 [pptv01] stage A (production_plan) start
 [pptv01] stage A (production_plan) done elapsed=0.00s
 [pptv01] stage B (provisional_slide_plan) start
-awaiting agent response: read runs\smoke8\io_T26\B_request_2.json and write the answer to runs\smoke8\io_T26\B_response_2.json, then re-run with --resume
+[pptv01] stage B (provisional_slide_plan) done elapsed=2.82s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.05s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 1.06s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 0.27s
+[stage-D] 1/14 start A001 (image) remaining_budget=360.0s
+[stage-D] 1/14 done A001 provider=wikidata,commons result=acquired elapsed=8.06s
+[stage-D] 2/14 start A002 (image) remaining_budget=351.9s
+[stage-D] 2/14 done A002 provider=wikidata,commons result=acquired elapsed=7.72s
+[stage-D] 3/14 start A003 (diagram) remaining_budget=344.2s
+[stage-D] 3/14 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/14 start A004 (image) remaining_budget=344.2s
+[stage-D] 4/14 done A004 provider=wikidata,commons result=acquired elapsed=7.09s
+[stage-D] 5/14 start A005 (reference) remaining_budget=337.1s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=Gothic+cathedrals+structure+ribbed+vault+flying+buttress+review&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=1.34s attempts=1 detail=OpenAlex quota/rate limit reached (429): set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.ope
+[stage-D] openalex: circuit_open after 429 at 2026-11-22T13:06:42+08:00; skipping remaining OpenAlex queries and routing directly to Crossref
+[stage-D] 5/14 done A005 provider=openalex,crossref result=acquired elapsed=4.14s
+[stage-D] 6/14 start A006 (image) remaining_budget=333.0s
+[stage-D] 6/14 done A006 provider=wikidata,commons result=acquired elapsed=7.48s
+[stage-D] 7/14 start A007 (diagram) remaining_budget=325.5s
+[stage-D] 7/14 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] 8/14 start A008 (image) remaining_budget=325.5s
+[stage-D] 8/14 done A008 provider=wikidata,commons result=acquired elapsed=40.13s
+[stage-D] 9/14 start A009 (diagram) remaining_budget=285.4s
+[stage-D] 9/14 done A009 provider=none result=missing elapsed=0.00s
+[stage-D] 10/14 start A010 (image) remaining_budget=285.4s
+[stage-D] 10/14 done A010 provider=wikidata,commons result=acquired elapsed=10.49s
+[stage-D] 11/14 start A011 (image) remaining_budget=274.9s
+[stage-D] 11/14 done A011 provider=wikidata,commons result=acquired elapsed=18.75s
+[stage-D] 12/14 start A012 (image) remaining_budget=256.1s
+[stage-D] error provider=commons purpose='download image' url=https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Shanghai_-_Shanghai_Tower_-_0003.jpg/1280px-Shanghai_-_Shanghai_Tower_-_0003.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail elapsed=42.01s attempts=1 detail=request timed out after 42.01s (limit=42.00s, provider=commons, url=https://thumb.wikimedia.org/wikipedia/commons/thumb/
+[stage-D] 12/14 done A012 provider=wikidata,commons result=acquired elapsed=111.53s
+[stage-D] 13/14 start A013 (diagram) remaining_budget=144.6s
+[stage-D] 13/14 done A013 provider=none result=missing elapsed=0.00s
+[stage-D] 14/14 start A014 (diagram) remaining_budget=144.6s
+[stage-D] 14/14 done A014 provider=none result=missing elapsed=0.00s
+[stage-D] openalex: circuit_open after 429 at 2026-11-22T13:06:42+08:00 (skipped 0 request(s), est. saved ~6.0s)
+[pptv01] stage D (asset_retrieval) done elapsed=218.97s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.01s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.63s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=44.05s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=43.61s
+run_dir: runs\smoke8\T26
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: d551e31d27b6b8c759ef125148b00035505b460a
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 5 placeholders

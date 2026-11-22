@@ -1,0 +1,22 @@
+  pass     contract:production_plan  
+  pass     contract:research_brief  
+  pass     contract:slide_plan  
+  pass     contract:asset_requirements  
+  pass     contract:asset_registry  
+  pass     contract:user_input_requests  
+  pass     contract:slide_asset_mapping  
+  pass     contract:page_design  
+  pass     contract:qa_report  
+  pass     run_id_consistent  
+  pass     page_constraint  user max 5 pages; slide plan has 5
+  pass     assets_have_source_and_license  
+  warn     layout_diversity  target 5 distinct layouts, got 3 (realizable eligible: 3; reason: deck only qualifies for 3 eligible families [anchor, hero-text, single-column]): cover, hero-statement, single-column, hero-statement, single-column
+  pass     fill_rate  all 5 non-exempt slide(s) pass fill_rate (max_void=1.45in < 1.60in)
+  pass     no_text_only_visuals  0 image visual(s) checked cleanly (max OCR area ratio <= 0.12)
+  pass     mapped_visuals_placed  all 0 accepted visual mapping(s) placed in page_design
+  pass     no_fabricated_visuals  all visual elements sha256-verified and shapes whitelisted
+  pass     placeholders_marked  5 placeholder(s) properly marked
+  pass     pptx_opens  opened deck.pptx with 5 slides
+  pass     native_content_not_screenshots  all 5 slide(s) contain native text/shapes
+  pass     attribution_present  all attribution-required assets credited
+overall: pass

@@ -1,4 +1,49 @@
 [pptv01] stage A (production_plan) start
 [pptv01] stage A (production_plan) done elapsed=0.01s
 [pptv01] stage B (provisional_slide_plan) start
-awaiting agent response: read runs\smoke8\io_T36\B_request_2.json and write the answer to runs\smoke8\io_T36\B_response_2.json, then re-run with --resume
+[pptv01] stage B (provisional_slide_plan) done elapsed=3.18s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.02s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 1.36s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 0.39s
+[stage-D] 1/7 start A001 (diagram) remaining_budget=180.0s
+[stage-D] 1/7 done A001 provider=none result=missing elapsed=0.00s
+[stage-D] 2/7 start A002 (reference) remaining_budget=180.0s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=artificial+intelligence+definition&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=0.58s attempts=1 detail=OpenAlex quota/rate limit reached (429): set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.ope
+[stage-D] openalex: circuit_open after 429 at 2026-11-22T12:56:26+08:00; skipping remaining OpenAlex queries and routing directly to Crossref
+[stage-D] 2/7 done A002 provider=openalex,crossref result=acquired elapsed=3.24s
+[stage-D] 3/7 start A003 (diagram) remaining_budget=176.8s
+[stage-D] 3/7 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/7 start A004 (icon) remaining_budget=176.8s
+[stage-D] 4/7 done A004 provider=none result=missing elapsed=0.00s
+[stage-D] 5/7 start A005 (diagram) remaining_budget=176.8s
+[stage-D] 5/7 done A005 provider=none result=missing elapsed=0.00s
+[stage-D] 6/7 start A006 (reference) remaining_budget=176.8s
+[stage-D] skip openalex query='AI hallucination definition': openalex: circuit_open after 429 at 2026-11-22T12:56:26+08:00 (skipped)
+[stage-D] 6/7 done A006 provider=crossref result=acquired elapsed=0.81s
+[stage-D] 7/7 start A007 (diagram) remaining_budget=175.9s
+[stage-D] 7/7 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] openalex: circuit_open after 429 at 2026-11-22T12:56:26+08:00 (skipped 1 request(s), est. saved ~18.0s)
+[pptv01] stage D (asset_retrieval) done elapsed=8.51s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.01s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.12s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=49.89s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=43.73s
+run_dir: runs\smoke8\T36
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: d551e31d27b6b8c759ef125148b00035505b460a
+  A production_plan          done
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 5 placeholders

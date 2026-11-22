@@ -1,22 +1,58 @@
 [pptv01] stage A (production_plan) start
-[pptv01] stage A (production_plan) done elapsed=0.00s
+[pptv01] stage A (production_plan) done elapsed=0.01s
 [pptv01] stage B (provisional_slide_plan) start
-[pptv01] stage B (provisional_slide_plan) failed elapsed=2.66s
+[pptv01] stage B (provisional_slide_plan) done elapsed=3.00s
+[pptv01] stage C (asset_requirements) start
+[pptv01] stage C (asset_requirements) done elapsed=0.03s
+[pptv01] stage D (asset_retrieval) start
+[pixel-rules] loading CLIP (Qdrant/clip-ViT-B-32-vision, Qdrant/clip-ViT-B-32-text, timeout=45s, cache=default, hf_endpoint=default)
+[pixel-rules] loaded CLIP models in 1.10s
+[pixel-rules] loading RapidOCR (timeout=45s)
+[pixel-rules] loaded RapidOCR in 0.36s
+[stage-D] 1/12 start A001 (image) remaining_budget=180.0s
+[stage-D] 1/12 done A001 provider=wikidata,commons result=acquired elapsed=19.09s
+[stage-D] 2/12 start A002 (statistic) remaining_budget=160.9s
+[stage-D] 2/12 done A002 provider=none result=missing elapsed=0.00s
+[stage-D] 3/12 start A003 (diagram) remaining_budget=160.9s
+[stage-D] 3/12 done A003 provider=none result=missing elapsed=0.00s
+[stage-D] 4/12 start A004 (statistic) remaining_budget=160.9s
+[stage-D] 4/12 done A004 provider=none result=missing elapsed=0.00s
+[stage-D] 5/12 start A005 (diagram) remaining_budget=160.9s
+[stage-D] 5/12 done A005 provider=none result=missing elapsed=0.00s
+[stage-D] 6/12 start A006 (image) remaining_budget=160.9s
+[stage-D] 6/12 done A006 provider=wikidata,commons result=acquired elapsed=9.30s
+[stage-D] 7/12 start A007 (diagram) remaining_budget=151.6s
+[stage-D] 7/12 done A007 provider=none result=missing elapsed=0.00s
+[stage-D] 8/12 start A008 (chart_data) remaining_budget=151.6s
+[stage-D] 8/12 done A008 provider=none result=missing elapsed=0.00s
+[stage-D] 9/12 start A009 (diagram) remaining_budget=151.6s
+[stage-D] 9/12 done A009 provider=none result=missing elapsed=0.00s
+[stage-D] 10/12 start A010 (table) remaining_budget=151.6s
+[stage-D] 10/12 done A010 provider=none result=missing elapsed=0.00s
+[stage-D] 11/12 start A011 (reference) remaining_budget=151.6s
+[stage-D] error provider=openalex purpose='search works' url=https://api.openalex.org/works?search=small+restaurant+cafe+startup+failure+reasons+review&per-page=6&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Ctype%2Cprimary_location%2Cauthorships%2Copen_access%2Ccited_by_count elapsed=0.66s attempts=1 detail=OpenAlex quota/rate limit reached (429): set PPTV01_OPENALEX_API_KEY (free key) or retry tomorrow: HTTP 429 from api.ope
+[stage-D] openalex: circuit_open after 429 at 2026-11-22T12:59:14+08:00; skipping remaining OpenAlex queries and routing directly to Crossref
+[stage-D] 11/12 done A011 provider=openalex,crossref result=acquired elapsed=5.65s
+[stage-D] 12/12 start A012 (diagram) remaining_budget=146.0s
+[stage-D] 12/12 done A012 provider=none result=missing elapsed=0.00s
+[stage-D] openalex: circuit_open after 429 at 2026-11-22T12:59:14+08:00 (skipped 0 request(s), est. saved ~6.0s)
+[pptv01] stage D (asset_retrieval) done elapsed=37.83s
+[pptv01] stage E (slide_asset_mapping) start
+[pptv01] stage E (slide_asset_mapping) done elapsed=0.00s
+[pptv01] stage F (page_layout_design) start
+[pptv01] stage F (page_layout_design) done elapsed=0.22s
+[pptv01] stage G (pptx_generation) start
+[pptv01] stage G (pptx_generation) done elapsed=46.13s
+[pptv01] stage H (render_qa_repair) start
+[pptv01] stage H (render_qa_repair) done elapsed=45.08s
 run_dir: runs\smoke8\T12
-overall: failed   model: agent:宝特 (manual, not an API model)   commit: 5bf33537c453ad9934d6ef63dc59b53dcc26c2ca
+overall: complete_with_placeholders   model: agent:宝特 (manual, not an API model)   commit: d551e31d27b6b8c759ef125148b00035505b460a
   A production_plan          done
-  B provisional_slide_plan   failed
-  C asset_requirements       skipped
-  D asset_retrieval          skipped
-  E slide_asset_mapping      skipped
-  F page_layout_design       skipped
-  G pptx_generation          skipped
-  H render_qa_repair         skipped
-failure: stage B failed: LLMOutputError: model output invalid after one repair retry: 21 validation errors for DraftSlidePlan
-pages.0.page_role
-  Field required [type=missing, input_value={'title': '为什么现...refs': ['R001', 'R009']}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.14/v/missing
-pages.0.headline
-  Field required [type=missing, input_value={'title': '为什么现...refs': ['R001', 'R009']}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.14/v/missing
-pages.0.speaker_
+  B provisional_slide_plan   done
+  C asset_requirements       done
+  D asset_retrieval          done
+  E slide_asset_mapping      done
+  F page_layout_design       done
+  G pptx_generation          done
+  H render_qa_repair         done
+requests: 0 open (0 blocking), 0 provided, 9 placeholders

@@ -1,0 +1,378 @@
+{
+  "schema_version": "0.1",
+  "run_id": "T36",
+  "renderer": "powerpoint-com",
+  "render_provenance": "powerpoint-com 16.0 (build 20625)",
+  "rendered_pages": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005"
+  ],
+  "issues": [],
+  "missing_fonts": [],
+  "capacity_vs_measured": [
+    {
+      "page_id": "S001",
+      "element_id": "bullets",
+      "font_size_pt": 20.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 3,
+      "allocated_h_pt": 79.7,
+      "bound_h_pt": 48.0,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "footer",
+      "font_size_pt": 10.5,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 33.12,
+      "bound_h_pt": 12.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "title",
+      "font_size_pt": 42.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 115.2,
+      "bound_h_pt": 90.72,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S001",
+      "element_id": "PLACEHOLDER_U001",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "hero_main",
+      "font_size_pt": 30.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 63.36,
+      "bound_h_pt": 36.0,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "support_0",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.84,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "title",
+      "font_size_pt": 28.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 67.68,
+      "bound_h_pt": 30.24,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S002",
+      "element_id": "PLACEHOLDER_U002",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "row_text_0",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.12,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "row_text_1",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.12,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "row_text_2",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.12,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "title",
+      "font_size_pt": 29.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 67.68,
+      "bound_h_pt": 31.32,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S003",
+      "element_id": "PLACEHOLDER_U003",
+      "font_size_pt": 11.0,
+      "estimated_lines": 2,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 26.4,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "footer",
+      "font_size_pt": 10.5,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 33.12,
+      "bound_h_pt": 12.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "hero_main",
+      "font_size_pt": 28.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 60.98,
+      "bound_h_pt": 33.6,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "support_0",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 48.96,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "support_1",
+      "font_size_pt": 19.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 48.96,
+      "bound_h_pt": 22.8,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "title",
+      "font_size_pt": 28.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 67.68,
+      "bound_h_pt": 30.24,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S004",
+      "element_id": "PLACEHOLDER_U004",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "row_text_0",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.12,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "row_text_1",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.12,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "row_text_2",
+      "font_size_pt": 21.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 51.12,
+      "bound_h_pt": 25.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "title",
+      "font_size_pt": 29.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 1,
+      "allocated_h_pt": 67.68,
+      "bound_h_pt": 31.32,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "SimHei"
+    },
+    {
+      "page_id": "S005",
+      "element_id": "PLACEHOLDER_U005",
+      "font_size_pt": 11.0,
+      "estimated_lines": 1,
+      "capacity_max_lines": 2,
+      "allocated_h_pt": 40.32,
+      "bound_h_pt": 13.2,
+      "overflow_h_pt": 0.0,
+      "font_name_fareast": "Microsoft YaHei"
+    }
+  ],
+  "occupancy": [
+    {
+      "page_id": "S001",
+      "layout_id": "cover",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 1.014,
+      "max_col_void_in": 0.0,
+      "void_position": "middle",
+      "content_band": [
+        1.2,
+        6.56
+      ],
+      "detail": "S001 (cover): ok (max_void=1.01in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S002",
+      "layout_id": "hero-statement",
+      "page_role": "content",
+      "passed": false,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 1.66,
+      "max_col_void_in": 0.0,
+      "void_position": "bottom",
+      "content_band": [
+        1.42,
+        6.56
+      ],
+      "detail": "S002 (hero-statement): 1.66in void at bottom (>= 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S003",
+      "layout_id": "single-column",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 1.196,
+      "max_col_void_in": 0.0,
+      "void_position": "bottom",
+      "content_band": [
+        1.42,
+        6.56
+      ],
+      "detail": "S003 (single-column): ok (max_void=1.20in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S004",
+      "layout_id": "hero-statement",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 0.916,
+      "max_col_void_in": 0.0,
+      "void_position": "middle",
+      "content_band": [
+        1.42,
+        6.56
+      ],
+      "detail": "S004 (hero-statement): ok (max_void=0.92in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    },
+    {
+      "page_id": "S005",
+      "layout_id": "single-column",
+      "page_role": "content",
+      "passed": true,
+      "exempt": false,
+      "exempt_reason": "",
+      "max_void_in": 1.196,
+      "max_col_void_in": 0.0,
+      "void_position": "bottom",
+      "content_band": [
+        1.42,
+        6.56
+      ],
+      "detail": "S005 (single-column): ok (max_void=1.20in < 1.60in)",
+      "cell_failures": [],
+      "used_live_measurements": true
+    }
+  ],
+  "diagnostics": [
+    "fill_rate: 1 underfilled page(s): S002 (hero-statement: 1.66in bottom)"
+  ],
+  "cross_render_notes": [],
+  "summary": "0 issue(s) recorded (0 fixed & passed recheck, 0 unresolved blocker/major)"
+}
