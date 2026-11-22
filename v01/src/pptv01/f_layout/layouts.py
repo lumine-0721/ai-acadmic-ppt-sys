@@ -2531,8 +2531,8 @@ def _build_layout_elements_core(
             avail_h = round(eff_bottom - band_top, 3)
             cite_res = 0.50 if citations else 0.0
             shorter_nat = min(l_nat_h, r_nat_h) if right_txt else l_nat_h
-            # Center by actual text glyph span (excluding card outer/inner margins) so COM-shrunk columns stay balanced
-            text_span = max(0.75, shorter_nat - 0.16) + cite_res
+            # Center so content band has balanced top & bottom whitespace around shorter column
+            text_span = max(0.75, shorter_nat - 0.10) + cite_res
             max_top = round(content_bottom - panel_h - (0.48 if citations else 0.0), 3)
             if allow_sparse and panel_h + cite_res < avail_h * 0.78:
                 rem_p = max(0.0, avail_h - text_span)
@@ -2762,9 +2762,9 @@ def _build_layout_elements_core(
             cite_res = 0.50 if citations else 0.0
             max_top = round(content_bottom - card_h - (0.48 if citations else 0.0), 3)
             if allow_sparse and card_h + cite_res < avail_h * 0.78:
-                text_span = max(0.75, min(nat_hs) - 0.16) + cite_res
+                text_span = max(0.75, min(nat_hs) - 0.10) + cite_res
                 rem_c3 = max(0.0, avail_h - text_span)
-                card_top = min(max_top, round(band_top + max(0.10, rem_c3 * 0.496 - 0.22), 3))
+                card_top = min(max_top, round(band_top + max(0.10, rem_c3 * 0.495 - 0.22), 3))
                 notes.append("three-card: aligned upper-middle cluster")
             else:
                 card_top = min(1.72, max_top)
@@ -2961,7 +2961,7 @@ def _build_layout_elements_core(
         else:
             hero_txt_x = round(GRID_MARGIN_X + 0.34, 3)
             hero_txt_w = round(GRID_USABLE_W - 0.54, 3)
-            hero_start_pt = 30.0 if len(rest_pts) <= 1 else 26.0
+            hero_start_pt = 30.0 if len(rest_pts) <= 1 else 28.0
             hero_fit = fit_text_to_box(lead_pt, hero_txt_w, 2.00, hero_start_pt, min_font_pt=MIN_FONT_PT[ElementKind.body])
             hero_nat_h = round(max(0.76, estimate_text_height_in(hero_fit.lines, hero_fit.font_size_pt) + 0.18), 3)
             hero_card_h = round(min(2.20, max(1.06, hero_nat_h + 0.30)), 3)
@@ -3199,7 +3199,7 @@ def _build_layout_elements_core(
                 half = max(1, math.ceil(len(rest_pts) / 2))
                 g1_txt = "\n".join(f"• {p}" for p in rest_pts[:half])
                 g2_txt = "\n".join(f"• {p}" for p in rest_pts[half:])
-                sup_pt = 18.5 if concise else 19.0
+                sup_pt = 20.0 if len(rest_pts) <= 4 else 18.5
                 col_gap = 0.53
                 col_w = round((GRID_USABLE_W - col_gap) / 2.0, 3)
                 inner_w = round(col_w - 0.40, 3)
@@ -3209,14 +3209,14 @@ def _build_layout_elements_core(
                 n1 = round(max(0.88, estimate_text_height_in(f1.lines, f1.font_size_pt) + 0.18), 3)
                 n2 = round(max(0.88, estimate_text_height_in(f2.lines, f2.font_size_pt) + 0.18), 3)
                 col_card_h = round(min(max(1.20, avail_col_h), max(n1, n2) + 0.30), 3)
-                band_gap = 0.30
+                band_gap = 0.44 if (avail_h - (hero_card_h + 0.30 + col_card_h + cite_res) > 2.2) else 0.30
                 cluster_h = hero_card_h + band_gap + col_card_h
                 hero_top_pad = round(max(0.16, (hero_card_h - hero_nat_h) / 2.0), 3)
-                # Center symmetrically from hero_main top to support bottom (min(n1, n2))
-                text_cluster_span = (hero_card_h - hero_top_pad) + band_gap + 0.16 + min(n1, n2)
+                # Actual visual span from hero_main top to shorter support text bottom
+                text_cluster_span = (hero_card_h - hero_top_pad) + band_gap + 0.16 + max(0.75, min(n1, n2) - 0.10)
                 rem_c = max(0.0, avail_h - (text_cluster_span + cite_res))
                 max_hero_y = round(eff_bottom - cluster_h - cite_res, 3)
-                hero_card_y = min(max_hero_y, round(band_top + max(0.16, rem_c * 0.50 - hero_top_pad), 3))
+                hero_card_y = min(max_hero_y, round(band_top + max(0.14, rem_c * 0.50 - hero_top_pad), 3))
                 hero_txt_y = round(hero_card_y + max(0.16, (hero_card_h - hero_nat_h) / 2.0), 3)
 
                 elements.extend([
