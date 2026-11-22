@@ -1016,22 +1016,25 @@ def _place_anchored_citation(
     page_notes: list[str],
     theme: ThemeTokens = ACADEMIC_DEFAULT_THEME,
 ) -> None:
-    """Anchor reference citations tightly below the content block (never floating in empty whitespace)."""
+    """Anchor reference citations at the content-band bottom (never floating in mid-canvas whitespace)."""
     if not citations:
         return
     cite_color = color_hex if color_hex is not None else theme.citation_on_light
     cite_text = " | ".join(citations)
-    avail_h = round(max_bottom - y, 3)
-    if avail_h < 0.34:
-        y = round(max_bottom - 0.38, 3)
-        avail_h = 0.38
-    h = round(min(0.46, avail_h), 3)
+    lines = wrap_mixed_text(cite_text, w, 10.5) or [cite_text]
+    needed_h = round(max(0.44, estimate_text_height_in(lines, 10.5) + 0.06), 3)
+    target_h = min(0.68, max(0.46, needed_h))
+    if max_bottom - y >= 0.34:
+        anchored_y = round(max(y, max_bottom - target_h), 3)
+    else:
+        anchored_y = round(max_bottom - min(target_h, 0.46), 3)
+    h = round(min(0.68, max(0.34, max_bottom - anchored_y)), 3)
     elements.append(
         _make_fitted_text(
             "footer",
             ElementKind.footer,
             x,
-            y,
+            anchored_y,
             w,
             h,
             cite_text,
@@ -2587,60 +2590,56 @@ def _build_layout_elements_core(
                 col_min_h = round(min(col_h, natural_col_h), 3)
                 notes.append("comparison: sparse centered-cluster variant")
 
-        # Contrasting top accent bars + slim center vertical divider
-        elements.append(
-            DesignElement(
-                element_id="accent_col_left",
-                kind=ElementKind.shape,
-                x_in=left_x,
-                y_in=top_bar_y,
-                w_in=col_w,
-                h_in=0.08,
-                z_index=1,
-                fill_hex=theme.primary,
-                line_hex=theme.primary,
-                role="col_accent_left",
+        def _emit_col_bar(eid: str, cx: float, cy: float, cw: float, fill: str, role: str) -> None:
+            elements.append(
+                DesignElement(
+                    element_id=eid,
+                    kind=ElementKind.shape,
+                    x_in=cx,
+                    y_in=cy,
+                    w_in=cw,
+                    h_in=0.08,
+                    z_index=1,
+                    fill_hex=fill,
+                    line_hex=fill,
+                    role=role,
+                )
             )
-        )
-        elements.append(
-            DesignElement(
-                element_id="accent_col_right",
-                kind=ElementKind.shape,
-                x_in=right_x,
-                y_in=top_bar_y,
-                w_in=col_w,
-                h_in=0.08,
-                z_index=1,
-                fill_hex=theme.accent,
-                line_hex=theme.accent,
-                role="col_accent_right",
-            )
-        )
 
         divider_h = min(col_h, 3.20)
         if len(real_visuals) >= 2:
-            # Multiple real visuals distributed cleanly beneath compact points
+            # Multiple real visuals distributed cleanly beneath compact points; column accent bars anchor directly above visuals
+            text_y = 1.66
             bh = _place_content_fitted_bullets(
-                elements, left_x, col_top, GRID_USABLE_W, 1.30, bullet_text, 16.0, notes, with_accent_rail=False, min_box_h=0.65, theme=theme
+                elements, left_x, text_y, GRID_USABLE_W, 1.30, bullet_text, 16.0, notes, with_accent_rail=False, min_box_h=0.65, theme=theme
             )
-            vis_y = round(col_top + bh + 0.16, 3)
+            vis_y = round(text_y + bh + 0.24, 3)
             vis_h = round(max(1.80, col_bottom - vis_y), 3)
+            bar_y = round(vis_y - 0.14, 3)
             n_vis = len(real_visuals)
             if n_vis == 2:
+                _emit_col_bar("accent_col_left", left_x, bar_y, col_w, theme.primary, "col_accent_left")
+                _emit_col_bar("accent_col_right", right_x, bar_y, col_w, theme.accent, "col_accent_right")
                 elements.extend(_design_real_visual(real_visuals[0], 1, left_x, vis_y, col_w, vis_h, notes, theme=theme))
                 elements.extend(_design_real_visual(real_visuals[1], 2, right_x, vis_y, col_w, vis_h, notes, theme=theme))
             elif n_vis == 3:
                 vgap = 0.24
                 vcw = round((GRID_USABLE_W - vgap * (n_vis - 1)) / n_vis, 3)
+                bar_colors = (theme.primary, theme.accent, theme.teal)
                 for i, item in enumerate(real_visuals):
                     vx = round(GRID_MARGIN_X + i * (vcw + vgap), 3)
                     cw = round(GRID_RIGHT_X - vx, 3) if i == n_vis - 1 else vcw
+                    bar_id = ("accent_col_left", "accent_col_mid", "accent_col_right")[i]
+                    _emit_col_bar(bar_id, vx, bar_y, cw, bar_colors[i], f"col_accent_{i}")
                     elements.extend(_design_real_visual(item, i + 1, vx, vis_y, cw, vis_h, notes, theme=theme))
             else:
+                _emit_col_bar("accent_col_left", left_x, bar_y, GRID_USABLE_W, theme.primary, "col_accent_left")
                 _place_real_visuals_group(elements, real_visuals, left_x, vis_y, GRID_USABLE_W, vis_h, notes, theme=theme)
             last_y = round(vis_y + vis_h, 3)
             divider_h = 0.0
         elif len(real_visuals) == 1:
+            _emit_col_bar("accent_col_left", left_x, top_bar_y, col_w, theme.primary, "col_accent_left")
+            _emit_col_bar("accent_col_right", right_x, top_bar_y, col_w, theme.accent, "col_accent_right")
             bh = _place_content_fitted_bullets(
                 elements, left_x, col_top, col_w, col_h, bullet_text, base_pt, notes, with_accent_rail=False, min_box_h=1.60, theme=theme
             )
@@ -2656,6 +2655,7 @@ def _build_layout_elements_core(
                 left_pts = pts[:mid]
                 right_pts = pts[mid:] if len(pts) > 1 else []
             left_txt = "\n".join(f"• {p}" for p in left_pts) if len(left_pts) > 1 else left_pts[0]
+            _emit_col_bar("accent_col_left", left_x, top_bar_y, col_w, theme.primary, "col_accent_left")
             bh_l = _place_content_fitted_bullets(
                 elements,
                 left_x,
@@ -2672,6 +2672,7 @@ def _build_layout_elements_core(
             )
             bh_r = 0.0
             if right_pts:
+                _emit_col_bar("accent_col_right", right_x, top_bar_y, col_w, theme.accent, "col_accent_right")
                 right_txt = "\n".join(f"• {p}" for p in right_pts) if len(right_pts) > 1 else right_pts[0]
                 bh_r = _place_content_fitted_bullets(
                     elements,
@@ -2688,7 +2689,7 @@ def _build_layout_elements_core(
                     theme=theme,
                 )
             last_y = round(col_top + max(bh_l, bh_r), 3)
-            divider_h = round(max(bh_l, bh_r), 3)
+            divider_h = round(max(bh_l, bh_r), 3) if right_pts else 0.0
 
         if divider_h > 0.2:
             elements.append(
