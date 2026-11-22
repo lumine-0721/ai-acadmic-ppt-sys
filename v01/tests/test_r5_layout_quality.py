@@ -35,6 +35,7 @@ from pptv01.h_qa.geometry import (
 )
 from pptv01.h_qa.inspect import inspect_deck
 from pptv01.h_qa.stage import run_stage_h
+from pptv01.theme import get_theme
 from tests.conftest import GOOD_A, GOOD_B
 
 RID = "20260101-000000-r500"
@@ -127,13 +128,14 @@ def test_r5_stage_f_removes_empty_cards_shrinks_text_and_unifies_image_slots(tmp
     )
 
     design = run_stage_f(pp, sp, reg, None, mapping, tmp_path)
+    expected_title_font = get_theme(design.theme_id).title_font
     img_slots = []
     for page in design.pages:
         # Zero old-style card_* empty cards
         assert not any(e.element_id.startswith("card_") for e in page.elements)
-        # Uses Windows native CJK font from active theme
+        # Uses active theme title font from ThemeTokens
         title_el = next(e for e in page.elements if e.element_id == "title")
-        assert title_el.font in {"Microsoft YaHei", "DengXian", "SimHei", "SimSun"}
+        assert title_el.font == expected_title_font
         # Bullets shrunk tightly to content height (well below full 5.62in content height)
         bul_el = next(e for e in page.elements if e.element_id == "bullets")
         assert bul_el.h_in < 3.6
