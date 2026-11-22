@@ -1024,8 +1024,10 @@ def _place_anchored_citation(
     lines = wrap_mixed_text(cite_text, w, 10.5) or [cite_text]
     needed_h = round(max(0.44, estimate_text_height_in(lines, 10.5) + 0.06), 3)
     target_h = min(0.68, max(0.46, needed_h))
-    if max_bottom - y >= 0.34:
+    if round(max_bottom - y, 3) >= 0.34:
         anchored_y = round(max(y, max_bottom - target_h), 3)
+    elif round(max_bottom - y, 3) >= 0.28:
+        anchored_y = round(max(y, max_bottom - min(target_h, 0.46)), 3)
     else:
         anchored_y = round(max_bottom - min(target_h, 0.46), 3)
     h = round(min(0.68, max(0.34, max_bottom - anchored_y)), 3)
@@ -2093,7 +2095,7 @@ def _build_layout_elements_core(
                     page_notes=notes,
                 )
             )
-        bul_max_h = round(band_bottom - text_top - (0.42 if citations else 0.0), 3)
+        bul_max_h = round(band_bottom - text_top - (0.52 if citations else 0.0), 3)
         bh = _place_content_fitted_bullets(
             elements,
             right_x,
@@ -2106,7 +2108,7 @@ def _build_layout_elements_core(
             color_hex=theme.text_on_dark_soft,
             rail_color=theme.accent_light,
             with_accent_rail=False,
-            min_box_h=0.90,
+            min_box_h=round(min(0.90, bul_max_h), 3),
             theme=theme,
         )
         if citations:
@@ -2390,22 +2392,21 @@ def _build_layout_elements_core(
         focal_w = round(left_w - 0.56, 3)
         focal_fit = fit_text_to_box(focal_text, focal_w, max(1.4, min(panel_h, 3.60) - 0.68), 26.0, min_font_pt=16.0)
         focal_h_est = estimate_text_height_in(focal_fit.lines, focal_fit.font_size_pt)
-        fact_box_h = round(min(panel_h, max(1.85, focal_h_est + 0.80)), 3)
+        fact_box_h = round(min(panel_h, max(2.04, focal_h_est + 0.64)), 3)
         bullet_min_h = 1.80
 
         if allow_sparse and not real_visuals:
             band_top = 1.36
-            eff_bottom = tray_y if has_ph else 7.00
+            eff_bottom = round(content_bottom - 0.46, 3) if citations else (tray_y if has_ph else 7.00)
             avail_h = round(eff_bottom - band_top, 3)
-            cite_reserve = 0.62 if citations else 0.0
             other_est_h = (
                 estimate_text_height_in(wrap_mixed_text("\n".join(f"• {p}" for p in other_pts), right_w, 20.0), 20.0) + 0.34
                 if other_pts
                 else 0.0
             )
-            natural_h = round(max(fact_box_h, other_est_h) + cite_reserve, 3)
+            natural_h = round(max(fact_box_h, other_est_h), 3)
             if natural_h < avail_h * 0.72:
-                panel_y = _upper_middle_start(band_top, avail_h, natural_h, min_pad=0.28)
+                panel_y = round(band_top + max(0.28, (avail_h - natural_h) * 0.48), 3)
                 panel_h = round(content_bottom - panel_y - (0.50 if citations and not other_pts else 0.0), 3)
                 notes.append("big-number: sparse centered-cluster variant")
 
@@ -2442,9 +2443,9 @@ def _build_layout_elements_core(
                 "fact_focal",
                 ElementKind.body,
                 round(GRID_MARGIN_X + 0.34, 3),
-                round(panel_y + 0.34, 3),
+                round(panel_y + 0.18, 3),
                 focal_w,
-                round(max(1.10, fact_box_h - 0.68), 3),
+                round(max(1.38, fact_box_h - 0.36), 3),
                 focal_text,
                 26.0,
                 z_index=2,
