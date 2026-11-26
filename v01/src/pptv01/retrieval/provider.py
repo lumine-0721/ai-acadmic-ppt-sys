@@ -31,6 +31,7 @@ from .backends import (
     DEFAULT_CONTACT,
     BackendError,
     CrossrefBackend,
+    KeenableBackend,
     SearchBackend,
     SearxngBackend,
     WikipediaBackend,
@@ -38,6 +39,8 @@ from .backends import (
 )
 
 ENV_RESEARCH = "PPTV01_RESEARCH"                  # auto (default) | none | comma list: wikipedia,crossref,searxng
+ENV_KEENABLE = "PPTV01_KEENABLE"                   # 1 | on  (enables keenable backend)
+ENV_KEENABLE_KEY = "KEENABLE_API_KEY"              # API key for Keenable
 ENV_CONTACT = "PPTV01_RESEARCH_CONTACT"
 ENV_MAX_HITS = "PPTV01_RESEARCH_MAX_HITS"
 ENV_MAX_QUERIES = "PPTV01_RESEARCH_MAX_QUERIES"
@@ -181,4 +184,12 @@ def research_from_env(env: Mapping[str, str] | None = None,
             backends.append(SearxngBackend(http, url))
         else:
             raise LLMConfigError(f"unknown research backend {n!r}; use wikipedia, crossref, searxng, auto or none")
+    if keenable_enabled(env):
+        backends.append(KeenableBackend(http, env[ENV_KEENABLE_KEY].strip()))
     return LiveResearch(backends, max_hits=max_hits, max_queries=max_queries, relevance=filter_from_env(env))
+
+
+def keenable_enabled(env: Mapping[str, str]) -> bool:
+    flag = env.get(ENV_KEENABLE, "").strip().lower()
+    return flag in ("1", "on") and bool(env.get(ENV_KEENABLE_KEY, "").strip())
+

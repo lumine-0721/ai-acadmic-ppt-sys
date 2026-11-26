@@ -3,6 +3,7 @@
   wikipedia  MediaWiki Action API, intro extracts  (zh / en)   CC BY-SA
   crossref   Crossref REST works search            (en only)   bibliographic metadata, no abstracts
   searxng    any SearXNG instance with the JSON API (optional; URL from env)
+  keenable   Keenable AI  POST /v1/search + /v1/fetch  (API key + env gate required)
 
 Each backend raises BackendError on network/HTTP/parse failure; nothing is ever
 fabricated. Backends take an optional httpx transport ONLY so unit tests can
@@ -256,6 +257,93 @@ def _get_json(
     )
 
 
+def _post_json(
+    http: httpx.Client,
+    url: str,
+    body: dict,
+    headers: dict | None = None,
+    *,
+    provider: str = "",
+) -> dict:
+    try:
+        clean_url = sanitize_url(url)
+    except Exception:
+        clean_url = url
+
+    t0 = time.monotonic()
+    last = "unknown error"
+    last_status: int | None = None
+    attempts = 0
+    backoff_used = 0.0
+    timed_out = False
+    max_backoff_total_s = 12.0
+
+    for attempt in range(RETRIES + 1):
+        attempts += 1
+        wait = 1.0 * (2 ** attempt)
+        try:
+            r = http.post(url, json=body, headers=headers)
+        except httpx.TimeoutException as e:
+            timed_out = True
+            last = f"{type(e).__name__}: {str(e)[:120]}"
+        except httpx.HTTPError as e:
+            last = f"{type(e).__name__}: {str(e)[:120]}"
+        else:
+            if r.status_code == 200:
+                try:
+                    return r.json()
+                except ValueError:
+                    elapsed = round(time.monotonic() - t0, 3)
+                    host = httpx.URL(url).host
+                    prov = provider or host or "http"
+                    raise BackendError(
+                        f"non-JSON response from {host} (provider={prov}, url={clean_url})",
+                        provider=prov,
+                        url=clean_url,
+                        elapsed_s=elapsed,
+                        attempts=attempts,
+                        status_code=r.status_code,
+                    ) from None
+            last_status = r.status_code
+            last = f"HTTP {r.status_code}"
+            if r.status_code == 429 or r.status_code >= 500:
+                try:
+                    wait = min(float(r.headers.get("Retry-After", wait)), 10.0)
+                except ValueError:
+                    pass
+            else:
+                elapsed = round(time.monotonic() - t0, 3)
+                prov = provider or httpx.URL(url).host or "http"
+                raise BackendError(
+                    f"{last} (provider={prov}, url={clean_url}, elapsed={elapsed:.2f}s, attempts={attempts})",
+                    provider=prov,
+                    url=clean_url,
+                    elapsed_s=elapsed,
+                    attempts=attempts,
+                    status_code=r.status_code,
+                )
+
+        if attempt < RETRIES:
+            rem_backoff = max_backoff_total_s - backoff_used
+            if rem_backoff <= 0:
+                break
+            wait = min(wait, rem_backoff)
+            backoff_used += wait
+            _sleep(wait)
+
+    elapsed = round(time.monotonic() - t0, 3)
+    prov = provider or httpx.URL(url).host or "http"
+    raise BackendError(
+        f"{last} (after {attempts} attempts, provider={prov}, url={clean_url}, elapsed={elapsed:.2f}s)",
+        provider=prov,
+        url=clean_url,
+        elapsed_s=elapsed,
+        attempts=attempts,
+        timed_out=timed_out,
+        status_code=last_status,
+    )
+
+
 class WikipediaBackend:
     name = "wikipedia"
 
@@ -329,6 +417,63 @@ class CrossrefBackend:
                 retrieved_at=_now(), doc_type=str(it.get("type") or ""),
             ))
         return out
+
+
+class KeenableBackend:
+    name = "keenable"
+
+    def __init__(self, http: httpx.Client, api_key: str):
+        self.http = http
+        self._api_key = api_key
+
+    def supports(self, lang: str) -> bool:
+        return True
+
+    def search(self, query: str, lang: str, limit: int) -> list[SearchHit]:
+        data = _post_json(
+            self.http,
+            "https://api.keenable.ai/v1/search",
+            {"query": query, "max_results": limit},
+            headers={"X-API-Key": self._api_key},
+            provider="keenable",
+        )
+        results = data.get("results")
+        if not isinstance(results, list):
+            raise BackendError("keenable: malformed response")
+        out = []
+        for it in results:
+            title = it.get("title")
+            url = it.get("url")
+            if not title or not url:
+                continue
+            snippet = it.get("snippet") or it.get("description") or ""
+            text = re.sub(r"\s+", " ", snippet).strip()[:600]
+            out.append(SearchHit(
+                title=title,
+                text=text,
+                url=url,
+                kind="web",
+                source_name=httpx.URL(url).host or "Keenable",
+                license_or_terms="see source page",
+                retrieved_at=_now(),
+            ))
+        return out
+
+    def fetch(self, urls: list[str], prompt: str = "") -> list[dict]:
+        body: dict = {"urls": list(urls)}
+        if prompt:
+            body["content"] = {"prompt": prompt}
+        data = _post_json(
+            self.http,
+            "https://api.keenable.ai/v1/fetch",
+            body,
+            headers={"X-API-Key": self._api_key},
+            provider="keenable",
+        )
+        results = data.get("results")
+        if not isinstance(results, list):
+            raise BackendError("keenable: malformed response")
+        return results
 
 
 class SearxngBackend:

@@ -56,6 +56,8 @@ Python ≥ 3.11. Dependencies: pydantic v2, python-pptx, httpx, cn2an, pillow (p
 | `PPTV01_E_VISION_MODEL` / `_BASE_URL` / `_API_KEY` / `_TIMEOUT_S` | no | optional stage-E vision model for image-slide relevance checks (falls back to `PPTV01_LLM_BASE_URL`/`_API_KEY`; unset = `relevance: not_assessed`) |
 | `PPTV01_GRADER_BACKEND` + `_BASE_URL/_API_KEY/_MODEL/_VISION_MODEL` or `_EXCHANGE_DIR` | for `grade` | PPTEval judge: `api` (OpenAI-compatible MLLM) or `agent` (manual, labelled); unset = error, never a made-up score |
 | `PPTV01_RESEARCH_MAX_HITS` / `_MAX_QUERIES` / `_TIMEOUT_S` | no | per query per backend (3) / queries per run (12) / HTTP timeout (20 s) |
+| `PPTV01_BIVIA_JUDGE` + `A8_API_KEY` | no | optional Bivia judge (opt-in): both must be set (1/on + key) to enable boolean pass/veto checks; any failure is fail-open (see docs/aux-bivia-keenable-research.md) |
+| `PPTV01_KEENABLE` + `KEENABLE_API_KEY` | no | optional Keenable search backend for stage-B research: both must be set to enable; failures fall back to the other backends |
 | `PPTV01_LLM_JSON_MODE` | no | `1` to send `response_format=json_object` (only if your provider supports it) |
 
 ### Agent backend (no API key; a human/agent acts as the model)
