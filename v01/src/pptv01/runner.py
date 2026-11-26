@@ -19,6 +19,7 @@ from typing import Any, Callable, Literal
 
 from pptv01 import __version__
 from pptv01.a_plan import ARTIFACT as A_FILE, run_stage_a
+from pptv01.bivia_judge import BiviaJudge, bivia_stage_substep_status, new_bivia_stats
 from pptv01.c_asset_requirements import ARTIFACT as C_FILE, run_stage_c
 from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchFailed, run_stage_b
 from pptv01.contracts import (
@@ -157,6 +158,26 @@ def _write_trace(run_dir: Path, stage: str, attempts: list[dict[str, Any]], mode
     return rel
 
 
+def _bivia_tool_config(
+    bivia: BiviaJudge | None,
+    c_stats: dict[str, int],
+    e_stats: dict[str, int],
+    h_stats: dict[str, int],
+) -> dict[str, Any]:
+    if bivia is None:
+        return {"enabled": False, "status": "not_run"}
+    combined = {k: c_stats.get(k, 0) + e_stats.get(k, 0) + h_stats.get(k, 0) for k in new_bivia_stats()}
+    total = sum(combined.values())
+    status = "not_run" if (total > 0 and combined["not_run"] == total) else "active"
+    return {
+        "enabled": True,
+        "status": status,
+        "threshold": bivia.threshold,
+        "counts": combined,
+        "stages": {"C": c_stats, "E": e_stats, "H": h_stats},
+    }
+
+
 def run_pipeline(
     utterance: str,
     out_root: Path,
@@ -168,6 +189,7 @@ def run_pipeline(
     research: ResearchProvider | None = None,
     assets: DServices | None = None,
     vision_client: ChatClient | None = None,
+    bivia: BiviaJudge | None = None,
     render_fn: RenderFn | None = None,
     renderer: DeckRenderer | None = None,
     compile_only: bool = False,
@@ -187,6 +209,15 @@ def run_pipeline(
     if run_dir.exists() and not resume:
         raise FileExistsError(f"run directory already exists: {run_dir} (use resume only for the agent backend)")
     run_dir.mkdir(parents=True, exist_ok=resume)
+
+    own_bivia = False
+    eff_bivia = bivia
+    if eff_bivia is None:
+        eff_bivia = BiviaJudge.from_env()
+        own_bivia = eff_bivia is not None
+    c_bivia_stats = new_bivia_stats()
+    e_bivia_stats = new_bivia_stats()
+    h_bivia_stats = new_bivia_stats()
 
     started = clock()
     records: dict[str, StageRecord] = {}
@@ -320,9 +351,29 @@ def run_pipeline(
             invalidated = True
             client.set_stage("C")
             try:
-                reqs, attempts = run_stage_c(plan, slide_plan, client, run_dir, notes)
-                record("C", StageStatus.done, t0, [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)],
-                       input_hashes=c_inputs)
+                c_bivia_stats = new_bivia_stats()
+                reqs, attempts = run_stage_c(
+                    plan,
+                    slide_plan,
+                    client,
+                    run_dir,
+                    notes,
+                    bivia=eff_bivia,
+                    bivia_stats_out=c_bivia_stats,
+                )
+                c_substeps = (
+                    {"bivia_judge": bivia_stage_substep_status(c_bivia_stats)}
+                    if eff_bivia is not None
+                    else None
+                )
+                record(
+                    "C",
+                    StageStatus.done,
+                    t0,
+                    [C_FILE, _write_trace(run_dir, "C", attempts, client.model_id)],
+                    input_hashes=c_inputs,
+                    substeps=c_substeps,
+                )
             except (LLMError, ValueError) as e:
                 trace = getattr(e, "attempts", None)
                 files = [_write_trace(run_dir, "C", trace, client.model_id)] if trace else []
@@ -409,11 +460,26 @@ def run_pipeline(
             invalidated = True
             client.set_stage("E")
             try:
+                e_bivia_stats = new_bivia_stats()
                 mapping, attempts = run_stage_e(
-                    plan, slide_plan, reqs, reg, uir, client, run_dir, vision_client=vision_client
+                    plan,
+                    slide_plan,
+                    reqs,
+                    reg,
+                    uir,
+                    client,
+                    run_dir,
+                    vision_client=vision_client,
+                    bivia=eff_bivia,
+                    bivia_stats_out=e_bivia_stats,
                 )
                 e_files = [E_FILE] + ([_write_trace(run_dir, "E", attempts, client.model_id)] if attempts else [])
-                record("E", StageStatus.done, t0, e_files, input_hashes=e_inputs)
+                e_substeps = (
+                    {"bivia_judge": bivia_stage_substep_status(e_bivia_stats)}
+                    if eff_bivia is not None
+                    else None
+                )
+                record("E", StageStatus.done, t0, e_files, input_hashes=e_inputs, substeps=e_substeps)
             except (LLMError, LLMConfigError, ValueError) as e:
                 trace = getattr(e, "attempts", None)
                 e_files = [_write_trace(run_dir, "E", trace, client.model_id)] if trace else []
@@ -593,6 +659,7 @@ def run_pipeline(
         else:
             invalidated = True
             try:
+                h_bivia_stats = new_bivia_stats()
                 _qa_rep, rendered_pngs = run_stage_h(
                     deck_path,
                     slide_plan,
@@ -605,6 +672,8 @@ def run_pipeline(
                     deck_renderer=renderer,
                     template_path=deck_ops.template_path if deck_ops is not None else None,
                     cross_render=cross_render,
+                    bivia=eff_bivia,
+                    bivia_stats_out=h_bivia_stats,
                 )
                 h_files = [H_FILE] + [_rel_to_run_dir(p, run_dir) for p in rendered_pngs]
                 if (run_dir / "render" / "deck.pdf").is_file():
@@ -617,7 +686,12 @@ def run_pipeline(
                         records["G"].input_hashes[F_FILE] = post_f_sha
                 if (run_dir / G_FILE).is_file():
                     h_inputs[G_FILE] = _file_sha256(run_dir / G_FILE)
-                record("H", StageStatus.done, t0, h_files, input_hashes=h_inputs)
+                h_substeps = (
+                    {"bivia_judge": bivia_stage_substep_status(h_bivia_stats)}
+                    if eff_bivia is not None
+                    else None
+                )
+                record("H", StageStatus.done, t0, h_files, input_hashes=h_inputs, substeps=h_substeps)
             except (
                 RendererUnavailableError,
                 RenderExecutionError,
@@ -634,6 +708,8 @@ def run_pipeline(
             stage="H", name=STAGE_NAMES["H"], status=StageStatus.skipped,
             error="skipped: stage G did not produce deck.pptx",
         )
+    if own_bivia and eff_bivia is not None:
+        eff_bivia.close()
 
     stages = [records[c] for c in "ABCDEFGH"]
     if failure:
@@ -666,6 +742,7 @@ def run_pipeline(
             "implemented_stages": list(IMPLEMENTED_STAGES),
             "research": research_summary or {"status": "not_run"},
             "assets": assets_summary or {"status": "not_run"},
+            "bivia_judge": _bivia_tool_config(eff_bivia, c_bivia_stats, e_bivia_stats, h_bivia_stats),
         },
         stages=stages,
         defaults_summary=defaults_summary,

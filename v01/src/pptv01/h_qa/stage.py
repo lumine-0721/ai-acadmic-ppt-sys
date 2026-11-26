@@ -15,6 +15,7 @@ from pptv01.contracts import (
     PageDesign,
     PageId,
     QAIssue,
+    QAIssueKind,
     QAReport,
     Recheck,
     SCHEMA_VERSION,
@@ -23,6 +24,13 @@ from pptv01.contracts import (
     SlidePlan,
     UserInputRequests,
     write_contract,
+)
+from pptv01.bivia_judge import (
+    BiviaJudge,
+    encode_image_for_bivia,
+    format_bivia_probability,
+    new_bivia_stats,
+    record_bivia_outcome,
 )
 from pptv01.g_build import compile_deck_ops
 from pptv01.renderers.protocol import (
@@ -58,6 +66,143 @@ def _format_provenance(name: str, version: str, build: str) -> str:
     return name
 
 
+def _run_bivia_h_checks(
+    pptx_path: Path,
+    slide_plan: SlidePlan,
+    reg: AssetRegistry | None,
+    uir: UserInputRequests | None,
+    mapping: SlideAssetMapping | None,
+    run_dir: Path,
+    bivia: BiviaJudge,
+    *,
+    stats: dict[str, int],
+) -> list[QAIssue]:
+    """Read-only Bivia veto check on rendered pictures & footer citations (fail-open, image veto-only)."""
+    from pptx import Presentation
+    from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+    issues: list[QAIssue] = []
+    if not pptx_path.is_file():
+        return issues
+
+    prs = Presentation(str(pptx_path))
+    page_ids: list[PageId] = [p.page_id for p in slide_plan.pages]
+    page_by_id = {p.page_id: p for p in slide_plan.pages}
+    asset_by_id = {a.asset_id: a for a in reg.assets} if reg else {}
+    req_by_id = {r.request_id: r for r in uir.requests} if uir else {}
+    ref_maps_by_page: dict[str, list[tuple[str, str]]] = {}
+    img_usage_by_pair: dict[tuple[str, str], str] = {}
+    if mapping:
+        for m in mapping.mappings:
+            if not m.accepted:
+                continue
+            bid = m.asset_id or m.request_id or ""
+            if bid:
+                img_usage_by_pair[(m.page_id, bid)] = m.usage
+            asset = asset_by_id.get(m.asset_id) if m.asset_id else None
+            if asset and asset.type and asset.type.value == "reference":
+                ref_note = asset.identifier or asset.notes or m.usage
+                if asset.file_path and (run_dir / asset.file_path).is_file():
+                    try:
+                        ref_note += "\n" + (run_dir / asset.file_path).read_text(encoding="utf-8", errors="ignore")[:1200]
+                    except OSError:
+                        pass
+                ref_maps_by_page.setdefault(m.page_id, []).append((bid, ref_note))
+
+    for idx, slide in enumerate(prs.slides):
+        pid = page_ids[idx] if idx < len(page_ids) else f"S{idx + 1:03d}"
+        sp = page_by_id.get(pid)
+        slide_title = sp.title if sp else pid
+        slide_pts = "; ".join(sp.key_points) if sp else ""
+        slide_texts: list[str] = []
+        footer_texts: list[str] = []
+
+        for s_i, sh in enumerate(slide.shapes):
+            eid = (sh.name or f"shape_{s_i}")[:64]
+            if getattr(sh, "has_text_frame", False):
+                txt = (sh.text_frame.text or "").strip()
+                if txt:
+                    if eid.lower() == "footer":
+                        footer_texts.append(txt)
+                    elif eid.lower() not in {"title"}:
+                        slide_texts.append(txt)
+            if sh.shape_type is MSO_SHAPE_TYPE.PICTURE:
+                bound_id = eid
+                desc = ""
+                if "_" in eid:
+                    parts = eid.split("_", 2)
+                    if len(parts) >= 2 and (parts[1].startswith("A") or parts[1].startswith("U")):
+                        bound_id = parts[1]
+                usage = img_usage_by_pair.get((pid, bound_id), "")
+                if bound_id in asset_by_id:
+                    a = asset_by_id[bound_id]
+                    desc = a.identifier or a.notes or ""
+                elif bound_id in req_by_id:
+                    desc = req_by_id[bound_id].need
+                try:
+                    blob = sh.image.blob
+                    ext = f".{sh.image.ext.lower()}" if getattr(sh.image, "ext", None) else ".jpg"
+                    b64, mime = encode_image_for_bivia(blob, suffix=ext)
+                except Exception:  # noqa: BLE001
+                    record_bivia_outcome(stats, "not_run")
+                    continue
+                verdict = bivia.judge_image_veto(
+                    "Does this rendered slide picture match the slide title, key points, and intended usage?",
+                    f"page_id: {pid}\ntitle: {slide_title}\nkey_points: {slide_pts}\nusage: {usage}\nasset: {bound_id} {desc}",
+                    b64,
+                    mime=mime,
+                )
+                record_bivia_outcome(stats, verdict.outcome)
+                if verdict.outcome == "veto":
+                    issues.append(QAIssue(
+                        page_id=pid,
+                        kind=QAIssueKind.content_asset_mismatch,
+                        severity=Severity.major,
+                        element_id=eid,
+                        description=f"bivia veto ({format_bivia_probability(verdict.probability)}): rendered image {bound_id} vetoed — 待补充替换素材",
+                    ))
+                elif verdict.outcome == "uncertain":
+                    issues.append(QAIssue(
+                        page_id=pid,
+                        kind=QAIssueKind.content_asset_mismatch,
+                        severity=Severity.minor,
+                        element_id=eid,
+                        description=f"bivia uncertain ({verdict.reason or 'low_confidence'}): 渲染图片 {bound_id} 待补充人工复核 (needs_review, not passed)",
+                    ))
+
+        ref_entries = ref_maps_by_page.get(pid, [])
+        if footer_texts or ref_entries:
+            cite_state = (
+                f"page_id: {pid}\ntitle: {slide_title}\nkey_points: {slide_pts}\n"
+                f"slide_body: {' | '.join(slide_texts)[:800]}\n"
+                f"footer_citations: {' | '.join(footer_texts)}\n"
+                f"references:\n" + "\n".join(f"[{rid}] {txt}" for rid, txt in ref_entries)
+            )
+            verdict = bivia.judge_boolean(
+                "Are the statements and citations on this slide supported by the cited reference entries?",
+                cite_state,
+            )
+            record_bivia_outcome(stats, verdict.outcome)
+            if verdict.outcome == "veto":
+                issues.append(QAIssue(
+                    page_id=pid,
+                    kind=QAIssueKind.content_asset_mismatch,
+                    severity=Severity.major,
+                    element_id="footer" if footer_texts else None,
+                    description=f"bivia veto ({format_bivia_probability(verdict.probability)}): slide claim unsupported by cited reference — 待补充核实出处",
+                ))
+            elif verdict.outcome == "uncertain":
+                issues.append(QAIssue(
+                    page_id=pid,
+                    kind=QAIssueKind.content_asset_mismatch,
+                    severity=Severity.minor,
+                    element_id="footer" if footer_texts else None,
+                    description=f"bivia uncertain ({verdict.reason or 'low_confidence'}): 文献支撑待补充人工复核 (needs_review, not passed)",
+                ))
+
+    return issues
+
+
 def run_stage_h(
     pptx_path: Path,
     slide_plan: SlidePlan,
@@ -73,6 +218,8 @@ def run_stage_h(
     cross_render: bool = False,
     installed_fonts: list[str] | None = None,
     max_repair_rounds: int = MAX_REPAIR_ROUNDS,
+    bivia: BiviaJudge | None = None,
+    bivia_stats_out: dict[str, int] | None = None,
 ) -> tuple[QAReport, list[Path]]:
     """Render deck.pptx to render/slide_*.png, measure, inspect QA, run bounded repairs + recheck."""
     pptx_path = Path(pptx_path)
@@ -222,6 +369,42 @@ def run_stage_h(
             seen_keys.add(k)
             final_issues.append(i)
 
+    bivia_diag: str | None = None
+    own_bivia = False
+    eff_bivia = bivia
+    if eff_bivia is None:
+        eff_bivia = BiviaJudge.from_env()
+        own_bivia = eff_bivia is not None
+    try:
+        if eff_bivia is not None:
+            h_stats = bivia_stats_out if bivia_stats_out is not None else new_bivia_stats()
+            bivia_issues = _run_bivia_h_checks(
+                pptx_path,
+                slide_plan,
+                reg,
+                uir,
+                mapping,
+                run_dir,
+                eff_bivia,
+                stats=h_stats,
+            )
+            for bi in bivia_issues:
+                bk = _issue_key(bi)
+                if bk not in seen_keys:
+                    seen_keys.add(bk)
+                    final_issues.append(bi)
+            total_bivia = sum(h_stats.values())
+            if total_bivia > 0 and h_stats.get("not_run", 0) == total_bivia:
+                bivia_diag = "bivia_judge: not_run"
+            else:
+                bivia_diag = (
+                    f"bivia_judge: pass={h_stats['pass']}, not_vetoed={h_stats['not_vetoed']}, "
+                    f"veto={h_stats['veto']}, uncertain={h_stats['uncertain']}, not_run={h_stats['not_run']}"
+                )
+    finally:
+        if own_bivia and eff_bivia is not None:
+            eff_bivia.close()
+
     n_fixed_ok = sum(1 for i in final_issues if i.fix_applied and i.recheck is Recheck.passed)
     n_unfixed = sum(
         1 for i in final_issues
@@ -242,6 +425,8 @@ def run_stage_h(
         occ_report = check_deck_occupancy(current_design, measure_result=measure_res)
         occupancy_rows = [r.to_dict() for r in occ_report.pages]
         diagnostics.append(f"fill_rate: {occ_report.detail}")
+    if bivia_diag is not None:
+        diagnostics.append(bivia_diag)
 
     reg_for_px = reg
     if reg_for_px is None and (run_dir / "asset_registry.json").is_file():

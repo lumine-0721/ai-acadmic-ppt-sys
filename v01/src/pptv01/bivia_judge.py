@@ -13,9 +13,12 @@ IMPORTANT – image judgment is a veto only, never a proof:
 
 from __future__ import annotations
 
+import base64
+import io
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping
 
 import httpx
@@ -83,6 +86,61 @@ def bivia_enabled(env: Mapping[str, str]) -> bool:
     return flag in ("1", "on") and bool(key)
 
 
+_MIME_BY_SUFFIX = {
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+}
+_STAT_KEYS = ("pass", "not_vetoed", "veto", "uncertain", "not_run")
+
+
+def encode_image_for_bivia(source: Path | str | bytes, *, suffix: str = ".jpg", max_px: int = 800) -> tuple[str, str]:
+    """Encode an image path or blob as bounded base64 JPEG (falls back to raw bytes for synthetic stubs)."""
+    if isinstance(source, (str, Path)):
+        p = Path(source)
+        raw = p.read_bytes()
+        eff_suffix = p.suffix.lower() or suffix.lower()
+    else:
+        raw = bytes(source)
+        eff_suffix = suffix.lower()
+
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(raw)) as im:
+            rgb = im.convert("RGB")
+            rgb.thumbnail((max_px, max_px))
+            buf = io.BytesIO()
+            rgb.save(buf, format="JPEG", quality=82)
+            return base64.b64encode(buf.getvalue()).decode("ascii"), "image/jpeg"
+    except Exception:  # noqa: BLE001 - mock/synthetic test bytes fall through cleanly
+        mime = _MIME_BY_SUFFIX.get(eff_suffix, "image/jpeg")
+        return base64.b64encode(raw).decode("ascii"), mime
+
+
+def new_bivia_stats() -> dict[str, int]:
+    return {k: 0 for k in _STAT_KEYS}
+
+
+def record_bivia_outcome(stats: dict[str, int] | None, outcome: str) -> None:
+    if stats is None:
+        return
+    key = outcome if outcome in _STAT_KEYS else "not_run"
+    stats[key] = int(stats.get(key, 0)) + 1
+
+
+def bivia_stage_substep_status(stats: dict[str, int]) -> str:
+    total = sum(stats.values())
+    if total > 0 and stats.get("not_run", 0) == total:
+        return "not_run"
+    return "done"
+
+
+def format_bivia_probability(probability: float | None) -> str:
+    return f"p={probability:.2f}" if isinstance(probability, (int, float)) else "p=?"
+
+
 # ---------------------------------------------------------------------------
 # Main class
 # ---------------------------------------------------------------------------
@@ -129,6 +187,14 @@ class BiviaJudge:
         return (
             f"BiviaJudge(threshold={self.threshold!r}, timeout_s={self.timeout_s!r})"
         )
+
+    def close(self) -> None:
+        client = getattr(self, "_client", None)
+        if client is not None:
+            try:
+                client.close()
+            except Exception:  # noqa: BLE001
+                pass
 
     @classmethod
     def from_env(
