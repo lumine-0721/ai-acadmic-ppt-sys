@@ -31,6 +31,7 @@ from pptv01.contracts import (
 from pptv01.user_requests import USER_INPUT_REQUESTS_FILE, build_user_input_requests
 from pptv01.llm import ChatClient, LLMConfigError, LLMError
 from pptv01.retrieval.backends import BackendError, CrossrefBackend, make_http, sanitize_url
+from pptv01.retrieval.firecrawl_backend import FirecrawlBackend
 from pptv01.retrieval.relevance import RULES_VERSION, Candidate, RelevanceFilter, filter_from_env
 
 from .image_rules import (
@@ -57,6 +58,9 @@ ENV_TIMEOUT = "PPTV01_ASSETS_TIMEOUT_S"
 ENV_CONNECT_TIMEOUT = "PPTV01_ASSETS_CONNECT_TIMEOUT_S"
 ENV_READ_TIMEOUT = "PPTV01_ASSETS_READ_TIMEOUT_S"
 ENV_BUDGET = "PPTV01_ASSETS_BUDGET_S"
+ENV_FIRECRAWL = "PPTV01_FIRECRAWL"  # 1 = enable Firecrawl hard-page escalation
+ENV_FIRECRAWL_MAX_CALLS = "PPTV01_FIRECRAWL_MAX_CALLS_PER_RUN"
+ENV_FIRECRAWL_MIN_TEXT = "PPTV01_FIRECRAWL_MIN_TEXT"
 NO_TARGET_ENTITY_TYPES = {"dataset", "publication"}
 MAX_DOWNLOAD_TRIES = 5
 MAX_PIXEL_RANK_POOL = 3
@@ -79,6 +83,9 @@ class DServices:
     connect_timeout_s: float = 10.0
     read_timeout_s: float = 20.0
     progress_fn: Callable[[str], None] | None = None
+    firecrawl: FirecrawlBackend | None = None
+    firecrawl_max_calls: int = 20
+    firecrawl_min_text: int = 500
 
     @property
     def enabled(self) -> bool:
@@ -126,6 +133,16 @@ def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.Bas
         from pptv01.e_mapping.stage import vision_client_from_env
         v_client = vision_client_from_env(env)
     pf = pixel_filter if pixel_filter is not None else PixelFilter.from_env(env, progress_fn=progress_fn)
+    fc = None
+    fc_max_calls = 20
+    fc_min_text = 500
+    if env.get(ENV_FIRECRAWL, "").strip() == "1":
+        fc = FirecrawlBackend()
+        try:
+            fc_max_calls = int(env.get(ENV_FIRECRAWL_MAX_CALLS, "") or 20)
+            fc_min_text = int(env.get(ENV_FIRECRAWL_MIN_TEXT, "") or 500)
+        except ValueError:
+            fc_max_calls, fc_min_text = 20, 500
     return DServices(
         http,
         WikidataClient(http),
@@ -140,6 +157,9 @@ def services_from_env(env: Mapping[str, str] | None = None, transport: httpx.Bas
         connect_timeout_s=connect_to,
         read_timeout_s=read_to,
         progress_fn=progress_fn,
+        firecrawl=fc,
+        firecrawl_max_calls=fc_max_calls,
+        firecrawl_min_text=fc_min_text,
     )
 
 

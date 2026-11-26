@@ -36,6 +36,7 @@ from .backends import (
     WikipediaBackend,
     make_http,
 )
+from .firecrawl_backend import FirecrawlBackend
 
 ENV_RESEARCH = "PPTV01_RESEARCH"                  # auto (default) | none | comma list: wikipedia,crossref,searxng
 ENV_CONTACT = "PPTV01_RESEARCH_CONTACT"
@@ -160,6 +161,21 @@ def research_from_env(env: Mapping[str, str] | None = None,
     if mode == "none":
         return DisabledResearch(f"{ENV_RESEARCH}=none")
     names = list(DEFAULT_BACKENDS) if mode == "auto" else [n.strip() for n in mode.split(",") if n.strip()]
+    fc_gate = env.get("PPTV01_FIRECRAWL", "").strip() == "1"
+    fc_max_calls = 20
+    if "firecrawl" in names and not fc_gate:
+        raise LLMConfigError("firecrawl backend requires PPTV01_FIRECRAWL=1")
+    if fc_gate:
+        raw_fc = env.get("PPTV01_FIRECRAWL_MAX_CALLS_PER_RUN", "").strip()
+        if raw_fc:
+            try:
+                fc_max_calls = int(raw_fc)
+            except ValueError:
+                raise LLMConfigError("PPTV01_FIRECRAWL_MAX_CALLS_PER_RUN must be an integer") from None
+        if fc_max_calls <= 0:
+            raise LLMConfigError("PPTV01_FIRECRAWL_MAX_CALLS_PER_RUN must be > 0")
+        if mode == "auto" and "firecrawl" not in names:
+            names.append("firecrawl")
     try:
         timeout = float(env.get(ENV_TIMEOUT, "20"))
         max_hits = int(env.get(ENV_MAX_HITS, "3"))
@@ -179,6 +195,8 @@ def research_from_env(env: Mapping[str, str] | None = None,
             if not url:
                 raise LLMConfigError(f"{ENV_RESEARCH} includes searxng but {ENV_SEARXNG} is not set")
             backends.append(SearxngBackend(http, url))
+        elif n == "firecrawl":
+            backends.append(FirecrawlBackend(max_calls=fc_max_calls))
         else:
-            raise LLMConfigError(f"unknown research backend {n!r}; use wikipedia, crossref, searxng, auto or none")
+            raise LLMConfigError(f"unknown research backend {n!r}; use wikipedia, crossref, searxng, firecrawl, auto or none")
     return LiveResearch(backends, max_hits=max_hits, max_queries=max_queries, relevance=filter_from_env(env))
