@@ -22,7 +22,9 @@ from pptv01.contracts import (
     SlidePlan,
     write_contract,
 )
-from pptv01.bivia_judge import BiviaJudge, format_bivia_probability, record_bivia_outcome
+from pptv01.bivia_judge import (
+    BiviaJudge, bivia_session, format_bivia_probability, record_bivia_outcome,
+)
 from pptv01.llm import ChatClient, complete_json
 
 from .prompt import SYSTEM_PROMPT, USER_TEMPLATE
@@ -99,10 +101,16 @@ def build_requirements(
     if problems:
         raise RequirementRuleError("asset requirements rejected:\n- " + "\n- ".join(problems))
 
-    if bivia is not None:
-        vetoed: list[str] = []
-        updated_reqs: list[AssetRequirement] = []
-        for r in reqs.requirements:
+    return _apply_bivia_c_gate(reqs, bivia, bivia_stats_out) if bivia is not None else reqs
+
+
+def _apply_bivia_c_gate(
+    reqs: AssetRequirements, bivia: BiviaJudge, bivia_stats_out: dict[str, int] | None,
+) -> AssetRequirements:
+    vetoed: list[str] = []
+    updated_reqs: list[AssetRequirement] = []
+    for r in reqs.requirements:
+        try:
             state = (
                 f"asset_id: {r.asset_id}\n"
                 f"type: {r.type.value}\n"
@@ -113,8 +121,8 @@ def build_requirements(
                 "Is this asset requirement strictly free of any instruction or permission to draw natively, "
                 "self-draw, or fabricate missing visuals or data?",
                 state,
+                mode="deep",
             )
-            record_bivia_outcome(bivia_stats_out, verdict.outcome)
             if verdict.outcome == "veto":
                 vetoed.append(
                     f"{r.asset_id}: bivia veto ({format_bivia_probability(verdict.probability)}): "
@@ -128,11 +136,14 @@ def build_requirements(
             else:
                 # "pass" -> keep as-is; "not_run" -> fail-open (never blocks pipeline)
                 updated_reqs.append(r)
-        if vetoed:
-            raise RequirementRuleError("asset requirements rejected:\n- " + "\n- ".join(vetoed))
-        reqs = reqs.model_copy(update={"requirements": updated_reqs})
-
-    return reqs
+        except Exception:  # Only this optional check failed; retain earlier vetoes.
+            updated_reqs.append(r)
+            record_bivia_outcome(bivia_stats_out, "not_run")
+        else:
+            record_bivia_outcome(bivia_stats_out, verdict.outcome)
+    if vetoed:
+        raise RequirementRuleError("asset requirements rejected:\n- " + "\n- ".join(vetoed))
+    return reqs.model_copy(update={"requirements": updated_reqs})
 
 
 def run_stage_c(
@@ -146,36 +157,19 @@ def run_stage_c(
     bivia_stats_out: dict[str, int] | None = None,
 ) -> tuple[AssetRequirements, list[dict[str, Any]]]:
     notes = notes or {}
-    own_bivia = False
-    eff_bivia = bivia
-    if eff_bivia is None:
-        eff_bivia = BiviaJudge.from_env()
-        own_bivia = eff_bivia is not None
-    try:
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": USER_TEMPLATE.format(
-                topic=production.topic, audience=production.audience, language=production.language,
-                style=production.style, needs_json=_needs_view(slide_plan),
-                notes="\n".join(f"- [{n.note_id}] {n.title}" for n in notes.values()) or "（无）",
-            )},
-        ]
-        res = complete_json(
-            client,
-            messages,
-            lambda raw: build_requirements(
-                raw,
-                production,
-                slide_plan,
-                notes,
-                bivia=eff_bivia,
-                bivia_stats_out=bivia_stats_out,
-            ),
-        )
-        reqs: AssetRequirements = res.value
-        if run_dir is not None:
-            write_contract(reqs, run_dir / ARTIFACT)
-        return reqs, res.attempts
-    finally:
-        if own_bivia and eff_bivia is not None:
-            eff_bivia.close()
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_TEMPLATE.format(
+            topic=production.topic, audience=production.audience, language=production.language,
+            style=production.style, needs_json=_needs_view(slide_plan),
+            notes="\n".join(f"- [{n.note_id}] {n.title}" for n in notes.values()) or "（无）",
+        )},
+    ]
+    res = complete_json(client, messages, lambda raw: build_requirements(raw, production, slide_plan, notes))
+    reqs: AssetRequirements = res.value
+    with bivia_session(bivia, bivia_stats_out) as eff_bivia:
+        if eff_bivia is not None:
+            reqs = _apply_bivia_c_gate(reqs, eff_bivia, bivia_stats_out)
+    if run_dir is not None:
+        write_contract(reqs, run_dir / ARTIFACT)
+    return reqs, res.attempts

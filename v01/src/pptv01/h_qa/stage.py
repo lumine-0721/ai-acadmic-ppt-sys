@@ -27,9 +27,11 @@ from pptv01.contracts import (
 )
 from pptv01.bivia_judge import (
     BiviaJudge,
+    bivia_session,
     encode_image_for_bivia,
     format_bivia_probability,
     new_bivia_stats,
+    guarded_verdict,
     record_bivia_outcome,
 )
 from pptv01.g_build import compile_deck_ops
@@ -146,11 +148,13 @@ def _run_bivia_h_checks(
                 except Exception:  # noqa: BLE001
                     record_bivia_outcome(stats, "not_run")
                     continue
-                verdict = bivia.judge_image_veto(
+                verdict = guarded_verdict(
+                    bivia.judge_image_veto,
                     "Does this rendered slide picture match the slide title, key points, and intended usage?",
                     f"page_id: {pid}\ntitle: {slide_title}\nkey_points: {slide_pts}\nusage: {usage}\nasset: {bound_id} {desc}",
                     b64,
                     mime=mime,
+                    mode="deep",
                 )
                 record_bivia_outcome(stats, verdict.outcome)
                 if verdict.outcome == "veto":
@@ -178,9 +182,11 @@ def _run_bivia_h_checks(
                 f"footer_citations: {' | '.join(footer_texts)}\n"
                 f"references:\n" + "\n".join(f"[{rid}] {txt}" for rid, txt in ref_entries)
             )
-            verdict = bivia.judge_boolean(
+            verdict = guarded_verdict(
+                bivia.judge_boolean,
                 "Are the statements and citations on this slide supported by the cited reference entries?",
                 cite_state,
+                mode="deep",
             )
             record_bivia_outcome(stats, verdict.outcome)
             if verdict.outcome == "veto":
@@ -370,24 +376,20 @@ def run_stage_h(
             final_issues.append(i)
 
     bivia_diag: str | None = None
-    own_bivia = False
-    eff_bivia = bivia
-    if eff_bivia is None:
-        eff_bivia = BiviaJudge.from_env()
-        own_bivia = eff_bivia is not None
-    try:
+    h_stats = bivia_stats_out if bivia_stats_out is not None else new_bivia_stats()
+    prior_not_run = h_stats.get("not_run", 0)
+    with bivia_session(bivia, h_stats) as eff_bivia:
         if eff_bivia is not None:
-            h_stats = bivia_stats_out if bivia_stats_out is not None else new_bivia_stats()
-            bivia_issues = _run_bivia_h_checks(
-                pptx_path,
-                slide_plan,
-                reg,
-                uir,
-                mapping,
-                run_dir,
-                eff_bivia,
-                stats=h_stats,
-            )
+            gate_stats = h_stats.copy()
+            try:
+                bivia_issues = _run_bivia_h_checks(
+                    pptx_path, slide_plan, reg, uir, mapping, run_dir, eff_bivia, stats=gate_stats,
+                )
+            except Exception:  # Includes the optional PPTX read, not deterministic QA.
+                record_bivia_outcome(h_stats, "not_run")
+                bivia_issues = []
+            else:
+                h_stats.update(gate_stats)
             for bi in bivia_issues:
                 bk = _issue_key(bi)
                 if bk not in seen_keys:
@@ -398,12 +400,11 @@ def run_stage_h(
                 bivia_diag = "bivia_judge: not_run"
             else:
                 bivia_diag = (
-                    f"bivia_judge: pass={h_stats['pass']}, not_vetoed={h_stats['not_vetoed']}, "
-                    f"veto={h_stats['veto']}, uncertain={h_stats['uncertain']}, not_run={h_stats['not_run']}"
+                    f"bivia_judge: pass={h_stats.get('pass', 0)}, not_vetoed={h_stats.get('not_vetoed', 0)}, "
+                    f"veto={h_stats.get('veto', 0)}, uncertain={h_stats.get('uncertain', 0)}, not_run={h_stats.get('not_run', 0)}"
                 )
-    finally:
-        if own_bivia and eff_bivia is not None:
-            eff_bivia.close()
+        elif h_stats.get("not_run", 0) > prior_not_run:
+            bivia_diag = "bivia_judge: not_run"
 
     n_fixed_ok = sum(1 for i in final_issues if i.fix_applied and i.recheck is Recheck.passed)
     n_unfixed = sum(

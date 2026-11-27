@@ -15,17 +15,21 @@ from __future__ import annotations
 
 import base64
 import io
+import logging
 import os
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Iterator, Mapping, ParamSpec
 
 import httpx
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+
+_LOG = logging.getLogger(__name__)
 
 BASE_URL = "https://api.articul8.ai/bivia"
 
@@ -130,6 +134,38 @@ def record_bivia_outcome(stats: dict[str, int] | None, outcome: str) -> None:
     stats[key] = int(stats.get(key, 0)) + 1
 
 
+_P = ParamSpec("_P")
+
+
+def guarded_verdict(check: Callable[_P, JudgeVerdict], *args: _P.args, **kwargs: _P.kwargs) -> JudgeVerdict:
+    """One broken check must not discard earlier decisions or skip later assets."""
+    try:
+        return check(*args, **kwargs)
+    except Exception as exc:
+        return JudgeVerdict(outcome="not_run", reason=type(exc).__name__)
+
+
+@contextmanager
+def bivia_session(
+    supplied: BiviaJudge | None, stats: dict[str, int] | None = None,
+) -> Iterator[BiviaJudge | None]:
+    """Fail open on acquisition/cleanup; never suppress errors in the caller's work."""
+    owned = None
+    if supplied is None:
+        try:
+            owned = BiviaJudge.from_env()
+        except Exception:
+            record_bivia_outcome(stats, "not_run")
+    try:
+        yield supplied if supplied is not None else owned
+    finally:
+        if owned is not None:
+            try:
+                owned.close()
+            except Exception:
+                record_bivia_outcome(stats, "not_run")
+
+
 def bivia_stage_substep_status(stats: dict[str, int]) -> str:
     total = sum(stats.values())
     if total > 0 and stats.get("not_run", 0) == total:
@@ -222,6 +258,9 @@ class BiviaJudge:
                 threshold = float(raw_threshold)
             except ValueError:
                 pass  # keep default
+            else:
+                if threshold != DEFAULT_THRESHOLD:
+                    _LOG.warning("%s overrides default %.2f with %s", ENV_THRESHOLD, DEFAULT_THRESHOLD, threshold)
 
         # Parse timeout, falling back on error.
         timeout_s = DEFAULT_TIMEOUT_S
@@ -265,6 +304,8 @@ class BiviaJudge:
             "mode": mode,
             "think": think,
         }
+        if mode == "deep":
+            payload["allow_abstain"] = True
         if images:
             payload["images"] = images
 

@@ -19,7 +19,7 @@ from typing import Any, Callable, Literal
 
 from pptv01 import __version__
 from pptv01.a_plan import ARTIFACT as A_FILE, run_stage_a
-from pptv01.bivia_judge import BiviaJudge, bivia_stage_substep_status, new_bivia_stats
+from pptv01.bivia_judge import BiviaJudge, bivia_session, bivia_stage_substep_status, new_bivia_stats
 from pptv01.c_asset_requirements import ARTIFACT as C_FILE, run_stage_c
 from pptv01.b_slide_plan import ARTIFACT as B_FILE, RESEARCH_ARTIFACT, ResearchFailed, run_stage_b
 from pptv01.contracts import (
@@ -210,11 +210,22 @@ def run_pipeline(
         raise FileExistsError(f"run directory already exists: {run_dir} (use resume only for the agent backend)")
     run_dir.mkdir(parents=True, exist_ok=resume)
 
-    own_bivia = False
-    eff_bivia = bivia
-    if eff_bivia is None:
-        eff_bivia = BiviaJudge.from_env()
-        own_bivia = eff_bivia is not None
+    with bivia_session(bivia) as eff_bivia:
+        return _run_stages(
+            utterance, run_dir, run_id, client, resume=resume, on_missing=on_missing,
+            research=research, assets=assets, vision_client=vision_client, eff_bivia=eff_bivia,
+            render_fn=render_fn, renderer=renderer, compile_only=compile_only,
+            cross_render=cross_render, clock=clock,
+        )
+
+
+def _run_stages(
+    utterance: str, run_dir: Path, run_id: str, client: ChatClient, *,
+    resume: bool, on_missing: Literal["placeholder", "wait"], research: ResearchProvider | None,
+    assets: DServices | None, vision_client: ChatClient | None, eff_bivia: BiviaJudge | None,
+    render_fn: RenderFn | None, renderer: DeckRenderer | None, compile_only: bool,
+    cross_render: bool, clock: Callable[[], datetime],
+) -> tuple[RunReport, Path]:
     c_bivia_stats = new_bivia_stats()
     e_bivia_stats = new_bivia_stats()
     h_bivia_stats = new_bivia_stats()
@@ -708,8 +719,6 @@ def run_pipeline(
             stage="H", name=STAGE_NAMES["H"], status=StageStatus.skipped,
             error="skipped: stage G did not produce deck.pptx",
         )
-    if own_bivia and eff_bivia is not None:
-        eff_bivia.close()
 
     stages = [records[c] for c in "ABCDEFGH"]
     if failure:

@@ -11,10 +11,9 @@ import httpx
 import pytest
 from PIL import Image
 
-from pptv01.bivia_judge import BiviaJudge
+from pptv01.bivia_judge import BiviaJudge, new_bivia_stats
 from pptv01.c_asset_requirements import RequirementRuleError, run_stage_c
 from pptv01.c_asset_requirements.stage import build_requirements
-from pptv01.llm import LLMOutputError
 from pptv01.contracts import (
     AssetChecks,
     AssetRecord,
@@ -83,6 +82,18 @@ def _judge_with(payload_or_fn, *, threshold: float = 0.90) -> BiviaJudge:
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=payload_or_fn, request=request)
     return BiviaJudge("a8-secret-token-never-logged", threshold=threshold, transport=httpx.MockTransport(handler))
+
+
+def _abstaining_judge(requests):
+    def handler(request):
+        requests.append(json.loads(request.content))
+        return httpx.Response(200, json={"status": "abstained", "reason": "insufficient_evidence"})
+    return _judge_with(handler)
+
+
+def _assert_deep_abstentions(requests, stats):
+    assert requests and all(p["mode"] == "deep" and p["allow_abstain"] is True for p in requests)
+    assert stats == {"uncertain": len(requests)}
 
 
 def _setup_eh_fixture(run_dir: Path, *, with_image: bool = True, with_ref: bool = True):
@@ -274,6 +285,32 @@ def test_bivia_key_never_appears_in_run_artifacts(monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 # Rule 2 & 3: C stage pass / veto / uncertain / fail-open
 # ---------------------------------------------------------------------------
+def test_stage_c_deep_abstention(tmp_path):
+    requests, stats = [], {}
+    reqs, _ = run_stage_c(*_c_inputs(), FakeClient([GOOD_C]), tmp_path,
+                          bivia=_abstaining_judge(requests), bivia_stats_out=stats)
+    _assert_deep_abstentions(requests, stats)
+    assert len(requests) == len(reqs.requirements)
+    assert all(any("待补充" in a for a in r.acceptance) for r in reqs.requirements)
+
+
+def test_stage_c_veto_once_without_llm_retry(tmp_path):
+    pp, sp = _c_inputs()
+    client = FakeClient([GOOD_C])
+    stats, requests = {}, []
+
+    def handler(request):
+        requests.append(json.loads(request.content)["state"])
+        value = "no" if "A001" in requests[-1] else "yes"
+        return httpx.Response(200, json={"value": value, "probability": 0.95})
+
+    with pytest.raises(RequirementRuleError, match="A001: bivia veto"):
+        run_stage_c(pp, sp, client, tmp_path, bivia=_judge_with(handler), bivia_stats_out=stats)
+    assert len(client.calls) == 1 and len(requests) == 2
+    assert stats == {"veto": 1, "pass": 1}
+    assert not (tmp_path / "asset_requirements.json").exists()
+
+
 def test_stage_c_bivia_veto_uncertain_and_fail_open(tmp_path):
     pp, sp = _c_inputs()
 
@@ -282,12 +319,12 @@ def test_stage_c_bivia_veto_uncertain_and_fail_open(tmp_path):
     reqs_pass, _ = run_stage_c(pp, sp, FakeClient([GOOD_C]), tmp_path / "pass", bivia=j_pass)
     assert all("Bivia" not in a for r in reqs_pass.requirements for a in r.acceptance)
 
-    # Veto >= 0.90 rejects (build_requirements raises RequirementRuleError; run_stage_c exhausts retry -> LLMOutputError)
+    # A semantic veto rejects directly; it is not a malformed LLM response.
     j_veto = _judge_with({"value": "no", "probability": 0.91, "status": "answered"})
     with pytest.raises(RequirementRuleError, match="bivia veto"):
         build_requirements(GOOD_C, pp, sp, bivia=j_veto)
-    with pytest.raises(LLMOutputError, match="bivia veto"):
-        run_stage_c(pp, sp, FakeClient([GOOD_C, GOOD_C]), tmp_path / "veto", bivia=j_veto)
+    with pytest.raises(RequirementRuleError, match="bivia veto"):
+        run_stage_c(pp, sp, FakeClient([GOOD_C]), tmp_path / "veto", bivia=j_veto)
 
     # Abstain and low confidence (< 0.90) NEVER count as pass -> annotate 待补充 / needs_review
     for idx, body in enumerate((
@@ -312,6 +349,17 @@ def test_stage_c_bivia_veto_uncertain_and_fail_open(tmp_path):
 # ---------------------------------------------------------------------------
 # Rule 2, 3 & 4: Stage E image veto-only + abstain/low-conf -> 待补充
 # ---------------------------------------------------------------------------
+def test_stage_e_deep_abstention_for_image_and_reference(tmp_path):
+    requests, stats = [], {}
+    mp, _ = run_stage_e(*_setup_eh_fixture(tmp_path), tmp_path,
+                        bivia=_abstaining_judge(requests), bivia_stats_out=stats)
+    _assert_deep_abstentions(requests, stats)
+    assert sorted("images" in p for p in requests) == [False, True]
+    assert len(mp.mappings) == 2
+    assert all(not m.accepted and m.relevance == "not_assessed" and "待补充" in m.relevance_note
+               for m in mp.mappings)
+
+
 def test_stage_e_image_veto_only_yes_is_not_proof(tmp_path):
     plan, splan, req_obj, reg_obj, uir_obj, e_client = _setup_eh_fixture(tmp_path / "yes_not_proof", with_ref=False)
     j_yes = _judge_with({"value": "yes", "probability": 0.99, "status": "answered"})
@@ -376,19 +424,76 @@ def test_stage_e_reference_boolean_pass_veto_and_fail_open(tmp_path, monkeypatch
 # ---------------------------------------------------------------------------
 # Rule 2-5: Stage H & full runner fail-open + veto + uncertain
 # ---------------------------------------------------------------------------
-def test_stage_h_bivia_veto_uncertain_yes_not_proof_and_fail_open(tmp_path, monkeypatch):
-    monkeypatch.setattr("pptv01.bivia_judge._sleep", lambda _: None)
-    run_dir = tmp_path / "h_run"
+def _prepare_h(run_dir):
     plan, splan, req_obj, reg_obj, uir_obj, e_client = _setup_eh_fixture(run_dir)
     mp, _ = run_stage_e(plan, splan, req_obj, reg_obj, uir_obj, e_client, run_dir)
     design = run_stage_f(plan, splan, reg_obj, uir_obj, mp, run_dir, theme_id="academic-default")
     pptx_path = run_stage_g(splan, design, reg_obj, uir_obj, run_dir)
+    return pptx_path, splan, dict(design=design, reg=reg_obj, uir=uir_obj, mapping=mp, render_fn=_test_render)
+
+
+class _RaisingJudge:
+    def judge_boolean(self, *args, **kwargs):
+        raise RuntimeError("unavailable")
+
+    judge_image_veto = judge_boolean
+
+
+def test_stage_c_raising_judge_records_not_run(tmp_path):
+    stats = {}
+    pp, sp = _c_inputs()
+    expected = build_requirements(GOOD_C, pp, sp)
+    actual, _ = run_stage_c(pp, sp, FakeClient([GOOD_C]), tmp_path, bivia=_RaisingJudge(), bivia_stats_out=stats)
+    assert actual == expected
+    assert stats == {"not_run": len(expected.requirements)}
+
+
+def test_stage_e_raising_judge_records_not_run(tmp_path):
+    stats = {}
+    mp, _ = run_stage_e(*_setup_eh_fixture(tmp_path), tmp_path, bivia=_RaisingJudge(), bivia_stats_out=stats)
+    assert len(mp.mappings) == 2 and all(m.accepted and "not_run" in m.relevance_note for m in mp.mappings)
+    assert stats == {"not_run": 2}
+
+
+def test_stage_e_gate_preparation_error_preserves_mapping(tmp_path, monkeypatch):
+    inputs = _setup_eh_fixture(tmp_path)
+    expected, _ = run_stage_e(*inputs, tmp_path)
+
+    def broken_encoding(*args, **kwargs):
+        raise ValueError("unexpected encoder failure")
+    monkeypatch.setattr("pptv01.e_mapping.stage.encode_image_for_bivia", broken_encoding)
+    stats = {}
+    actual, _ = run_stage_e(*_setup_eh_fixture(tmp_path), tmp_path, bivia=_RaisingJudge(), bivia_stats_out=stats)
+    assert actual == expected and stats == {"not_run": 1}
+
+
+@pytest.mark.parametrize("broken_reader", [False, True], ids=["judge", "pptx-read"])
+def test_stage_h_exception_records_not_run(tmp_path, monkeypatch, broken_reader):
+    pptx_path, splan, kwargs = _prepare_h(tmp_path)
+    if broken_reader:
+        rendered = _test_render(pptx_path, tmp_path / "render")
+        kwargs["render_fn"] = lambda *_: rendered
+
+        def unreadable(*args, **kwargs):
+            raise OSError("optional PPTX inspection failed")
+        monkeypatch.setattr("pptx.Presentation", unreadable)
+    stats = {}
+    report, pngs = run_stage_h(pptx_path, splan, tmp_path, **kwargs, bivia=_RaisingJudge(), bivia_stats_out=stats)
+    assert pngs and (tmp_path / "qa_report.json").is_file()
+    assert "bivia_judge: not_run" in report.diagnostics
+    assert set(stats) == {"not_run"} and stats["not_run"] >= 1
+
+
+def test_stage_h_bivia_veto_uncertain_yes_not_proof_and_fail_open(tmp_path, monkeypatch):
+    monkeypatch.setattr("pptv01.bivia_judge._sleep", lambda _: None)
+    run_dir = tmp_path / "h_run"
+    pptx_path, splan, h_kwargs = _prepare_h(run_dir)
+    mp = h_kwargs["mapping"]
 
     # Veto on picture & reference -> emits content_asset_mismatch major issues
     rep_veto, _ = run_stage_h(
         pptx_path, splan, run_dir,
-        design=design, reg=reg_obj, uir=uir_obj, mapping=mp,
-        render_fn=_test_render,
+        **h_kwargs,
         bivia=_judge_with({"value": "no", "probability": 0.95, "status": "answered"}),
     )
     bivia_issues = [i for i in rep_veto.issues if "bivia veto" in i.description]
@@ -396,12 +501,14 @@ def test_stage_h_bivia_veto_uncertain_yes_not_proof_and_fail_open(tmp_path, monk
     assert all(i.kind is QAIssueKind.content_asset_mismatch and i.severity is Severity.major for i in bivia_issues)
 
     # Abstain / low confidence -> emits minor 待补充 needs_review issues (never silent pass)
+    requests, stats = [], new_bivia_stats()
     rep_unc, _ = run_stage_h(
         pptx_path, splan, run_dir,
-        design=design, reg=reg_obj, uir=uir_obj, mapping=mp,
-        render_fn=_test_render,
-        bivia=_judge_with({"value": None, "probability": None, "status": "abstained", "abstain": True}),
+        **h_kwargs,
+        bivia=_abstaining_judge(requests), bivia_stats_out=stats,
     )
+    _assert_deep_abstentions(requests, {k: v for k, v in stats.items() if v})
+    assert {bool(p.get("images")) for p in requests} == {True, False}
     unc_issues = [i for i in rep_unc.issues if "bivia uncertain" in i.description and "待补充" in i.description]
     assert len(unc_issues) >= 1
     assert all(i.severity is Severity.minor for i in unc_issues)
@@ -417,8 +524,7 @@ def test_stage_h_bivia_veto_uncertain_yes_not_proof_and_fail_open(tmp_path, monk
     )
     rep_det, _ = run_stage_h(
         pptx_path, splan, run_dir,
-        design=design, reg=reg_obj, uir=uir_obj, mapping=bad_mp,
-        render_fn=_test_render,
+        **{**h_kwargs, "mapping": bad_mp},
         bivia=_judge_with({"value": "yes", "probability": 0.99, "status": "answered"}),
     )
     assert any("irrelevant" in i.description for i in rep_det.issues)
@@ -426,11 +532,46 @@ def test_stage_h_bivia_veto_uncertain_yes_not_proof_and_fail_open(tmp_path, monk
     # Fail-open on network errors -> H still succeeds and records bivia_judge: not_run
     rep_err, _ = run_stage_h(
         pptx_path, splan, run_dir,
-        design=design, reg=reg_obj, uir=uir_obj, mapping=mp,
-        render_fn=_test_render,
+        **h_kwargs,
         bivia=_judge_with(lambda req: (_ for _ in ()).throw(httpx.ConnectError("offline", request=req))),
     )
     assert "bivia_judge: not_run" in rep_err.diagnostics
+
+
+def test_stage_h_sparse_stats_render_missing_counts_as_zero(tmp_path):
+    pptx_path, splan, kwargs = _prepare_h(tmp_path)
+    stats = {}
+    report, _ = run_stage_h(
+        pptx_path, splan, tmp_path, **kwargs, bivia=_abstaining_judge([]), bivia_stats_out=stats,
+    )
+    assert set(stats) == {"uncertain"} and stats["uncertain"] > 0
+    assert (f"bivia_judge: pass=0, not_vetoed=0, veto=0, uncertain={stats['uncertain']}, not_run=0"
+            in report.diagnostics)
+
+
+@pytest.mark.parametrize("injected", [False, True], ids=["owned", "borrowed"])
+def test_runner_closes_only_owned_judge_on_exception(tmp_path, monkeypatch, injected):
+    judge = _judge_with({"status": "abstained"})
+    closed = []
+    monkeypatch.setattr(BiviaJudge, "from_env", lambda: judge)
+    original_close = judge.close
+
+    def close():
+        closed.append(True)
+        original_close()
+    monkeypatch.setattr(judge, "close", close)
+
+    def failing_clock():
+        raise RuntimeError("test clock")
+
+    try:
+        with pytest.raises(RuntimeError, match="test clock"):
+            run_pipeline("test", tmp_path, FakeClient([]), run_id="lifetime",
+                         bivia=judge if injected else None, clock=failing_clock)
+        assert len(closed) == (0 if injected else 1)
+    finally:
+        if injected:
+            original_close()
 
 
 def test_runner_fail_open_end_to_end_when_bivia_returns_500(monkeypatch, tmp_path):

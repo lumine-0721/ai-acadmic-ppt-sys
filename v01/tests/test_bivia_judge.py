@@ -44,6 +44,19 @@ def test_threshold_default_and_env_override():
 # --------------------------------------------------------------------------- #
 # judge_boolean outcomes
 # --------------------------------------------------------------------------- #
+def test_threshold_override_warns_and_changes_verdict(caplog):
+    env = {bj.ENV_FLAG: "on", bj.ENV_KEY: "test-only", bj.ENV_THRESHOLD: "0.75"}
+    transport = httpx.MockTransport(_handler({"value": "no", "probability": 0.80}))
+    judge = BiviaJudge.from_env(env, transport=transport)
+    try:
+        assert judge.judge_boolean("Q").outcome == "veto"
+    finally:
+        judge.close()
+    assert [(r.name, r.levelname, r.getMessage()) for r in caplog.records] == [
+        (bj.__name__, "WARNING", "PPTV01_BIVIA_THRESHOLD overrides default 0.90 with 0.75")
+    ]
+
+
 def test_pass_on_yes_above_threshold():
     judge = BiviaJudge(
         "test-key",
@@ -197,4 +210,5 @@ def test_request_shape():
     assert payload["question"] == "Is the sky blue?"
     assert payload["state"] == "ctx"
     assert payload["mode"] == "fast"
+    assert "allow_abstain" not in payload
     assert payload["think"] is False

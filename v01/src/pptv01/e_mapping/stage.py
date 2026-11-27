@@ -33,8 +33,10 @@ from pptv01.contracts import (
 )
 from pptv01.bivia_judge import (
     BiviaJudge,
+    bivia_session,
     encode_image_for_bivia,
     format_bivia_probability,
+    guarded_verdict,
     record_bivia_outcome,
 )
 from pptv01.llm import ChatClient, LLMConfigError, OpenAICompatClient, complete_json
@@ -244,12 +246,14 @@ def _apply_bivia_e_gate(
                     "relevance_note": _merge_note(m.relevance_note, f"bivia: not_run (read_error: {type(exc).__name__})"),
                 }))
                 continue
-            verdict = bivia.judge_image_veto(
+            verdict = guarded_verdict(
+                bivia.judge_image_veto,
                 "Does this image genuinely match the required entity/scene for this slide and planned usage "
                 "(not a wrong place, wrong object, or unrelated decorative graphic)?",
                 slide_ctx,
                 b64,
                 mime=mime,
+                mode="deep",
             )
             record_bivia_outcome(stats, verdict.outcome)
             if verdict.outcome == "veto":
@@ -292,9 +296,11 @@ def _apply_bivia_e_gate(
                     ref_snippet = ref_path.read_text(encoding="utf-8", errors="ignore")[:1500]
                 except OSError:
                     ref_snippet = ""
-            verdict = bivia.judge_boolean(
+            verdict = guarded_verdict(
+                bivia.judge_boolean,
                 "Are this slide's claims and citation usage supported by and pertinent to this reference record?",
                 f"{slide_ctx}\nreference_record:\n{ref_snippet}",
+                mode="deep",
             )
             record_bivia_outcome(stats, verdict.outcome)
             if verdict.outcome == "pass":
@@ -516,31 +522,27 @@ def run_stage_e(
     mapping: SlideAssetMapping = res.value
 
     own_vision = None
-    own_bivia = False
-    eff_bivia = bivia
     try:
         v_cli = vision_client if vision_client is not None else vision_client_from_env()
         if vision_client is None and v_cli is not None:
             own_vision = v_cli
         mapping = _assess_visual_relevance(mapping, slide_plan, pool, run_dir_p, v_cli)
-        if eff_bivia is None:
-            eff_bivia = BiviaJudge.from_env()
-            own_bivia = eff_bivia is not None
-        if eff_bivia is not None:
-            mapping = _apply_bivia_e_gate(
-                mapping,
-                production,
-                slide_plan,
-                pool,
-                run_dir_p,
-                eff_bivia,
-                stats=bivia_stats_out,
-            )
     finally:
         if own_vision is not None:
             own_vision.close()
-        if own_bivia and eff_bivia is not None:
-            eff_bivia.close()
+
+    with bivia_session(bivia, bivia_stats_out) as eff_bivia:
+        if eff_bivia is not None:
+            gate_stats = dict(bivia_stats_out or {})
+            try:
+                mapping = _apply_bivia_e_gate(
+                    mapping, production, slide_plan, pool, run_dir_p, eff_bivia, stats=gate_stats,
+                )
+            except Exception:  # Optional gate preparation; keep the deterministic mapping.
+                record_bivia_outcome(bivia_stats_out, "not_run")
+            else:
+                if bivia_stats_out is not None:
+                    bivia_stats_out.update(gate_stats)
 
     if run_dir is not None:
         write_contract(mapping, run_dir_p / ARTIFACT)
