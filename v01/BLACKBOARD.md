@@ -14,12 +14,13 @@
 
 | 负责人 | 事项 | 分支 | 状态 | 进度一句话 | 更新 |
 |---|---|---|---|---|---|
-| lumine | F7 定版口径：宝特已定 (b) 分层级联（fast p≥0.985 直接 veto/pass，其余升级 deep+abstain；C 改 reask 一次再否决；常量不读 env） | — | 待验收 | 细则、阈值依据（11 次 live + 60 题历史评估）、测试清单在 `v01/HANDOFF-baote-2026-11-27.md`「宝特复核结论」一节；lumine 点头后下发 T2-F7 任务书（顺带修漏检 ①–⑥）。关单前不在生产跑次里开 Bivia | 2026-11-27 |
+| Codex | F7 分层级联 + 7 条漏检修复（甲），再按 S1→S2→S3 分段合并进 pipeline（乙） | 新开 `feature/codex-t2-f7`（父 8e697c1）；合并目标 `feature/v01-pipeline` | 待接手 | 任务书 `v01/HANDOFF-codex-2026-11-27-f7.md`，lumine 交付即授权 S1–S3 合并；S3 须等宝特把甲部分回执标为验收通过 | 2026-11-27 |
+| 宝特 | F7 已定版：(b) 分层级联（lumine 授权宝特定），合并顺序也已定（S1 office-renderer → S2 Keenable/Firecrawl 集成 → S3 Bivia 接线 + 修复 + F7） | — | 待验收 | 已下发 Codex 任务书；宝特等 Codex 回执来验收，验收通过后才放行 S3。关单前不在生产跑次里开 Bivia | 2026-11-27 |
 | 基米 | T2-F6：T3 R9 冲突备忘全文落盘进 HANDOFF | `feature/v01-pipeline` | 待接手 | 目前只有口头四点摘要，无档可查；批改意见已在 T2 批改全文里 | 2026-11-27 |
-| 宝特 | 复核 T2 代行批改与 Codex 修复；F7 定口径 | — | 待验收 | 已交：认 A−；修复分支 clean-env 实测 679/0/8、exit 0；补 8 条漏检；合并意见：修复可合，但合进 pipeline 会带入整条栈（78 个提交），须 lumine 逐段拍板。详见复核包末节 | 2026-11-27 |
 
 ## 冻结与决定（动之前先看）
 
 - 合并一律由 lumine 拍板，任何人不得自行合并。
+  - 2026-11-27：lumine 把 T2/F7 这条栈的合并决定委托给宝特。宝特已定 S1→S2→S3 分段合并，只限 `feature/v01-pipeline`，由 Codex 凭 `v01/HANDOFF-codex-2026-11-27-f7.md` 乙部分执行。三条冻结分支本身仍然只读。
 - 冻结中：`feature/v01-office-renderer`、`feature/miu-integration-aux`、`feature/v01-bivia-wiring`（基线，只读参照）。
 - 零合同变更是全队红线：contracts / schema / fixture / benchmark 不动。
