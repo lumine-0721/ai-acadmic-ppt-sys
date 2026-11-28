@@ -14,7 +14,7 @@
 
 | 负责人 | 事项 | 分支 | 状态 | 进度一句话 | 更新 |
 |---|---|---|---|---|---|
-| Codex | F7 分层级联 + 7 条漏检修复（甲），再按 S1→S2→S3 分段合并进 pipeline（乙） | 新开 `feature/codex-t2-f7`（父 8e697c1）；合并目标 `feature/v01-pipeline` | 待接手 | 任务书 `v01/HANDOFF-codex-2026-11-27-f7.md`，lumine 交付即授权 S1–S3 合并；S3 须等验收人（现为 Miu宝，接替宝特）把甲部分回执标为验收通过 | 2026-11-27 |
+| Codex | F7 分层级联 + 7 条漏检修复（甲），再按 S1→S2→S3 分段合并进 pipeline（乙） | 新开 `feature/codex-t2-f7`（父 8e697c1）；合并目标 `feature/v01-pipeline` | 进行中 | 已从 8e697c1 开工实现 F7 级联、预算、trace 与回放；S3 等 Miu宝验收。 | 2026-11-28 |
 | Miu宝 | **交接**：宝特/云宝/文宝可能 2026-11-29 起冻结（lumine 可能不续订），项目派任务、验收、写任务书由 Miu宝 接手 | `feature/v01-pipeline` | 待接手 | 先读 `v01/HANDOFF-miu-takeover-2026-11-27.md`（交接总书，含验收步骤、分支地图、基线、资产索引）；调研原件已抄进 `v01/docs/research/` | 2026-11-27 |
 | Miu宝（原宝特） | F7 甲部分回执验收：F7 已定版 (b) 分层级联，合并顺序 S1 office-renderer → S2 Keenable/Firecrawl 集成 → S3 Bivia 接线 + 修复 + F7 | `feature/codex-t2-f7`（只读验收） | 待接手 | 等 Codex 回执；按交接总书 §4.1 逐条验收，通过后在 Codex 行写「甲部分验收通过」才放行 S3。关单前不在生产跑次里开 Bivia | 2026-11-27 |
 | Miu宝（原宝特） | 第 9 轮任务书（版式即数据 / 选版式 / 主题选择，原 T-18） | `feature/v01-pipeline` | 待接手 | 调研已完成并入库 `v01/docs/research/round9_port_survey.md`（含 Miu宝评审与更正）；等 S3 合完 + lumine 拍板 5 个未决项（见交接总书 §4.2）后再写 | 2026-11-27 |
